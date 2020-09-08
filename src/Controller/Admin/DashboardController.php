@@ -44,10 +44,14 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToCrud('Applications', 'fas fa-rocket', Deployments::class),
             MenuItem::linkToCrud('Organisations', 'far fa-building', Organization::class),
 
-            MenuItem::section('Parametres'),
-            MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class),
-            MenuItem::linkToCrud('Noeuds de Controle', 'fa fa-sitemap', ControlNode::class),
-            MenuItem::linkToCrud('Utilisateurs', 'fas fa-users', User::class),
+            MenuItem::section('Parametres')
+                ->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)
+                ->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Noeuds de Controle', 'fa fa-sitemap', ControlNode::class)
+                ->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Utilisateurs', 'fas fa-users', User::class)
+                ->setPermission('ROLE_SUPPORT'),
         ];
     }
 
