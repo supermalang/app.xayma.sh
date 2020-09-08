@@ -52,6 +52,12 @@ class Deployments
      */
     private $owner;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Organization::class, inversedBy="services")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $organization;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -137,6 +143,18 @@ class Deployments
     public function setOwner(?int $owner): self
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getOrganization(): ?Organization
+    {
+        return $this->organization;
+    }
+
+    public function setOrganization(?Organization $organization): self
+    {
+        $this->organization = $organization;
 
         return $this;
     }

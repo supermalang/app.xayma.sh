@@ -1,0 +1,54 @@
+{% extends '@EasyAdmin/page/login.html.twig' %}
+
+{% block page_title %}Register{% endblock %}
+
+{% block wrapper_wrapper %}
+    {% for flashError in app.flashes('verify_email_error') %}
+        <div class="alert alert-danger" role="alert">{{ flashError }}</div>
+    {% endfor %}
+
+
+    <section class="content">
+        <form method="post" action="{{ action|default('') }}">
+            {% if csrf_token_intention|default(false) %}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token(csrf_token_intention) }}">
+            {% endif %}
+            
+            <div class="form-group field-text">
+                <label for="email" class="sr-only form-control-label required">Adress E-Mail</label>
+                <div class="form-widget form-widget-with-icon">
+                    <i class="fa fa-fw fa-user"></i>
+                    <input type="text" id="email" name="{{ email |default('email') }}" class="form-control" required autofocus>
+                </div>
+            </div>
+        
+            <div class="form-group field-text">
+                <label for="password" class="sr-only form-control-label required">Password</label>
+                <div class="form-widget form-widget-with-icon">
+                    <i class="fa fa-fw fa-user"></i>
+                    <input type="text" id="email" name="{{ email |default('email') }}" class="form-control" required autofocus>
+                </div>
+            </div>
+        
+            <div class="form-group field-text">
+                <label for="email" class="sr-only form-control-label required">First Name</label>
+                <div class="form-widget form-widget-with-icon">
+                    <i class="fa fa-fw fa-user"></i>
+                    <input type="text" id="email" name="{{ email |default('email') }}" class="form-control" required autofocus>
+                </div>
+            </div>
+            
+            <div class="form-group field-text">
+                <label for="email" class="sr-only form-control-label required">Last Name</label>
+                <div class="form-widget form-widget-with-icon">
+                    <i class="fa fa-fw fa-user"></i>
+                    <input type="text" id="email" name="{{ email |default('email') }}" class="form-control" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group field-button">
+                <button type="submit" class="btn btn-primary btn-lg btn-block" onclick="this.form.submit(); this.disabled=true;">{{ _sign_in_label|default('Test') }}</button>
+            </div>
+        </form>
+    </section>
+{% endblock %}
