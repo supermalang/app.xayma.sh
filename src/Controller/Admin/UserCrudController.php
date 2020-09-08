@@ -24,7 +24,8 @@ class UserCrudController extends AbstractCrudController
             TextField::new('lastName', 'Nom'),
             EmailField::new('email', 'e-Mail'),
             TextField::new('password', 'Mot de passe')
-                ->setFormType(PasswordType::class),
+                ->setFormType(PasswordType::class)
+                ->onlyOnForms(),
         ];
     }
 }
