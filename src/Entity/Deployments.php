@@ -30,17 +30,24 @@ class Deployments
     /**
      * @ORM\Column(type="string", length=20)
      */
-    private $status;
+    private $status = 'Active';
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime", nullable=false)
      */
     private $created;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\ManyToOne(targetEntity=Organization::class, inversedBy="services")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private $createdby;
+    private $organization;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $createdBy;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -48,15 +55,24 @@ class Deployments
     private $modified;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\ManyToOne(targetEntity=User::class)
      */
-    private $owner;
+    private $modifiedBy;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Organization::class, inversedBy="services")
+     * @ORM\ManyToOne(targetEntity=Service::class, inversedBy="deployments")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $organization;
+    private $service;
+
+    public function getUpdateInfo()
+    {
+        if (null != $this->getModified()) {
+            return $this->getModified()->format('M d, Y h:i:s').' by '.$this->getModifiedBy();
+        }
+
+        return ' - ';
+    }
 
     public function getId(): ?int
     {
@@ -99,26 +115,26 @@ class Deployments
         return $this;
     }
 
-    public function getCreated(): ?\DateTimeInterface
+    public function getOrganization(): ?Organization
     {
-        return $this->created;
+        return $this->organization;
     }
 
-    public function setCreated(?\DateTimeInterface $created): self
+    public function setOrganization(?Organization $organization): self
     {
-        $this->created = $created;
+        $this->organization = $organization;
 
         return $this;
     }
 
-    public function getCreatedby(): ?int
+    public function getCreatedBy(): ?User
     {
-        return $this->createdby;
+        return $this->createdBy;
     }
 
-    public function setCreatedby(int $createdby): self
+    public function setCreatedBy(?User $createdBy): self
     {
-        $this->createdby = $createdby;
+        $this->createdBy = $createdBy;
 
         return $this;
     }
@@ -135,26 +151,38 @@ class Deployments
         return $this;
     }
 
-    public function getOwner(): ?int
+    public function getModifiedBy(): ?User
     {
-        return $this->owner;
+        return $this->modifiedBy;
     }
 
-    public function setOwner(?int $owner): self
+    public function setModifiedBy(?User $modifiedBy): self
     {
-        $this->owner = $owner;
+        $this->modifiedBy = $modifiedBy;
 
         return $this;
     }
 
-    public function getOrganization(): ?Organization
+    public function getCreated(): ?\DateTimeInterface
     {
-        return $this->organization;
+        return $this->created;
     }
 
-    public function setOrganization(?Organization $organization): self
+    public function setCreated(\DateTimeInterface $created): self
     {
-        $this->organization = $organization;
+        $this->created = $created;
+
+        return $this;
+    }
+
+    public function getService(): ?Service
+    {
+        return $this->service;
+    }
+
+    public function setService(?Service $service): self
+    {
+        $this->service = $service;
 
         return $this;
     }

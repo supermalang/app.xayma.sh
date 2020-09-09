@@ -53,10 +53,14 @@ class User implements UserInterface
      */
     private $lastName;
 
-
     public function __construct()
     {
         $this->organizations = new ArrayCollection();
+    }
+
+    public function __toString()
+    {
+        return $this->getFirstName().' '.$this->getLastName();
     }
 
     public function getId(): ?int
@@ -188,5 +192,4 @@ class User implements UserInterface
 
         return $this;
     }
-
 }
