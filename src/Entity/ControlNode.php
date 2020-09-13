@@ -63,7 +63,7 @@ class ControlNode
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $authorizationToken = 'ab';
+    private $authorizationToken;
 
     public function __construct()
     {

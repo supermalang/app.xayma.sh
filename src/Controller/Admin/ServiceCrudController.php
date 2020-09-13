@@ -20,13 +20,11 @@ class ServiceCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id')
-                ->onlyOnIndex()->onlyOnDetail(),
+            IdField::new('id')->hideOnForm(),
             TextField::new('label'),
             TextareaField::new('description')->hideOnIndex(),
-            TextField::new('tags'),
-            TextField::new('skipTags'),
-            TextField::new('variables'),
+            IdField::new('awxId')->onlyOnForms(),
+            TextField::new('version'),
             AssociationField::new('controleNode'),
             AssociationField::new('deployments')
                 ->hideOnForm(),

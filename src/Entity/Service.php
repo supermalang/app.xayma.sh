@@ -30,21 +30,6 @@ class Service
     private $description;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $tags;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $skipTags;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $variables;
-
-    /**
      * @ORM\ManyToOne(targetEntity=ControlNode::class, inversedBy="services")
      */
     private $controleNode;
@@ -74,6 +59,16 @@ class Service
      * @ORM\OneToMany(targetEntity=Deployments::class, mappedBy="service")
      */
     private $deployments;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $awxId;
+
+    /**
+     * @ORM\Column(type="string", length=8, nullable=true)
+     */
+    private $version;
 
     public function __construct()
     {
@@ -110,42 +105,6 @@ class Service
     public function setDescription(?string $description): self
     {
         $this->description = $description;
-
-        return $this;
-    }
-
-    public function getTags(): ?string
-    {
-        return $this->tags;
-    }
-
-    public function setTags(?string $tags): self
-    {
-        $this->tags = $tags;
-
-        return $this;
-    }
-
-    public function getSkipTags(): ?string
-    {
-        return $this->skipTags;
-    }
-
-    public function setSkipTags(?string $skipTags): self
-    {
-        $this->skipTags = $skipTags;
-
-        return $this;
-    }
-
-    public function getVariables(): ?string
-    {
-        return $this->variables;
-    }
-
-    public function setVariables(?string $variables): self
-    {
-        $this->variables = $variables;
 
         return $this;
     }
@@ -237,6 +196,30 @@ class Service
                 $deployment->setService(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAwxId(): ?int
+    {
+        return $this->awxId;
+    }
+
+    public function setAwxId(int $awxId): self
+    {
+        $this->awxId = $awxId;
+
+        return $this;
+    }
+
+    public function getVersion(): ?string
+    {
+        return $this->version;
+    }
+
+    public function setVersion(?string $version): self
+    {
+        $this->version = $version;
 
         return $this;
     }
