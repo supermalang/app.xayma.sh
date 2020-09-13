@@ -60,6 +60,11 @@ class ControlNode
      */
     private $modifiedBy;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $authorizationToken = 'ab';
+
     public function __construct()
     {
         $this->services = new ArrayCollection();
@@ -186,6 +191,18 @@ class ControlNode
     public function setModifiedBy(?User $modifiedBy): self
     {
         $this->modifiedBy = $modifiedBy;
+
+        return $this;
+    }
+
+    public function getAuthorizationToken(): ?string
+    {
+        return $this->authorizationToken;
+    }
+
+    public function setAuthorizationToken(string $authorizationToken): self
+    {
+        $this->authorizationToken = $authorizationToken;
 
         return $this;
     }

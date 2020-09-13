@@ -23,6 +23,7 @@ class ControlNodeCrudController extends AbstractCrudController
             IdField::new('id')->onlyOnDetail(),
             TextField::new('label'),
             UrlField::new('address'),
+            TextField::new('authorizationToken')->onlyOnForms(),
             DateTimeField::new('created')
                 ->onlyOnDetail(),
             AssociationField::new('createdBy')
