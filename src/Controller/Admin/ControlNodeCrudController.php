@@ -9,6 +9,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 
 class ControlNodeCrudController extends AbstractCrudController
 {
@@ -23,7 +24,8 @@ class ControlNodeCrudController extends AbstractCrudController
             IdField::new('id')->onlyOnDetail(),
             TextField::new('label'),
             UrlField::new('address'),
-            TextField::new('authorizationToken')->onlyOnForms(),
+            TextField::new('authorizationToken')->onlyWhenCreating(),
+            TextField::new('authorizationToken')->onlyWhenUpdating()->setFormType(PasswordType::class),
             DateTimeField::new('created')
                 ->onlyOnDetail(),
             AssociationField::new('createdBy')
