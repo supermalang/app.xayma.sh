@@ -23,7 +23,7 @@ class ServiceCrudController extends AbstractCrudController
             IdField::new('id')->hideOnForm(),
             TextField::new('label'),
             TextareaField::new('description')->hideOnIndex(),
-            IdField::new('awxId')->onlyOnForms(),
+            IdField::new('awxId', 'Job Template ID')->onlyOnForms(),
             TextField::new('version'),
             AssociationField::new('controleNode'),
             AssociationField::new('deployments')

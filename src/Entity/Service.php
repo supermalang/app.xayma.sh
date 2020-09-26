@@ -77,7 +77,7 @@ class Service
 
     public function __toString()
     {
-        return $this->getLabel();
+        return $this->getLabel().' - '.$this->getVersion();
     }
 
     public function getId(): ?int
