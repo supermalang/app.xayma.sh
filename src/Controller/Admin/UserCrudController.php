@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
@@ -26,23 +27,16 @@ class UserCrudController extends AbstractCrudController
             TextField::new('firstName', 'Prenom(s)'),
             TextField::new('lastName', 'Nom'),
             EmailField::new('email', 'e-Mail'),
-            TextField::new('password', 'Mot de passe')
-                ->setFormType(PasswordType::class)
-                ->onlyWhenCreating(),
-            ChoiceField::new('roles')
-                ->allowMultipleChoices()
-                ->setChoices([
-                    'Customer' => 'ROLE_USER',
-                    'Help-Desk' => 'ROLE_SUPPORT',
-                    'Admin' => 'ROLE_ADMIN',
-                ]),
+            TextField::new('password', 'Mot de passe')->setFormType(PasswordType::class)->onlyWhenCreating(),
+            ChoiceField::new('roles')->allowMultipleChoices()
+                ->setChoices(['Customer' => 'ROLE_USER', 'Help-Desk' => 'ROLE_SUPPORT', 'Admin' => 'ROLE_ADMIN']),
         ];
     }
 
     public function configureActions(Actions $actions): Actions
     {
         return $actions
-            // you can set permissions for built-in actions in the same way
+            ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->setPermission(Action::NEW, 'ROLE_ADMIN')
             ->setPermission(Action::EDIT, 'ROLE_ADMIN')
             ->setPermission(Action::DELETE, 'ROLE_ADMIN')

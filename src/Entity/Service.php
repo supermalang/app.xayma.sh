@@ -31,6 +31,7 @@ class Service
 
     /**
      * @ORM\ManyToOne(targetEntity=ControlNode::class, inversedBy="services")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $controleNode;
 
@@ -69,6 +70,26 @@ class Service
      * @ORM\Column(type="string", length=8, nullable=true)
      */
     private $version;
+
+    /**
+     * @ORM\Column(type="string", length=40)
+     */
+    private $deployTags;
+
+    /**
+     * @ORM\Column(type="string", length=40)
+     */
+    private $stopTags;
+
+    /**
+     * @ORM\Column(type="string", length=40)
+     */
+    private $startTags;
+
+    /**
+     * @ORM\Column(type="string", length=40)
+     */
+    private $suspendTags;
 
     public function __construct()
     {
@@ -220,6 +241,54 @@ class Service
     public function setVersion(?string $version): self
     {
         $this->version = $version;
+
+        return $this;
+    }
+
+    public function getDeployTags(): ?string
+    {
+        return $this->deployTags;
+    }
+
+    public function setDeployTags(string $deployTags): self
+    {
+        $this->deployTags = $deployTags;
+
+        return $this;
+    }
+
+    public function getStopTags(): ?string
+    {
+        return $this->stopTags;
+    }
+
+    public function setStopTags(string $stopTags): self
+    {
+        $this->stopTags = $stopTags;
+
+        return $this;
+    }
+
+    public function getStartTags(): ?string
+    {
+        return $this->startTags;
+    }
+
+    public function setStartTags(string $startTags): self
+    {
+        $this->startTags = $startTags;
+
+        return $this;
+    }
+
+    public function getSuspendTags(): ?string
+    {
+        return $this->suspendTags;
+    }
+
+    public function setSuspendTags(string $suspendTags): self
+    {
+        $this->suspendTags = $suspendTags;
 
         return $this;
     }

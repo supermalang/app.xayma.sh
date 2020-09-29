@@ -7,6 +7,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
@@ -23,19 +25,18 @@ class ServiceCrudController extends AbstractCrudController
             IdField::new('id')->hideOnForm(),
             TextField::new('label'),
             TextareaField::new('description')->hideOnIndex(),
-            IdField::new('awxId', 'Job Template ID')->onlyOnForms(),
-            TextField::new('version'),
-            AssociationField::new('controleNode'),
-            AssociationField::new('deployments')
-                ->hideOnForm(),
-            DateTimeField::new('created')
-                ->onlyOnDetail(),
-            AssociationField::new('createdBy')
-                ->onlyOnDetail(),
-            DateTimeField::new('modified')
-                ->onlyOnDetail(),
-            AssociationField::new('modifiedBy')
-                ->onlyOnDetail(),
+            AssociationField::new('controleNode')->setRequired(true),
+            IntegerField::new('awxId', 'Job Template ID')->onlyOnForms(),
+            NumberField::new('version'),
+            TextField::new('deployTags')->onlyOnForms(),
+            TextField::new('stopTags')->onlyOnForms(),
+            TextField::new('startTags')->onlyOnForms(),
+            TextField::new('suspendTags')->onlyOnForms(),
+            AssociationField::new('deployments')->hideOnForm(),
+            DateTimeField::new('created')->onlyOnDetail(),
+            AssociationField::new('createdBy')->onlyOnDetail(),
+            DateTimeField::new('modified')->onlyOnDetail(),
+            AssociationField::new('modifiedBy')->onlyOnDetail(),
         ];
     }
 }

@@ -39,19 +39,13 @@ class DashboardController extends AbstractDashboardController
     {
         return [
             MenuItem::linkToDashboard('Dashboard', 'far fa-chart-bar'),
-
             MenuItem::section('Mes services'),
             MenuItem::linkToCrud('Applications', 'fas fa-rocket', Deployments::class),
             MenuItem::linkToCrud('Organisations', 'far fa-building', Organization::class),
-
-            MenuItem::section('Parametres')
-                ->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)
-                ->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Noeuds de Controle', 'fa fa-sitemap', ControlNode::class)
-                ->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Utilisateurs', 'fas fa-users', User::class)
-                ->setPermission('ROLE_SUPPORT'),
+            MenuItem::section('Parametres')->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Noeuds de Controle', 'fa fa-sitemap', ControlNode::class)->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Utilisateurs', 'fas fa-users', User::class)->setPermission('ROLE_SUPPORT'),
         ];
     }
 
@@ -65,7 +59,6 @@ class DashboardController extends AbstractDashboardController
             ->setName($user->getFirstName())
             // use this method if you don't want to display the name of the user
             ->displayUserName(true)
-
             // you can use any type of menu item, except submenus
             ->addMenuItems([
                 MenuItem::linkToLogout('Mon profil', 'fa fa-id-card'),

@@ -30,7 +30,8 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         return [
             // Before creating any entity managed by EasyAdmin
             BeforeEntityPersistedEvent::class => [
-                ['launchNewDeployment', 40],
+                ['setDeploymentOrganization', 40],
+                ['launchNewDeployment', 35],
                 ['setCreatedTime', 30],
                 ['setCreatedByUser', 20],
                 ['encryptUserPassword', 10],
@@ -40,6 +41,18 @@ class EasyAdminSubscriber implements EventSubscriberInterface
                 ['setModifiedByUser', 10],
             ],
         ];
+    }
+
+    public function setDeploymentOrganization(BeforeEntityPersistedEvent $event)
+    {
+        $entity = $event->getEntityInstance();
+
+        if ($entity instanceof Deployments) {
+            if (null == $entity->getOrganization()) {
+                $Organizations_array = $this->security->getUser()->getOrganizations()->toArray();
+                $entity->setOrganization($Organizations_array[0]);
+            }
+        }
     }
 
     public function launchNewDeployment(BeforeEntityPersistedEvent $event)
@@ -60,10 +73,11 @@ class EasyAdminSubscriber implements EventSubscriberInterface
             $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
 
             $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $entity->getDomainName(), 'version' => $version];
+            $deployment_tags = $entity->getService()->getDeployTags();
             $response = $this->client->request(
                 'POST',
                 $controlNodeUrl,
-                ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars]]
+                ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $deployment_tags]]
             );
         }
     }

@@ -35,14 +35,10 @@ class ControlNodeCrudController extends AbstractCrudController
             UrlField::new('address'),
             TextField::new('authorizationToken')->onlyWhenCreating(),
             TextField::new('authorizationToken')->onlyWhenUpdating()->setFormType(PasswordType::class),
-            DateTimeField::new('created')
-                ->onlyOnDetail(),
-            AssociationField::new('createdBy')
-                ->onlyOnDetail(),
-            DateTimeField::new('modified')
-                ->onlyOnDetail(),
-            AssociationField::new('modifiedBy')
-                ->onlyOnDetail(),
+            DateTimeField::new('created')->onlyOnDetail(),
+            AssociationField::new('createdBy')->onlyOnDetail(),
+            DateTimeField::new('modified')->onlyOnDetail(),
+            AssociationField::new('modifiedBy')->onlyOnDetail(),
         ];
     }
 }
