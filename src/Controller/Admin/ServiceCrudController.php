@@ -8,7 +8,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
@@ -27,7 +26,7 @@ class ServiceCrudController extends AbstractCrudController
             TextareaField::new('description')->hideOnIndex(),
             AssociationField::new('controleNode')->setRequired(true),
             IntegerField::new('awxId', 'Job Template ID')->onlyOnForms(),
-            NumberField::new('version'),
+            IdField::new('version'),
             TextField::new('deployTags')->onlyOnForms(),
             TextField::new('stopTags')->onlyOnForms(),
             TextField::new('startTags')->onlyOnForms(),

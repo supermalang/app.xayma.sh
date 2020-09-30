@@ -64,7 +64,6 @@ class EasyAdminSubscriber implements EventSubscriberInterface
             $controlNodeUrl = $entity->getService()->getControleNode()->getAddress()
                 .'/api/v2/job_templates/'.$awxId.'/launch/';
             $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
-
             $slugger = new AsciiSlugger();
             $instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
             $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
@@ -72,12 +71,18 @@ class EasyAdminSubscriber implements EventSubscriberInterface
 
             $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
 
-            $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $entity->getDomainName(), 'version' => $version];
+            $domain = str_replace('http://', '', $entity->getDomainName());
+            $domain = str_replace('https://', '', $domain);
+
+            $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
             $deployment_tags = $entity->getService()->getDeployTags();
+
+            $body = ['extra_vars' => $extra_vars, 'job_tags' => $deployment_tags];
+
             $response = $this->client->request(
                 'POST',
                 $controlNodeUrl,
-                ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $deployment_tags]]
+                ['headers' => $headers, 'json' => $body]
             );
         }
     }

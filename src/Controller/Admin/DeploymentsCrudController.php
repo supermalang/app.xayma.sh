@@ -22,19 +22,22 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Workflow\Registry;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DeploymentsCrudController extends AbstractCrudController
 {
     private $security;
     private $workflow;
 
-    public function __construct(Security $security, Registry $workflowRegistry, CrudUrlGenerator $crudUrlGenerator, EntityManagerInterface $em)
+    public function __construct(Security $security, Registry $workflowRegistry, CrudUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
         $this->crudUrlGenerator = $crudUrlGenerator;
         $this->em = $em;
+        $this->client = $client;
     }
 
     public static function getEntityFqcn(): string
@@ -89,15 +92,37 @@ class DeploymentsCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $restartInstance = Action::new('restartInstanceAction', 'Restart', 'fas fa-redo')
-            ->linkToCrudAction('stopInstance')
-            ->setCssClass('text-warning btn btn-link')
+            ->linkToCrudAction('restartInstance')
+            ->setCssClass('text-danger btn btn-link')
         ;
 
         $suspendInstance = Action::new('suspendInstance', 'Pause', 'far fa-pause-circle')
-            //->displayIf(static function ($entity) {
-             //   return $entity->isPublished();
-            //})
+            ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
             ->linkToCrudAction('suspendInstance')
+            ->setCssClass('text-danger btn btn-link')
+        ;
+
+        $adminSuspendInstance = Action::new('adminSuspendInstance', 'Disable', 'far fa-pause-circle')
+            ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
+            ->linkToCrudAction('adminSuspendInstance')
+            ->setCssClass('text-danger btn btn-link')
+            ;
+
+        $reactivateInstance = Action::new('reactivateInstance', 'Start', 'far fa-play-circle')
+            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })
+            ->linkToCrudAction('activateInstance')
+            ->setCssClass('text-danger btn btn-link')
+        ;
+
+        $adminReactivateInstance = Action::new('adminReactivateInstance', 'Enable', 'far fa-pause-circle')
+            ->displayIf(static function ($entity) { return 'suspended_by_admin' == $entity->getStatus(); })
+            ->linkToCrudAction('adminActivateInstance')
+            ->setCssClass('text-danger btn btn-link')
+        ;
+
+        $archiveInstance = Action::new('archiveInstance', 'Archive', 'far fa-pause-circle')
+            ->displayIf(static function ($entity) { return in_array($entity->getStatus(), ['suspended_by_admin', 'suspended', 'stopped']); })
+            ->linkToCrudAction('archiveInstance')
             ->setCssClass('text-danger btn btn-link')
         ;
 
@@ -105,8 +130,13 @@ class DeploymentsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
-            ->add(Crud::PAGE_DETAIL, $restartInstance)
+            ->add(Crud::PAGE_DETAIL, $archiveInstance)
+            ->add(Crud::PAGE_DETAIL, $adminSuspendInstance)
+            ->add(Crud::PAGE_DETAIL, $adminReactivateInstance)
             ->add(Crud::PAGE_DETAIL, $suspendInstance)
+            ->add(Crud::PAGE_DETAIL, $reactivateInstance)
+            ->setPermission($adminSuspendInstance, 'ROLE_SUPPORT')
+            ->setPermission($adminReactivateInstance, 'ROLE_SUPPORT')
         ;
     }
 
@@ -126,19 +156,110 @@ class DeploymentsCrudController extends AbstractCrudController
             $entity->setModified(new \DateTime());
             $entity->setModifiedBy($this->security->getUser());
             $this->updateEntity($this->em, $entity);
+
+            $url = $this->crudUrlGenerator->build()
+                ->setController(DeploymentsCrudController::class)
+                ->setAction(Action::INDEX)
+                ->generateUrl()
+            ;
+
+            return $this->redirect($url);
         }
-
-        $url = $this->crudUrlGenerator->build()
-            ->setController(DeploymentsCrudController::class)
-            ->setAction(Action::INDEX)
-            ->generateUrl()
-        ;
-
-        return $this->redirect($url);
     }
 
     public function suspendInstance(AdminContext $context)
     {
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $job_tags = $entity->getService()->getSuspendTags();
+
+        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+        $this->updateDeployment($entity, $job_tags_);
+
         return $this->fireTransition($context, 'suspend');
+    }
+
+    public function adminSuspendInstance(AdminContext $context)
+    {
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $job_tags = $entity->getService()->getSuspendTags();
+
+        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+        $this->updateDeployment($entity, $job_tags_);
+
+        return $this->fireTransition($context, 'admin_suspend');
+    }
+
+    public function activateInstance(AdminContext $context)
+    {
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $job_tags = $entity->getService()->getStartTags();
+
+        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+        $this->updateDeployment($entity, $job_tags_);
+
+        return $this->fireTransition($context, 'reactivate');
+    }
+
+    public function adminActivateInstance(AdminContext $context)
+    {
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $job_tags = $entity->getService()->getStartTags();
+
+        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+        $this->updateDeployment($entity, $job_tags_);
+
+        return $this->fireTransition($context, 'admin_reactivate');
+    }
+
+    public function restartInstance(AdminContext $context)
+    {
+        $this->suspendInstance($context);
+        $this->activateInstance($context);
+    }
+
+    public function archiveInstance(AdminContext $context)
+    {
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $job_tags = $entity->getService()->getStartTags();
+
+        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+        $this->updateDeployment($entity, $job_tags_);
+
+        $this->fireTransition($context, 'suspended_to_archive');
+
+        $this->fireTransition($context, 'suspended_by_admin_to_archive');
+
+        return $this->fireTransition($context, 'stopped_to_archive');
+    }
+
+    public function updateDeployment(Deployments $entity, $job_tags)
+    {
+        $awxId = $entity->getService()->getAwxId();
+        $controlNodeUrl = $entity->getService()->getControleNode()->getAddress()
+            .'/api/v2/job_templates/'.$awxId.'/launch/';
+        $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
+
+        $slugger = new AsciiSlugger();
+        $instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
+        $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
+        $version = $entity->getService()->getVersion();
+
+        $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
+
+        $domain = str_replace('http://', '', $entity->getDomainName());
+        $domain = str_replace('https://', '', $domain);
+
+        $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
+
+        return $this->client->request(
+            'POST',
+            $controlNodeUrl,
+            ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
+        );
     }
 }
