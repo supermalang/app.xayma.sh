@@ -30,7 +30,7 @@ class Deployments
     /**
      * @ORM\Column(type="string", length=20)
      */
-    private $status = 'Active';
+    private $status = 'active';
 
     /**
      * @ORM\Column(type="datetime", nullable=false)

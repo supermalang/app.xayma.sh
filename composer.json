@@ -18,6 +18,7 @@
         "symfony/yaml": "4.4.*"
     },
     "require-dev": {
+        "symfony/expression-language": "4.4.*",
         "symfony/maker-bundle": "^1.21",
         "symfony/stopwatch": "^4.4",
         "symfony/twig-bundle": "^4.4",

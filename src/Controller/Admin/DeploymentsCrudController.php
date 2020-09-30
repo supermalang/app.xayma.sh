@@ -3,12 +3,14 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Deployments;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -18,15 +20,21 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Workflow\Registry;
 
 class DeploymentsCrudController extends AbstractCrudController
 {
     private $security;
+    private $workflow;
 
-    public function __construct(Security $security)
+    public function __construct(Security $security, Registry $workflowRegistry, CrudUrlGenerator $crudUrlGenerator, EntityManagerInterface $em)
     {
         $this->security = $security;
+        $this->workflowRegistry = $workflowRegistry;
+        $this->crudUrlGenerator = $crudUrlGenerator;
+        $this->em = $em;
     }
 
     public static function getEntityFqcn(): string
@@ -85,7 +93,7 @@ class DeploymentsCrudController extends AbstractCrudController
             ->setCssClass('text-warning btn btn-link')
         ;
 
-        $suspendInstance = Action::new('suspendInstanceAction', 'Pause', 'far fa-pause-circle')
+        $suspendInstance = Action::new('suspendInstance', 'Pause', 'far fa-pause-circle')
             //->displayIf(static function ($entity) {
              //   return $entity->isPublished();
             //})
@@ -100,5 +108,37 @@ class DeploymentsCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $restartInstance)
             ->add(Crud::PAGE_DETAIL, $suspendInstance)
         ;
+    }
+
+    /**
+     * Run transition from one state to another and redirect to the list view.
+     *
+     * @param string $transition Transition fo fire
+     */
+    public function fireTransition(AdminContext $context, string $transition)
+    {
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $workflow = $this->workflowRegistry->get($entity);
+
+        if ($workflow->can($entity, $transition)) {
+            $workflow->apply($entity, $transition);
+            $entity->setModified(new \DateTime());
+            $entity->setModifiedBy($this->security->getUser());
+            $this->updateEntity($this->em, $entity);
+        }
+
+        $url = $this->crudUrlGenerator->build()
+            ->setController(DeploymentsCrudController::class)
+            ->setAction(Action::INDEX)
+            ->generateUrl()
+        ;
+
+        return $this->redirect($url);
+    }
+
+    public function suspendInstance(AdminContext $context)
+    {
+        return $this->fireTransition($context, 'suspend');
     }
 }
