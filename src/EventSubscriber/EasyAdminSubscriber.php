@@ -150,10 +150,10 @@ class EasyAdminSubscriber implements EventSubscriberInterface
                 $entity->setSlug($slugField);
             }
 
-            $org_folder = '../public/uploads/'.$entity->getSlug();
+            $upl_folder = '../public/uploads/';
 
             // The organization folder or instance subfolder to create
-            $folder = $entity instanceof Organization ? $org_folder : $org_folder.'/'.$entity->getSlug();
+            $folder = $entity instanceof Organization ? $upl_folder.'/'.$entity->getSlug() : $upl_folder.$entity->getOrganization()->getSlug().'/'.$entity->getSlug();
 
             /** Created a folder hierarchy so that users can upload addons, using the file manager */
             $fs = new Filesystem();

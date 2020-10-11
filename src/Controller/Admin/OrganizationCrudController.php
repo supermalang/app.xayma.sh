@@ -36,6 +36,7 @@ class OrganizationCrudController extends AbstractCrudController
         return [
             IdField::new('id')->onlyOnIndex(),
             TextField::new('label'),
+            TextField::new('slug')->onlyOnDetail(),
             TextField::new('status')->hideOnForm(),
             AssociationField::new('members'),
             DateTimeField::new('created')->onlyOnIndex(),
