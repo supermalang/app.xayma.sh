@@ -53,18 +53,11 @@ class DashboardController extends AbstractDashboardController
 
     public function configureUserMenu(UserInterface $user): UserMenu
     {
-        // Usually it's better to call the parent method because that gives you a
-        // user menu with some menu items already created ("sign out", "exit impersonation", etc.)
-        // if you prefer to create the user menu from scratch, use: return UserMenu::new()->...
         return parent::configureUserMenu($user)
-            // use the given $user object to get the user name
             ->setName($user->getFirstName())
-            // use this method if you don't want to display the name of the user
             ->displayUserName(true)
-            // you can use any type of menu item, except submenus
             ->addMenuItems([
-                MenuItem::linkToLogout('Mon profil', 'fa fa-id-card'),
-                //MenuItem::linkToRoute('Mon profil', 'fa fa-id-card', '...', ['...' => '...']),
+                MenuItem::linkToLogout('My profile', 'fa fa-id-card'),
             ])
         ;
     }

@@ -5,7 +5,6 @@ namespace App\Service;
 use Artgris\Bundle\FileManagerBundle\Service\CustomConfServiceInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class CustomFileManager implements CustomConfServiceInterface
 {
@@ -22,14 +21,12 @@ class CustomFileManager implements CustomConfServiceInterface
         if (in_array('ROLE_SUPPORT', $this->user->getRoles()) || in_array('ROLE_ADMIN', $this->user->getRoles())) {
             $dir = '../public/uploads/';
         }
-        // Custotmers will be able to see only their organization folders
+        // Customers will be able to see only their organization folders
         else {
             $organizations_array = $this->user->getOrganizations()->toArray();
-            $first_organization = $organizations_array[0]->getLabel();
+            $first_organization = $organizations_array[0]->getSlug();
 
-            $slugger = new AsciiSlugger();
-
-            $dir = '../public/uploads/'.strtolower($slugger->slug($first_organization));
+            $dir = '../public/uploads/'.$first_organization;
         }
 
         // Create the organization directory if it does not exist
@@ -41,7 +38,7 @@ class CustomFileManager implements CustomConfServiceInterface
         // Only accept Zip files so that we can extract them and keep the folder hierachy
         return [
             'dir' => $dir,
-            'regex' => '.(zip)$',
+            //'regex' => '.(zip)$',
             'accept' => '.zip,.ZIP',
         ];
     }

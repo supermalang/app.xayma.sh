@@ -32,7 +32,7 @@ class Organization
     /**
      * @ORM\Column(type="string", length=20)
      */
-    private $status;
+    private $status = 'active';
 
     /**
      * @ORM\ManyToMany(targetEntity=User::class, inversedBy="organizations")
@@ -60,6 +60,11 @@ class Organization
      * @ORM\JoinColumn(nullable=true)
      */
     private $modifiedBy;
+
+    /**
+     * @ORM\Column(type="string", length=100)
+     */
+    private $slug;
 
     public function __construct()
     {
@@ -202,6 +207,18 @@ class Organization
     public function setModifiedBy(?User $modifiedBy): self
     {
         $this->modifiedBy = $modifiedBy;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
 
         return $this;
     }

@@ -36,15 +36,13 @@ class OrganizationRepository extends ServiceEntityRepository
     }
     */
 
-    /*
     public function findOneBySomeField($value): ?Organization
     {
         return $this->createQueryBuilder('o')
-            ->andWhere('o.exampleField = :val')
+            ->andWhere('o.label = :val')
             ->setParameter('val', $value)
             ->getQuery()
             ->getOneOrNullResult()
         ;
     }
-    */
 }
