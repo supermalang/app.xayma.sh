@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<template id="assets_backend" name="pos_sync_order assets" inherit_id="point_of_sale.assets">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/pos_sync_order/static/src/js/pos.js"></script>
+				<link rel="stylesheet" href="/pos_sync_order/static/src/css/pos.css" />
+			</xpath>
+		</template>
+	</data>
+</odoo>

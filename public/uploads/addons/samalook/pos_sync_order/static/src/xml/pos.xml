@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-extend="Orderline">
+        <t t-jquery=".info-list" t-operation="after">
+            <t t-if='widget.pos.config.wv_session_id'>
+                <div t-if="line.created_by_name" style="float: right;font-size: 11px;">
+                    <span style="color: black"><t t-esc="line.created_by_name" /></span> (<span style="color: green"><t t-esc="line.session_short_name" /></span>)
+                </div>
+            </t>
+        </t>
+    </t>
+    <t t-extend="OrderSelectorWidget">
+        <t t-jquery=".order-sequence" t-operation="append">
+            <t t-if='widget.pos.config.wv_session_id'>
+                <span t-if="order.session_short_name" style="font-size: 9px;"><t t-esc="order.session_short_name"/></span>
+            </t>
+        </t>
+    </t>
+    <t t-extend="Chrome">
+        <t t-jquery='.pos-logo' t-operation='append'>
+            <t t-if="widget.pos.config">
+                <t t-if='! widget.pos.config.allow_auto_sync'>
+                   <button class="sync_order" style="margin: 0px;height: 42px;font-size: 13px;background:#7f82ac"><img src="/pos_sync_order/static/src/img/refresh.png" style="width:20px"/></button>
+                </t>
+            </t>
+        </t>
+    </t>
+</templates>

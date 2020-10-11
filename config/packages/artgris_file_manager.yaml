@@ -1,0 +1,10 @@
+framework:
+    translator: { fallbacks: [ "en" ] }
+
+
+artgris_file_manager:
+    web_dir: public/uploads/addons
+    conf:
+        default:
+            service: "app.filemanager"
+            

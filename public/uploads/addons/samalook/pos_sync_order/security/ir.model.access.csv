@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+pos_pos_sync_session,pos_pos_sync_session,model_pos_sync_session,,1,1,1,1
+pos_sync_order_id,pos_sync_order,model_pos_sync_order,,1,1,1,1

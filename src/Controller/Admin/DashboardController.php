@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\AddonsFolder;
 use App\Entity\ControlNode;
 use App\Entity\Deployments;
 use App\Entity\Organization;
@@ -42,6 +43,7 @@ class DashboardController extends AbstractDashboardController
             MenuItem::section('Mes services'),
             MenuItem::linkToCrud('Applications', 'fas fa-rocket', Deployments::class),
             MenuItem::linkToCrud('Organisations', 'far fa-building', Organization::class),
+            MenuItem::linkToCrud('Addons', 'fas fa-puzzle-piece', AddonsFolder::class),
             MenuItem::section('Parametres')->setPermission('ROLE_SUPPORT'),
             MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)->setPermission('ROLE_SUPPORT'),
             MenuItem::linkToCrud('Noeuds de Controle', 'fa fa-sitemap', ControlNode::class)->setPermission('ROLE_SUPPORT'),
