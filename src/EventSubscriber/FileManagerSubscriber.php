@@ -19,6 +19,7 @@ class FileManagerSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /** Extracts the Zip files the user has uploaded */
     public function extractZipFile(GenericEvent $event)
     {
         $zip = new ZipArchive();
