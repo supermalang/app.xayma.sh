@@ -5,6 +5,7 @@ namespace App\EventSubscriber;
 use App\Entity\Deployments;
 use App\Entity\Organization;
 use App\Entity\User;
+use App\Service\AwxHelper;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -19,12 +20,14 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     private $passwordEncoder;
     private $security;
     private $client;
+    private $awxHelper;
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder, Security $security, HttpClientInterface $client)
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder, Security $security, HttpClientInterface $client, AwxHelper $awxHelper)
     {
         $this->passwordEncoder = $passwordEncoder;
         $this->security = $security;
         $this->client = $client;
+        $this->awxHelper = $awxHelper;
     }
 
     public static function getSubscribedEvents()
@@ -33,11 +36,11 @@ class EasyAdminSubscriber implements EventSubscriberInterface
             // Before creating any entity managed by EasyAdmin
             BeforeEntityPersistedEvent::class => [
                 ['setDeploymentOrganization', 40],
-                ['launchNewDeployment', 35],
-                ['setCreatedTime', 30],
+                ['setSlug', 35],
+                ['launchNewDeployment', 30],
+                ['setCreatedTime', 25],
                 ['setCreatedByUser', 20],
-                ['encryptUserPassword', 10],
-                ['setSlug', 5],
+                ['encryptUserPassword', 15],
             ],
             BeforeEntityUpdatedEvent::class => [
                 ['setModifiedTime', 20],
@@ -65,30 +68,13 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         $entity = $event->getEntityInstance();
 
         if ($entity instanceof Deployments) {
-            $awxId = $entity->getService()->getAwxId();
-            $controlNodeUrl = $entity->getService()->getControleNode()->getAddress()
-                .'/api/v2/job_templates/'.$awxId.'/launch/';
-            $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
-            $slugger = new AsciiSlugger();
-            $instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
-            $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
-            $version = $entity->getService()->getVersion();
+            $controlNode = $entity->getService()->getControleNode();
+            $jobTemplId = $entity->getService()->getAwxId();
 
-            $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
+            $statusCode = $this->awxHelper->launchJobTemplate($controlNode, $jobTemplId, $entity);
 
-            $domain = str_replace('http://', '', $entity->getDomainName());
-            $domain = str_replace('https://', '', $domain);
-
-            $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
-            $deployment_tags = $entity->getService()->getDeployTags();
-
-            $body = ['extra_vars' => $extra_vars, 'job_tags' => $deployment_tags];
-
-            $response = $this->client->request(
-                'POST',
-                $controlNodeUrl,
-                ['headers' => $headers, 'json' => $body]
-            );
+            // TODO
+            // Launch exceptions when the status code is not 200
         }
     }
 
