@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\ControlNode;
-use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AwxHelper
 {
@@ -11,9 +11,9 @@ class AwxHelper
     const LAUNCH_JOB_TEMPLATE = '/api/v2/job_templates/10/launch/';
     private $httpclient;
 
-    public function __construct(HttpClient $httpClient)
+    public function __construct(HttpClientInterface $client)
     {
-        $this->httpclient = $httpClient;
+        $this->httpclient = $client;
     }
 
     public function getJobTemplates(ControlNode $controlNode)
