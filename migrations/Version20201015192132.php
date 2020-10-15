@@ -43,7 +43,7 @@ final class Version20201015192132 extends AbstractMigration
         $this->addSql('CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_unicode_ci`, roles JSON NOT NULL, password VARCHAR(255) CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_unicode_ci`, first_name VARCHAR(50) CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_unicode_ci`, last_name VARCHAR(30) CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_unicode_ci`, UNIQUE INDEX UNIQ_8D93D649E7927C74 (email), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB COMMENT = \'\' ');
 
         // Creates the default user
-        $this->addSql('INSERT INTO `datastudio_xayma`.`user` (`email`, `roles`, `password`, `first_name`, `last_name`) VALUES ("admin", "[\"ROLE_ADMIN\"]", "$argon2id$v=19$m=65536,t=4,p=1$tJBRgrs+rhu7mo4I2ciFxQ$HVfVCBeyTOsQVgzurKqXmg+gBj16baztblmEOFbtv/o", "Administrator", "Administrator")');
+        $this->addSql('INSERT INTO `user` (`email`, `roles`, `password`, `first_name`, `last_name`) VALUES ("admin", "[\"ROLE_ADMIN\"]", "$argon2id$v=19$m=65536,t=4,p=1$tJBRgrs+rhu7mo4I2ciFxQ$HVfVCBeyTOsQVgzurKqXmg+gBj16baztblmEOFbtv/o", "Administrator", "Administrator")');
     }
 
     public function down(Schema $schema): void
