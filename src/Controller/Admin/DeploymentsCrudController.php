@@ -10,6 +10,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
@@ -19,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
 use Symfony\Component\Security\Core\Security;
@@ -45,6 +47,18 @@ class DeploymentsCrudController extends AbstractCrudController
         return Deployments::class;
     }
 
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add(ChoiceFilter::new('status')->setChoices([
+                'Archived' => 'archived',
+                'Active' => 'active',
+                'Suspended' => 'suspended',
+                'Suspended by admin' => 'suspended_by_admin',
+            ]))
+        ;
+    }
+
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -60,7 +74,7 @@ class DeploymentsCrudController extends AbstractCrudController
             TextField::new('label'),
             TextField::new('slug')->onlyOnDetail(),
             UrlField::new('domainName'),
-            TextField::new('service'),
+            AssociationField::new('service'),
             AssociationField::new('organization')->setPermission('ROLE_SUPPORT')->setSortable(false),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
             DateTimeField::new('created')->onlyOnDetail(),
