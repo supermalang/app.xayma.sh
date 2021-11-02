@@ -40,6 +40,7 @@ class OrganizationCrudController extends AbstractCrudController
             TextField::new('status')->hideOnForm(),
             AssociationField::new('members'),
             DateTimeField::new('created')->onlyOnIndex(),
+            TextField::new('createdBy')->onlyOnDetail(),
         ];
     }
 

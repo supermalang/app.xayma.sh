@@ -24,6 +24,7 @@ class ControlNodeCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Control Node')
             ->setEntityLabelInPlural('Control Nodes')
+            ->setEntityPermission('ROLE_SUPPORT')
         ;
     }
 

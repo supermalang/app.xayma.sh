@@ -60,7 +60,7 @@ class DeploymentsCrudController extends AbstractCrudController
             TextField::new('label'),
             TextField::new('slug')->onlyOnDetail(),
             UrlField::new('domainName'),
-            AssociationField::new('service'),
+            TextField::new('service'),
             AssociationField::new('organization')->setPermission('ROLE_SUPPORT')->setSortable(false),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
             DateTimeField::new('created')->onlyOnDetail(),
