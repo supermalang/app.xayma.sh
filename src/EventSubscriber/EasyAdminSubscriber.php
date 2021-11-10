@@ -45,7 +45,6 @@ class EasyAdminSubscriber implements EventSubscriberInterface
             BeforeEntityUpdatedEvent::class => [
                 ['setModifiedTime', 20],
                 ['setModifiedByUser', 15],
-                //['encryptUserPasswordOnUpdate', 10],
             ],
         ];
     }
@@ -116,17 +115,6 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     }
 
     public function encryptUserPassword(BeforeEntityPersistedEvent $event)
-    {
-        $entity = $event->getEntityInstance();
-
-        if ($entity instanceof User) {
-            $password = $entity->getPassword();
-            $entity->setPassword($this->passwordEncoder->encodePassword($entity, $password));
-        }
-    }
-    
-    // Deprecated
-    public function encryptUserPasswordOnUpdate(BeforeEntityUpdatedEvent $event)
     {
         $entity = $event->getEntityInstance();
 
