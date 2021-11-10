@@ -23,7 +23,7 @@ class User2CrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setPageTitle('edit', fn (User $user) => sprintf('Editing <b>%s</b>', $user->getFirstName().'\'s password'))
+            ->setPageTitle('edit', fn (User $user) => sprintf('Editing %s', $user->getFirstName()."'s password"))
         ;
     }
 
