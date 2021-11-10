@@ -15,6 +15,13 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
  */
 class User2CrudController extends AbstractCrudController
 {
+    private $passwordEncoder;
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->passwordEncoder = $passwordEncoder;
+    }
+    
     public static function getEntityFqcn(): string
     {
         return User::class;
@@ -39,5 +46,23 @@ class User2CrudController extends AbstractCrudController
         return $actions
             ->remove(Crud::PAGE_EDIT, Action::SAVE_AND_CONTINUE)
         ;
+    }
+    
+    public function updateEntity(EntityManagerInterface $entityManager, $entity): void
+    {
+        $password = $entity->getPassword();
+        $entity->setPassword($this->passwordEncoder->encodePassword($entity, $password));
+
+        $entityManager->persist($entity);
+        $entityManager->flush();
+    }
+    
+    public function updateEntity(EntityManagerInterface $entityManager, $entity): void
+    {
+        $password = $entity->getPassword();
+        $entity->setPassword($this->passwordEncoder->encodePassword($entity, $password));
+
+        $entityManager->persist($entity);
+        $entityManager->flush();
     }
 }
