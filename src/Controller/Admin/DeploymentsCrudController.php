@@ -22,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -172,13 +173,9 @@ class DeploymentsCrudController extends AbstractCrudController
             $entity->setModifiedBy($this->security->getUser());
             $this->updateEntity($this->em, $entity);
 
-            $url = $this->crudUrlGenerator->build()
-                ->setController(DeploymentsCrudController::class)
-                ->setAction(Action::INDEX)
-                ->generateUrl()
-            ;
+            $indexUrl = $this->get(AdminUrlGenerator::class)->setController(DeploymentsCrudController::class)->setAction(Action::INDEX)->generateUrl();
 
-            return $this->redirect($url);
+            return $this->redirect($indexUrl);
         }
     }
 
