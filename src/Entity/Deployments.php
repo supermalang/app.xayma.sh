@@ -4,10 +4,15 @@ namespace App\Entity;
 
 use App\Repository\DeploymentsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=DeploymentsRepository::class)
+ * @UniqueEntity(
+ *     fields={"domainName"},
+ *     message="The domain name {{ value }} is already used by another application."
+ * )
  */
 class Deployments
 {
