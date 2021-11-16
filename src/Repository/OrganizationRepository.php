@@ -19,6 +19,16 @@ class OrganizationRepository extends ServiceEntityRepository
         parent::__construct($registry, Organization::class);
     }
 
+    public function searchBySlug($value)
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.slug LIKE :val')
+            ->setParameter('val', '%'.$value.'%')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     // /**
     //  * @return Organization[] Returns an array of Organization objects
     //  */

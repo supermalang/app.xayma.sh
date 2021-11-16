@@ -6,6 +6,7 @@ use App\Entity\Deployments;
 use App\Entity\Organization;
 use App\Entity\User;
 use App\Service\AwxHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -21,13 +22,15 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     private $security;
     private $client;
     private $awxHelper;
+    private $em;
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder, Security $security, HttpClientInterface $client, AwxHelper $awxHelper)
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder, Security $security, HttpClientInterface $client, AwxHelper $awxHelper, EntityManagerInterface $em)
     {
         $this->passwordEncoder = $passwordEncoder;
         $this->security = $security;
         $this->client = $client;
         $this->awxHelper = $awxHelper;
+        $this->em = $em;
     }
 
     public static function getSubscribedEvents()
@@ -132,7 +135,21 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         if ($entity instanceof Organization or $entity instanceof Deployments) {
             if (null == $entity->getSlug()) {
                 $slugger = new AsciiSlugger();
-                $slugField = strtolower($slugger->slug($entity->getLabel()));
+
+                // We add a prefix on Deployments/Applications to make sure we have a unique slug for each
+                $slugPrefix = $entity instanceof Deployments ? $entity->getOrganization()->getSlug().' ' : null;
+
+                $slugField = strtolower($slugger->slug($slugPrefix.$entity->getLabel()));
+
+                // Search in the db whether there are already deployment or organization slug field that contains our slug characters
+                $slugSearchResults = $entity instanceof Deployments ? $this->em->getRepository(Deployments::class)->searchBySlug($slugField) : $this->em->getRepository(Organization::class)->searchBySlug($slugField);
+
+                // Build the slug suffix number depending on number of results
+                $slugSuffix = count($slugSearchResults) > 0 ? '-'.count($slugSearchResults) : null;
+
+                // Add suffix to the slug
+                $slugField = strtolower($slugger->slug($slugField.$slugSuffix));
+
                 $entity->setSlug($slugField);
             }
 
