@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\DeploymentsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=DeploymentsRepository::class)
@@ -24,6 +25,10 @@ class Deployments
 
     /**
      * @ORM\Column(type="string", length=50, nullable=true)
+     * @Assert\Regex(
+     *      pattern="/^(http:\/\/|https:\/\/)*(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/",
+     *      message="This domain name is not valid"
+     * )
      */
     private $domainName;
 

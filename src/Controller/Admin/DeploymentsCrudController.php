@@ -76,7 +76,7 @@ class DeploymentsCrudController extends AbstractCrudController
         return [
             IdField::new('id')->onlyOnIndex(),
             TextField::new('label'),
-            TextField::new('slug')->hideWhenCreating()->setDisabled(true),
+            TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
             UrlField::new('domainName')->setDefaultColumns(5),
             AssociationField::new('service')->setPermission('ROLE_SUPPORT')->setDefaultColumns(5),
             AssociationField::new('organization')->setPermission('ROLE_SUPPORT')->setSortable(false)->setDefaultColumns(5),
