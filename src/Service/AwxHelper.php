@@ -8,8 +8,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AwxHelper
 {
-    const JOB_TEMPLATES = '/api/v2/job_templates';
-    const LAUNCH_JOB_TEMPLATE = '/api/v2/job_templates/#/launch/';
+    public const JOB_TEMPLATES = '/api/v2/job_templates';
+    public const LAUNCH_JOB_TEMPLATE = '/api/v2/job_templates/#/launch/';
     private $httpclient;
 
     public function __construct(HttpClientInterface $client)
