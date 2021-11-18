@@ -39,6 +39,7 @@ class ServiceCrudController extends AbstractCrudController
             TextField::new('stopTags')->onlyOnForms(),
             TextField::new('startTags')->onlyOnForms(),
             TextField::new('suspendTags')->onlyOnForms(),
+            TextField::new('editDomainNameTags')->onlyOnForms(),
             AssociationField::new('deployments')->hideOnForm(),
             DateTimeField::new('created')->onlyOnDetail(),
             AssociationField::new('createdBy')->onlyOnDetail(),

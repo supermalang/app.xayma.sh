@@ -22,19 +22,6 @@ class DeploymentsRepository extends ServiceEntityRepository
     // /**
     //  * @return Deployments[] Returns an array of Deployments objects
     //  */
-    public function searchBySlug($value)
-    {
-        return $this->createQueryBuilder('d')
-            ->andWhere('d.slug LIKE :val')
-            ->setParameter('val', '%'.$value.'%')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
-    // /**
-    //  * @return Deployments[] Returns an array of Deployments objects
-    //  */
     /*
     public function findByExampleField($value)
     {

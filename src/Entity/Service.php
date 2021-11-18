@@ -91,6 +91,11 @@ class Service
      */
     private $suspendTags;
 
+    /**
+     * @ORM\Column(type="string", length=40)
+     */
+    private $editDomainNameTags = 'editinstancedomainname';
+
     public function __construct()
     {
         $this->deployments = new ArrayCollection();
@@ -289,6 +294,18 @@ class Service
     public function setSuspendTags(string $suspendTags): self
     {
         $this->suspendTags = $suspendTags;
+
+        return $this;
+    }
+
+    public function getEditDomainNameTags(): ?string
+    {
+        return $this->editDomainNameTags;
+    }
+
+    public function setEditDomainNameTags(string $editDomainNameTags): self
+    {
+        $this->editDomainNameTags = $editDomainNameTags;
 
         return $this;
     }

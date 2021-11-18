@@ -240,7 +240,7 @@ class DeploymentsCrudController extends AbstractCrudController
     {
         $id = $context->getRequest()->query->get('entityId');
         $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
-        $job_tags = $entity->getService()->getStartTags();
+        $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
         $this->updateDeployment($entity, $job_tags_);
@@ -252,6 +252,27 @@ class DeploymentsCrudController extends AbstractCrudController
         return $this->fireTransition($context, 'stopped_to_archive');
     }
 
+    public function updateEntity(EntityManagerInterface $entityManager, $entity): void
+    {
+        $qb = $entityManager->createQueryBuilder('d')->select('d.domainName')->from(Deployments::class, 'd')
+            ->where('d.domainName = :domain')->setParameter('domain', $entity->getDomainName());
+
+        $query = $qb->getQuery();
+        $is_dname_in_db = $query->setMaxResults(1)->getOneOrNullResult();
+
+        // Check whether domain name has changed (different from what is saved in the DB)
+        // If yes, we launch the service to update the deployment in AWX
+        if (null == $is_dname_in_db) {
+            $job_tags = $entity->getService()->getEditDomainNameTags();
+
+            $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+            $this->updateDeployment($entity, $job_tags_);
+        }
+
+        $entityManager->persist($entity);
+        $entityManager->flush();
+    }
+
     public function updateDeployment(Deployments $entity, $job_tags)
     {
         $awxId = $entity->getService()->getAwxId();
@@ -259,8 +280,11 @@ class DeploymentsCrudController extends AbstractCrudController
             .'/api/v2/job_templates/'.$awxId.'/launch/';
         $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
 
-        $slugger = new AsciiSlugger();
-        $instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
+        // Deprecated
+        //$slugger = new AsciiSlugger();
+        //$instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
+
+        $instance_slug = $entity->getSlug();
         $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
         $version = $entity->getService()->getVersion();
 

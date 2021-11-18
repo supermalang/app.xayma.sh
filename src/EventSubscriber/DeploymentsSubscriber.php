@@ -50,7 +50,6 @@ class DeploymentsSubscriber implements EventSubscriberInterface
     {
         $entity = $event->getSubject();
         $workflow = $this->workflowRegistry->get($entity);
-        //dd($entity);
 
         if ($workflow->can($event->getSubject(), 'suspend')) {
             $workflow->apply($event->getSubject(), 'suspend');
