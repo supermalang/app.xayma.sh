@@ -67,7 +67,6 @@ class DeploymentsCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Applications')
             ->setPageTitle('detail', fn (Deployments $app) => sprintf('Details of App : %s', $app->getSlug()))
             ->setPageTitle('edit', fn (Deployments $app) => sprintf('Editing App : %s', $app->getSlug()))
-
         ;
     }
 
@@ -78,7 +77,8 @@ class DeploymentsCrudController extends AbstractCrudController
             TextField::new('label'),
             TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
             UrlField::new('domainName')->setDefaultColumns(5),
-            AssociationField::new('service')->setPermission('ROLE_SUPPORT')->setDefaultColumns(5),
+            AssociationField::new('service')->setDefaultColumns(5),
+            //AssociationField::new('service')->setPermission('ROLE_SUPPORT')->setDefaultColumns(5),
             AssociationField::new('organization')->setPermission('ROLE_SUPPORT')->setSortable(false)->setDefaultColumns(5),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
             DateTimeField::new('created')->onlyOnDetail(),
