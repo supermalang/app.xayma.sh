@@ -31,6 +31,16 @@ class OrganizationCrudController extends AbstractCrudController
         return Organization::class;
     }
 
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setEntityLabelInSingular('Customer')
+            ->setEntityLabelInPlural('Customers')
+            ->setPageTitle('detail', fn (Organization $app) => sprintf('Details of Customer : %s', $app->getLabel()))
+            ->setPageTitle('edit', fn (Organization $app) => sprintf('Editing Customer details : %s', $app->getLabel()))
+        ;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -70,6 +80,7 @@ class OrganizationCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->setPermission(Action::NEW, 'ROLE_SUPPORT')
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
         ;
     }

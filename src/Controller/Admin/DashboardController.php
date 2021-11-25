@@ -51,7 +51,7 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToDashboard('Dashboard', 'far fa-chart-bar'),
             MenuItem::section('Mes services'),
             MenuItem::linkToCrud('Applications', 'fas fa-rocket', Deployments::class),
-            MenuItem::linkToCrud('Organisations', 'far fa-building', Organization::class),
+            MenuItem::linkToCrud('Customers', 'far fa-building', Organization::class),
             MenuItem::linkToCrud('Addons', 'fas fa-puzzle-piece', AddonsFolder::class),
             MenuItem::section('Parametres')->setPermission('ROLE_SUPPORT'),
             MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)->setPermission('ROLE_SUPPORT'),

@@ -74,13 +74,13 @@ class DeploymentsCrudController extends AbstractCrudController
     {
         if (($this->isGranted('ROLE_SUPPORT'))) {
             $serviceField = AssociationField::new('service');
-            $ownerField = AssociationField::new('organization');
+            $ownerField = AssociationField::new('organization', 'Owner');
         } elseif (Crud::PAGE_NEW === $pageName) {
             $serviceField = AssociationField::new('service');
-            $ownerField = TextField::new('organization')->onlyOnDetail()->hideWhenCreating();
+            $ownerField = TextField::new('organization', 'Owner')->onlyOnDetail()->hideWhenCreating();
         } else {
             $serviceField = TextField::new('service')->hideWhenUpdating();
-            $ownerField = TextField::new('organization')->onlyOnDetail();
+            $ownerField = TextField::new('organization', 'Owner')->onlyOnDetail();
         }
 
         return [
@@ -158,6 +158,7 @@ class DeploymentsCrudController extends AbstractCrudController
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
+            ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->add(Crud::PAGE_DETAIL, $archiveInstance)
             ->add(Crud::PAGE_DETAIL, $adminSuspendInstance)
