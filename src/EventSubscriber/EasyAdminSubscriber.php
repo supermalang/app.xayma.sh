@@ -137,9 +137,11 @@ class EasyAdminSubscriber implements EventSubscriberInterface
                 $slugger = new AsciiSlugger();
 
                 // We add a prefix on Deployments/Applications to make sure we have a unique slug for each
-                $slugPrefix = $entity instanceof Deployments ? $entity->getOrganization()->getSlug().' ' : null;
+                // Deprecated: Causes several pain in the automation in Docker side with siphons causing errors
+                // $slugPrefix = $entity instanceof Deployments ? $entity->getOrganization()->getSlug().' ' : null;
+                // $slugField = strtolower($slugger->slug($slugPrefix.$entity->getLabel()));
 
-                $slugField = strtolower($slugger->slug($slugPrefix.$entity->getLabel()));
+                $slugField = strtolower($slugger->slug($entity->getLabel()));
 
                 // Search in the db whether there are already deployment or organization slug field that contains our slug characters
                 $slugSearchResults = $entity instanceof Deployments ? $this->em->getRepository(Deployments::class)->searchBySlug($slugField) : $this->em->getRepository(Organization::class)->searchBySlug($slugField);
