@@ -72,14 +72,24 @@ class DeploymentsCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        if (($this->isGranted('ROLE_SUPPORT'))) {
+            $serviceField = AssociationField::new('service');
+            $ownerField = AssociationField::new('organization');
+        } elseif (Crud::PAGE_NEW === $pageName) {
+            $serviceField = AssociationField::new('service');
+            $ownerField = TextField::new('organization')->onlyOnDetail()->hideWhenCreating();
+        } else {
+            $serviceField = TextField::new('service')->hideWhenUpdating();
+            $ownerField = TextField::new('organization')->onlyOnDetail();
+        }
+
         return [
-            IdField::new('id')->onlyOnIndex(),
+            IdField::new('id')->onlyOnIndex()->setPermission('ROLE_SUPPORT'),
             TextField::new('label'),
             TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
             UrlField::new('domainName')->setDefaultColumns(5),
-            AssociationField::new('service')->setDefaultColumns(5),
-            //AssociationField::new('service')->setPermission('ROLE_SUPPORT')->setDefaultColumns(5),
-            AssociationField::new('organization')->setPermission('ROLE_SUPPORT')->setSortable(false)->setDefaultColumns(5),
+            $serviceField->setDefaultColumns(5),
+            $ownerField->setSortable(false)->setDefaultColumns(5),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
             DateTimeField::new('created')->onlyOnDetail(),
             TextField::new('createdBy')->onlyOnDetail(),

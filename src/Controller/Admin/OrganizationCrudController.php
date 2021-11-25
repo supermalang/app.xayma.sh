@@ -34,7 +34,7 @@ class OrganizationCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id')->onlyOnIndex(),
+            IdField::new('id')->onlyOnIndex()->setPermission('ROLE_SUPPORT'),
             TextField::new('label'),
             TextField::new('slug')->onlyOnDetail(),
             TextField::new('status')->hideOnForm(),

@@ -135,6 +135,11 @@ class Deployments
         return $this->organization;
     }
 
+    public function getOrganizationSlug(): ?string
+    {
+        return $this->organization->getSlug();
+    }
+
     public function setOrganization(?Organization $organization): self
     {
         $this->organization = $organization;
