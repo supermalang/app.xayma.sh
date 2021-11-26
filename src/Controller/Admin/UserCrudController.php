@@ -32,15 +32,24 @@ class UserCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        $rolesField = ChoiceField::new('roles')->allowMultipleChoices()
+            ->setChoices(['Customer' => 'ROLE_USER', 'Help-Desk' => 'ROLE_SUPPORT', 'Admin' => 'ROLE_ADMIN'])
+        ;
+        $emailField = EmailField::new('email', 'e-Mail');
+
+        // Only admins should be able to edit roles and emails/usernames
+        if (false == $this->isGranted('ROLE_ADMIN')) {
+            $rolesField = $rolesField->setDisabled(true);
+            $emailField = $emailField->setDisabled(true);
+        }
+
         return [
             IdField::new('id')->hideOnForm(),
             TextField::new('firstName', 'Prenom(s)'),
             TextField::new('lastName', 'Nom'),
-            EmailField::new('email', 'e-Mail'),
+            $emailField,
             TextField::new('password', 'Mot de passe')->setFormType(PasswordType::class)->onlyWhenCreating(),
-            ChoiceField::new('roles')->allowMultipleChoices()
-                ->setChoices(['Customer' => 'ROLE_USER', 'Help-Desk' => 'ROLE_SUPPORT', 'Admin' => 'ROLE_ADMIN'])
-                ->setPermission('ROLE_SUPPORT'),
+            $rolesField,
         ];
     }
 
