@@ -40,7 +40,7 @@ class UserCrudController extends AbstractCrudController
             TextField::new('password', 'Mot de passe')->setFormType(PasswordType::class)->onlyWhenCreating(),
             ChoiceField::new('roles')->allowMultipleChoices()
                 ->setChoices(['Customer' => 'ROLE_USER', 'Help-Desk' => 'ROLE_SUPPORT', 'Admin' => 'ROLE_ADMIN'])
-                ->setPermission('ROLE_ADMIN'),
+                ->setPermission('ROLE_SUPPORT'),
         ];
     }
 

@@ -107,13 +107,13 @@ class DeploymentsCrudController extends AbstractCrudController
             ;
         }
 
-        // For the customers we render only their applications
+        // For the customers we render only their applications that are not archived
         $Organizations_array = $this->security->getUser()->getOrganizations()->toArray();
         $Organizations_ids = array_map(function ($e) { return is_object($e) ? $e->getId() : $e['id']; }, $Organizations_array);
 
         return $this->get(OrmEntityRepository::class)
             ->createQueryBuilder($searchDto, $entityDto, $fields, $filters)
-            ->where('entity.organization in (:org_ids)')
+            ->where("entity.organization in (:org_ids) and entity.status <> 'archived'")
             ->setParameter('org_ids', implode(', ', $Organizations_ids))
         ;
     }
