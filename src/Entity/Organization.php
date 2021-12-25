@@ -6,6 +6,7 @@ use App\Repository\OrganizationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=OrganizationRepository::class)
@@ -65,6 +66,39 @@ class Organization
      * @ORM\Column(type="string", length=100)
      */
     private $slug;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $description;
+
+    /**
+     * @ORM\Column(type="string", length=13, nullable=true)
+     * @Assert\Regex(
+     *      pattern="/^(00221|\+221|221)*(\s)*(33|30|70|75|76|77|79)(\s)*(\d){3}(\s)*(\d){2}(\s)*(\d){2}(\s)*$/",
+     *      message="This phone number is not valid. Ensure you use a phone number from Senegal"
+     * )
+     */
+    private $phone;
+
+    /**
+     * @ORM\Column(type="string", length=320, nullable=true)
+     * @Assert\Regex(
+     *      pattern="/^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/",
+     *      message="This e-mail address is not valid"
+     * )
+     */
+    private $email;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $address;
+
+    /**
+     * @ORM\Column(type="array", length=255, nullable=true)
+     */
+    private $category;
 
     public function __construct()
     {
@@ -219,6 +253,66 @@ class Organization
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): self
+    {
+        $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): self
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getCategory(): ?array
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?array $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }
