@@ -39,6 +39,10 @@ class AwxHelper
      */
     public function launchJobTemplate(ControlNode $controlNode, int $jobTemplateId, Deployments $appInstance)
     {
+        if ($controlNode->get) {
+            // code...
+        }
+
         $authToken = $controlNode->getAuthorizationToken();
         $address = $controlNode->getAddress();
         $endpoint = $address.str_replace('#', $jobTemplateId, $this::LAUNCH_JOB_TEMPLATE);

@@ -94,7 +94,7 @@ class Service
     /**
      * @ORM\Column(type="string", length=40)
      */
-    private $editDomainNameTags = 'editinstancedomainname';
+    private $editDomainNameTags; // = 'editinstancedomainname'; //Deprecated
 
     public function __construct()
     {

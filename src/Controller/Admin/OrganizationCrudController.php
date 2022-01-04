@@ -10,10 +10,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
-use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
@@ -22,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Security\Core\Security;
 
 class OrganizationCrudController extends AbstractCrudController
@@ -65,7 +66,6 @@ class OrganizationCrudController extends AbstractCrudController
             EmailField::new('email', 'E-mail')->setColumns(7),
             TelephoneField::new('phone')->hideOnIndex()->setColumns(7),
             TextareaField::new('address')->hideOnIndex()->setColumns(7),
-            AssociationField::new('members')->setColumns(7),
             TextField::new('status')->hideOnForm(),
             DateTimeField::new('created')->onlyOnDetail(),
             TextField::new('createdBy')->onlyOnDetail()->setPermission('ROLE_SUPPORT'),
@@ -94,12 +94,29 @@ class OrganizationCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        $editMembers = Action::new('editMembers', 'Edit Members', 'fas fa-user-edit')
+            ->linkToCrudAction('editMembers')
+            ->setCssClass('text-warning btn btn-link')
+        ;
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->add(Crud::PAGE_DETAIL, $editMembers)
             ->setPermission(Action::NEW, 'ROLE_SUPPORT')
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
         ;
+    }
+
+    public function editMembers(AdminContext $context)
+    {
+        $id = $context->getRequest()->query->get('entityId');
+
+        //$organizationToUpdate = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+
+        $editMembersUrl = $this->get(AdminUrlGenerator::class)->setController(Organization2CrudController::class)->setAction('edit')->setEntityId($id);
+
+        return $this->redirect($editMembersUrl->generateUrl());
     }
 }
