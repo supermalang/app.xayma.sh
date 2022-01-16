@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Service;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -34,7 +35,10 @@ class ServiceCrudController extends AbstractCrudController
             TextareaField::new('description')->hideOnIndex()->setDefaultColumns(5),
             AssociationField::new('controleNode')->setRequired(true)->setDefaultColumns(5),
             IntegerField::new('awxId', 'Job Template ID')->onlyOnForms()->setDefaultColumns(5),
-            TextField::new('version', 'Supported versions')->setHelp('Enter supported versions separated by semicolons ( ; )')->setDefaultColumns(5),
+            TextField::new('version', 'Supported versions')->setDefaultColumns(5)
+                ->addCssClass('supportedVersions-tagin')
+                ->addCssFiles('css/admin/tagin.min.css')
+                ->addJsFiles('js/admin/tagin.min.js'),
             TextField::new('deployTags')->onlyOnForms()->setDefaultColumns(5),
             TextField::new('stopTags')->onlyOnForms()->setDefaultColumns(5),
             TextField::new('startTags')->onlyOnForms()->setDefaultColumns(5),
@@ -46,5 +50,12 @@ class ServiceCrudController extends AbstractCrudController
             DateTimeField::new('modified')->onlyOnDetail(),
             AssociationField::new('modifiedBy')->onlyOnDetail(),
         ];
+    }
+
+    public function configureAssets(Assets $assets): Assets
+    {
+        return $assets
+            ->addHtmlContentToBody('<script src="js/admin/ServiceCrud-supportedversions.js" type="module" defer></script>')
+        ;
     }
 }

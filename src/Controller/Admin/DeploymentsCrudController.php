@@ -9,6 +9,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
@@ -17,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\HiddenField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
@@ -46,6 +48,13 @@ class DeploymentsCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Deployments::class;
+    }
+
+    public function configureAssets(Assets $assets): Assets
+    {
+        return $assets
+            ->addHtmlContentToHead('<script src="js/jquery-3.6.0.min.js" ></script>')
+        ;
     }
 
     public function configureFilters(Filters $filters): Filters
@@ -88,7 +97,8 @@ class DeploymentsCrudController extends AbstractCrudController
             TextField::new('label'),
             TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
             UrlField::new('domainName')->setDefaultColumns(5),
-            $serviceField->setDefaultColumns(5)->hideWhenUpdating(),
+            $serviceField->setDefaultColumns(5)->hideWhenUpdating()->addCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js'),
+            HiddenField::new('ServiceVersion'),
             $ownerField->setSortable(false)->setDefaultColumns(5)->hideWhenUpdating(),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
             DateTimeField::new('created')->onlyOnDetail(),

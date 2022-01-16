@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\DeploymentsRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * @ApiResource()
  * @ORM\Entity(repositoryClass=DeploymentsRepository::class)
  * @UniqueEntity(
  *     fields={"domainName"},
@@ -79,6 +81,11 @@ class Deployments
      * @ORM\Column(type="string", length=100)
      */
     private $slug;
+
+    /**
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    private $ServiceVersion;
 
     public function getUpdateInfo()
     {
@@ -215,6 +222,18 @@ class Deployments
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getServiceVersion(): ?string
+    {
+        return $this->ServiceVersion;
+    }
+
+    public function setServiceVersion(?string $ServiceVersion): self
+    {
+        $this->ServiceVersion = $ServiceVersion;
 
         return $this;
     }

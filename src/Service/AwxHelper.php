@@ -39,9 +39,9 @@ class AwxHelper
      */
     public function launchJobTemplate(ControlNode $controlNode, int $jobTemplateId, Deployments $appInstance)
     {
-        if ($controlNode->get) {
-            // code...
-        }
+        //if ($controlNode->get) {
+        // code...
+        //}
 
         $authToken = $controlNode->getAuthorizationToken();
         $address = $controlNode->getAddress();
@@ -50,7 +50,7 @@ class AwxHelper
 
         $instance = $appInstance->getSlug();
         $organization = $appInstance->getOrganization()->getSlug();
-        $version = $appInstance->getService()->getVersion();
+        $version = $appInstance->getServiceVersion();
 
         $domain = str_replace('http://', '', $appInstance->getDomainName());
         $domain = str_replace('https://', '', $domain);
