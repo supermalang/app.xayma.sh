@@ -77,7 +77,7 @@ class Organization
     /**
      * @ORM\Column(type="string", length=13, nullable=true)
      * @Assert\Regex(
-     *      pattern="/^(00221|\+221|221)*(\s)*(33|30|70|75|76|77|79)(\s)*(\d){3}(\s)*(\d){2}(\s)*(\d){2}(\s)*$/",
+     *      pattern="/^(00221|\+221|221)*(\s)*(33|30|70|75|76|77|78)(\s)*(\d){3}(\s)*(\d){2}(\s)*(\d){2}(\s)*$/",
      *      message="This phone number is not valid. Ensure you use a phone number from Senegal"
      * )
      */
