@@ -307,7 +307,7 @@ class DeploymentsCrudController extends AbstractCrudController
 
         $instance_slug = $entity->getSlug();
         $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
-        $version = $entity->getService()->getVersion();
+        $version = $entity->getServiceVersion();
 
         $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
 
