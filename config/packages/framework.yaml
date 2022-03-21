@@ -16,4 +16,6 @@ framework:
     php_errors:
         log: true
 
-    http_cache: true
+#when@prod:
+#    framework:
+#        http_cache: true
