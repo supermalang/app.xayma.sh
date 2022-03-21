@@ -36,7 +36,7 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && cd app.xayma.sh \
     && /usr/local/bin/composer install \
-    && chown -R nginx:nginx /var/www/app.xayma.sh \
+    && chown -R www-data:www-data /var/www/app.xayma.sh \
     && php /var/www/app.xayma.sh/bin/console cache:clear
     
 
