@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
     # POST RUN
     && docker-php-source delete \
-    && apk del --purge .build-deps \
     && rm -rf /tmp/pear \
     && rm -rf /var/cache/apk/*
 
