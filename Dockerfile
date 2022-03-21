@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-enable apcu \
     && docker-php-ext-configure intl \
     && docker-php-ext-configure zip \
-    && docker-php-ext-install zip mysqli pdo pdo_mysql intl opcache \
+    && docker-php-ext-install zip mysqli pdo pdo_mysql intl opcache
 
 RUN mv ${PHP_INI_DIR}/php.ini-production ${PHP_INI_DIR}/php.ini \
     && sed -E -i -e 's/upload_max_filesize = 2M/upload_max_filesize = 128M/' ${PHP_INI_DIR}/php.ini \
