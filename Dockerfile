@@ -13,15 +13,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         nginx \
     && pecl install apcu \
-    && docker-php-ext-enable apcu \
+    && docker-php-ext-enable apcu opcache \
     && docker-php-ext-configure intl \
     && docker-php-ext-configure zip \
-    && docker-php-ext-install zip mysqli pdo pdo_mysql intl opcache
+    && docker-php-ext-install zip mysqli pdo pdo_mysql intl opcache \
+
+    # POST RUN
+    && docker-php-source delete \
+    && apk del --purge .build-deps \
+    && rm -rf /tmp/pear \
+    && rm -rf /var/cache/apk/*
 
 RUN mv ${PHP_INI_DIR}/php.ini-production ${PHP_INI_DIR}/php.ini \
     && sed -E -i -e 's/upload_max_filesize = 2M/upload_max_filesize = 128M/' ${PHP_INI_DIR}/php.ini \
     && sed -E -i -e 's/post_max_size = 8M/post_max_size = 128M/' ${PHP_INI_DIR}/php.ini \
-    && sed -E -i -e 's/memory_limit = 128M/memory_limit = 256M/' ${PHP_INI_DIR}/php.ini
+    && sed -E -i -e 's/memory_limit = 128M/memory_limit = 256M/' ${PHP_INI_DIR}/php.ini \
+    && echo "apc.enable_cli = 1" >> ${PHP_INI_DIR}/php.ini
 
 COPY ./docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
@@ -41,6 +48,7 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     
 
 #CMD ["apachectl", "-D", "FOREGROUND"]
-CMD ["nginx", "-g", "daemon off;"]
+#CMD ["nginx", "-g", "daemon off;"]
+CMD ["php-fpm"]
 
 EXPOSE 80
