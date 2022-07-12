@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Organization;
 use App\Service\OrgHelper;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -27,7 +28,7 @@ use Symfony\Component\Security\Core\Security;
 
 class OrganizationCrudController extends AbstractCrudController
 {
-    public function __construct(Security $security, OrgHelper $orgHelper)
+    public function __construct(Security $security, OrgHelper $orgHelper, private ManagerRegistry $doctrine)
     {
         $this->security = $security;
         $this->orgHelper = $orgHelper;
@@ -76,17 +77,29 @@ class OrganizationCrudController extends AbstractCrudController
     {
         // For the admins we render all organizations
         if ($this->isGranted('ROLE_SUPPORT')) {
-            return $this->get(OrmEntityRepository::class)
-                ->createQueryBuilder($searchDto, $entityDto, $fields, $filters)
-            ;
+            /*
+             * Deprecated:
+             * return $this->get(OrmEntityRepository::class)
+             * ->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
+             */
+
+            return $this->doctrine->getRepository(Organization::class)->createQueryBuilder('o');
         }
 
         // For the customers we render only their organization
         $Organizations_array = $this->security->getUser()->getOrganizations()->toArray();
         $Organizations_ids = array_map(function ($e) { return is_object($e) ? $e->getId() : $e['id']; }, $Organizations_array);
 
-        return $this->get(OrmEntityRepository::class)
-            ->createQueryBuilder($searchDto, $entityDto, $fields, $filters)
+        /*
+         * Deprecated:
+         * return $this->get(OrmEntityRepository::class)
+         * ->createQueryBuilder($searchDto, $entityDto, $fields, $filters)
+         * ->where('o.id IN (:ids)')
+         * ->setParameter('ids', $Organizations_ids);
+         */
+
+        return $this->doctrine->getRepository(Organization::class)
+            ->createQueryBuilder('entity')
             ->where('entity.id in (:org_ids)')
             ->setParameter('org_ids', implode(', ', $Organizations_ids))
         ;
@@ -113,7 +126,7 @@ class OrganizationCrudController extends AbstractCrudController
     {
         $id = $context->getRequest()->query->get('entityId');
 
-        //$organizationToUpdate = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        // $organizationToUpdate = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
 
         $editMembersUrl = $this->get(AdminUrlGenerator::class)->setController(Organization2CrudController::class)->setAction('edit')->setEntityId($id);
 

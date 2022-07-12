@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Deployments;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -35,7 +36,7 @@ class DeploymentsCrudController extends AbstractCrudController
     private $security;
     private $workflow;
 
-    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client)
+    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
@@ -83,7 +84,7 @@ class DeploymentsCrudController extends AbstractCrudController
         // How admin and helpdesk users can see the fields when creating a new entity
         // - Association field for the service (for dropdown selection of service when creating entity)
         // - Association field for the owner (for dropdown selection of service when creating entity)
-        if (($this->isGranted('ROLE_SUPPORT'))) {
+        if ($this->isGranted('ROLE_SUPPORT')) {
             $serviceField = AssociationField::new('service')->hideWhenUpdating();
             $ownerField = AssociationField::new('organization', 'Owner');
 
@@ -135,8 +136,7 @@ class DeploymentsCrudController extends AbstractCrudController
         $Organizations_array = $this->security->getUser()->getOrganizations()->toArray();
         $Organizations_ids = array_map(function ($e) { return is_object($e) ? $e->getId() : $e['id']; }, $Organizations_array);
 
-        return $this->get(OrmEntityRepository::class)
-            ->createQueryBuilder($searchDto, $entityDto, $fields, $filters)
+        return $this->doctrine->getRepository(Deployments::class)->createQueryBuilder('entity')
             ->where("entity.organization in (:org_ids) and entity.status <> 'archived'")
             ->setParameter('org_ids', implode(', ', $Organizations_ids))
         ;
@@ -159,7 +159,7 @@ class DeploymentsCrudController extends AbstractCrudController
             ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
             ->linkToCrudAction('adminSuspendInstance')
             ->setCssClass('text-danger btn btn-link')
-            ;
+        ;
 
         $reactivateInstance = Action::new('reactivateInstance', 'Start', 'far fa-play-circle')
             ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })

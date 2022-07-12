@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\User;
+use Doctrine\Persistence\ManagerRegistry;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -20,7 +21,7 @@ class UserCrudController extends AbstractCrudController
 {
     private $reqStack;
 
-    public function __construct(RequestStack $reqStack)
+    public function __construct(RequestStack $reqStack, private ManagerRegistry $doctrine)
     {
         $this->reqStack = $reqStack;
     }
@@ -58,7 +59,7 @@ class UserCrudController extends AbstractCrudController
         $id = $this->reqStack->getCurrentRequest()->query->get('entityId') ? $this->reqStack->getCurrentRequest()->query->get('entityId') : $this->getUser()->getId();
 
         // We use this variable in case an admin or help-desk user wants to update another user from the User Index page > Edit page
-        $userToUpdate = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $userToUpdate = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
 
         // We use this variable to check roles and permissions of the current logged in user
         $loggedInUser = $this->getUser();
