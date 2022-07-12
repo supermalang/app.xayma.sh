@@ -41,7 +41,10 @@ class DashboardController extends AbstractDashboardController
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('Xayma.sh')
+            ->setTitle('<img src="/img/logo.png" style="width:32px;"> Xayma.sh')
+            ->generateRelativeUrls()
+            ->disableDarkMode()
+            ->setFaviconPath('/favicon.png')
         ;
     }
 
