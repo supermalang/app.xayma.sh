@@ -10,18 +10,18 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * We use this crud only to edit passwords.
  */
 class User2CrudController extends AbstractCrudController
 {
-    private $passwordEncoder;
+    private $passwordHasher;
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
     {
-        $this->passwordEncoder = $passwordEncoder;
+        $this->passwordHasher = $passwordHasher;
     }
 
     public static function getEntityFqcn(): string
@@ -53,7 +53,7 @@ class User2CrudController extends AbstractCrudController
     public function updateEntity(EntityManagerInterface $entityManager, $entity): void
     {
         $password = $entity->getPassword();
-        $entity->setPassword($this->passwordEncoder->encodePassword($entity, $password));
+        $entity->setPassword($this->passwordHasher->hashPassword($entity, $password));
 
         $entityManager->persist($entity);
         $entityManager->flush();

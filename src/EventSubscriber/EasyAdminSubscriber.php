@@ -11,22 +11,22 @@ use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class EasyAdminSubscriber implements EventSubscriberInterface
 {
-    private $passwordEncoder;
+    private $passwordHasher;
     private $security;
     private $client;
     private $awxHelper;
     private $em;
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder, Security $security, HttpClientInterface $client, AwxHelper $awxHelper, EntityManagerInterface $em)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, Security $security, HttpClientInterface $client, AwxHelper $awxHelper, EntityManagerInterface $em)
     {
-        $this->passwordEncoder = $passwordEncoder;
+        $this->passwordHasher = $passwordHasher;
         $this->security = $security;
         $this->client = $client;
         $this->awxHelper = $awxHelper;
@@ -123,7 +123,7 @@ class EasyAdminSubscriber implements EventSubscriberInterface
 
         if ($entity instanceof User) {
             $password = $entity->getPassword();
-            $entity->setPassword($this->passwordEncoder->encodePassword($entity, $password));
+            $entity->setPassword($this->passwordHasher->hashPassword($entity, $password));
         }
     }
 

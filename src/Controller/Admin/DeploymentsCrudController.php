@@ -25,7 +25,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Workflow\Registry;
@@ -36,7 +35,7 @@ class DeploymentsCrudController extends AbstractCrudController
     private $security;
     private $workflow;
 
-    public function __construct(Security $security, Registry $workflowRegistry, CrudUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client)
+    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
@@ -81,13 +80,26 @@ class DeploymentsCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        // How admin and helpdesk users can see the fields when creating a new entity
+        // - Association field for the service (for dropdown selection of service when creating entity)
+        // - Association field for the owner (for dropdown selection of service when creating entity)
         if (($this->isGranted('ROLE_SUPPORT'))) {
-            $serviceField = AssociationField::new('service');
+            $serviceField = AssociationField::new('service')->hideWhenUpdating();
             $ownerField = AssociationField::new('organization', 'Owner');
-        } elseif (Crud::PAGE_NEW === $pageName) {
+
+            if (Crud::PAGE_NEW === $pageName) {
+                $serviceField = $serviceField->addCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js');
+            }
+        }
+        // How customers can see the fields when creating a new entity
+        // - Association field for the service (for dropdown selection of service when creating entity)
+        // - Customer's organization will be automatically chosen as owner org. So customer will not have to select owner.
+        elseif (Crud::PAGE_NEW === $pageName) {
             $serviceField = AssociationField::new('service');
-            $ownerField = TextField::new('organization', 'Owner')->onlyOnDetail()->hideWhenCreating();
-        } else {
+            $ownerField = TextField::new('organization', 'Owner')->hideWhenCreating();
+        }
+        // How customers can see the fields if not creating a new entity
+        else {
             $serviceField = TextField::new('service')->hideWhenUpdating();
             $ownerField = TextField::new('organization', 'Owner')->onlyOnDetail();
         }
@@ -97,7 +109,7 @@ class DeploymentsCrudController extends AbstractCrudController
             TextField::new('label'),
             TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
             UrlField::new('domainName')->setDefaultColumns(5),
-            $serviceField->setDefaultColumns(5)->hideWhenUpdating()->addCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js'),
+            $serviceField->setDefaultColumns(5),
             HiddenField::new('ServiceVersion'),
             $ownerField->setSortable(false)->setDefaultColumns(5)->hideWhenUpdating(),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
@@ -112,7 +124,9 @@ class DeploymentsCrudController extends AbstractCrudController
     {
         // For the admins we render all applications deployed
         if ($this->isGranted('ROLE_SUPPORT')) {
-            return $this->get(OrmEntityRepository::class)
+            return $this
+                ->container->get(OrmEntityRepository::class)
+            // get(EntityRepository::class)
                 ->createQueryBuilder($searchDto, $entityDto, $fields, $filters)
             ;
         }
@@ -302,8 +316,8 @@ class DeploymentsCrudController extends AbstractCrudController
         $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
 
         // Deprecated
-        //$slugger = new AsciiSlugger();
-        //$instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
+        // $slugger = new AsciiSlugger();
+        // $instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
 
         $instance_slug = $entity->getSlug();
         $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));

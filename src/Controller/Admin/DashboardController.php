@@ -32,7 +32,7 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         // Deprecated
-        //$routeBuilder = $this->get(AdminUrlGenerator::class)->build();
+        // $routeBuilder = $this->get(AdminUrlGenerator::class)->build();
         $routeBuilder = $this->adminUrlGenerator;
 
         return $this->redirect($routeBuilder->setController(DeploymentsCrudController::class)->generateUrl());
@@ -62,7 +62,7 @@ class DashboardController extends AbstractDashboardController
 
     public function configureUserMenu(UserInterface $user): UserMenu
     {
-        $url = $this->get(AdminUrlGenerator::class)
+        $url = $this->adminUrlGenerator
             ->setController(UserCrudController::class)
             ->setAction('detail')
             ->setEntityId($this->getUser()->getId())
