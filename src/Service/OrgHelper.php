@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\User;
+
 /** Service utility that has some useful functions */
 class OrgHelper
 {
@@ -49,5 +51,20 @@ class OrgHelper
             'Textile / Habillement / Chaussure / Fashion',
             'Transports / Logistique',
         ];
+    }
+
+    public function isCustomerOrgSuspended(User $user)
+    {
+        $is_advanced_user = false;
+        $firstOrgStatus = $user->getOrganizations()[0] ? $user->getOrganizations()[0]->getStatus() : null;
+
+        if (count(array_intersect($user->getRoles(), ['ROLE_SUPPORT', 'ROLE_ADMIN'])) > 0) {
+            // at least user has one of the roles ROLE_SUPPORT or ROLE_ADMIN
+            $is_advanced_user = true;
+        }
+
+        if (!$is_advanced_user && 'active' != $firstOrgStatus) {
+            return true;
+        }
     }
 }

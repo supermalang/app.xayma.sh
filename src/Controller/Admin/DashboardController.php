@@ -40,6 +40,19 @@ class DashboardController extends AbstractDashboardController
 
     public function configureDashboard(): Dashboard
     {
+        $is_advanced_user = false;
+        $firstOrgStatus = $this->getUser()->getOrganizations()[0] ? $this->getUser()->getOrganizations()[0]->getStatus() : null;
+
+        if (count(array_intersect($this->getUser()->getRoles(), ['ROLE_SUPPORT', 'ROLE_ADMIN'])) > 0) {
+            // at least user has one of the roles ROLE_SUPPORT or ROLE_ADMIN
+            $is_advanced_user = true;
+        }
+
+        if (!$is_advanced_user && 'active' != $firstOrgStatus) {
+            // user is not advanced and first org is not active, we display the banner notice of suspension
+            $this->addFlash('notice-xayma-danger', 'This account is suspended. You have <b>read-only access</b>. Please contact your administrator.');
+        }
+
         return Dashboard::new()
             ->setTitle('<img src="/img/logo.png" style="width:32px;"> Xayma.sh')
             ->generateRelativeUrls()

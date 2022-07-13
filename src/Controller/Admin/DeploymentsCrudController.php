@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Deployments;
+use App\Service\OrgHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -36,7 +37,7 @@ class DeploymentsCrudController extends AbstractCrudController
     private $security;
     private $workflow;
 
-    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine)
+    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
@@ -179,6 +180,19 @@ class DeploymentsCrudController extends AbstractCrudController
             ->setCssClass('text-danger btn btn-link')
         ;
 
+        // If org is suspended or archived, we suspend all actions except read only, for the customers
+        if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())) {
+            return $actions
+                ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->setPermission(Action::NEW, 'ROLE_SUPPORT')
+                ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
+                ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
+                ->setPermission($archiveInstance, 'ROLE_SUPPORT')
+                ->setPermission($suspendInstance, 'ROLE_SUPPORT')
+                ->setPermission($reactivateInstance, 'ROLE_SUPPORT')
+            ;
+        }
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
@@ -202,7 +216,7 @@ class DeploymentsCrudController extends AbstractCrudController
     public function fireTransition(AdminContext $context, string $transition)
     {
         $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
         $workflow = $this->workflowRegistry->get($entity);
 
         if ($workflow->can($entity, $transition)) {
@@ -211,7 +225,7 @@ class DeploymentsCrudController extends AbstractCrudController
             $entity->setModifiedBy($this->security->getUser());
             $this->updateEntity($this->em, $entity);
 
-            $indexUrl = $this->get(AdminUrlGenerator::class)->setController(DeploymentsCrudController::class)->setAction(Action::INDEX)->generateUrl();
+            $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(DeploymentsCrudController::class)->setAction(Action::INDEX)->generateUrl();
 
             return $this->redirect($indexUrl);
         }
