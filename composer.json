@@ -60,11 +60,7 @@
         "symfony/web-profiler-bundle": "6.0.*"
     },
     "config": {
-        "allow-plugins": {
-            "composer/package-versions-deprecated": true,
-            "symfony/flex": true,
-            "symfony/runtime": true
-        },
+        "allow-plugins": true,
         "optimize-autoloader": true,
         "preferred-install": {
             "*": "dist"
