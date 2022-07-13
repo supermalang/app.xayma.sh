@@ -95,7 +95,7 @@ class UserCrudController extends AbstractCrudController
         $id = $context->getRequest()->query->get('entityId');
 
         // We use this variable in case an admin or help-desk user wants to update another user from the User Index page > Edit page
-        $userToUpdate = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $userToUpdate = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
 
         // We use this variable to check roles and permissions of the current logged in user
         $loggedInUser = $this->getUser();

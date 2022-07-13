@@ -234,7 +234,7 @@ class DeploymentsCrudController extends AbstractCrudController
     public function suspendInstance(AdminContext $context)
     {
         $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
         $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
@@ -246,7 +246,7 @@ class DeploymentsCrudController extends AbstractCrudController
     public function adminSuspendInstance(AdminContext $context)
     {
         $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
         $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
@@ -258,7 +258,7 @@ class DeploymentsCrudController extends AbstractCrudController
     public function activateInstance(AdminContext $context)
     {
         $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
         $job_tags = $entity->getService()->getStartTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
@@ -270,7 +270,7 @@ class DeploymentsCrudController extends AbstractCrudController
     public function adminActivateInstance(AdminContext $context)
     {
         $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
         $job_tags = $entity->getService()->getStartTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
@@ -288,7 +288,7 @@ class DeploymentsCrudController extends AbstractCrudController
     public function archiveInstance(AdminContext $context)
     {
         $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->getDoctrine()->getRepository($this->getEntityFqcn())->find($id);
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
         $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
