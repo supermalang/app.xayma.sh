@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         nginx \
         unzip \
+        nodejs \
     && pecl install apcu \
     && docker-php-ext-enable apcu opcache \
     && docker-php-ext-configure intl \
@@ -33,6 +34,8 @@ RUN mv ${PHP_INI_DIR}/php.ini-production ${PHP_INI_DIR}/php.ini \
 COPY ./docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 COPY ./docker/nginx-block.conf /etc/nginx/sites-available/default 
+
+COPY ./docker/entrypoint.sh /etc/entrypoint.sh
 #RUN ln -s /etc/nginx/sites-available/app.xayma.sh.conf /etc/nginx/sites-enabled/app.xayma.sh.conf
 
 COPY . /var/www/app.xayma.sh/
@@ -44,11 +47,15 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && cd app.xayma.sh \
     && /usr/local/bin/composer install \
     && chown -R www-data:www-data /var/www/app.xayma.sh \
-    && php /var/www/app.xayma.sh/bin/console cache:clear
+    && php /var/www/app.xayma.sh/bin/console cache:clear \
+    && npm run build
+
     
 
 #CMD ["apachectl", "-D", "FOREGROUND"]
 #CMD ["nginx", "-g", "daemon off;"]
-CMD ["php-fpm"]
+#CMD ["php-fpm"]
 
 EXPOSE 80
+
+ENTRYPOINT ["/etc/entrypoint.sh"]
