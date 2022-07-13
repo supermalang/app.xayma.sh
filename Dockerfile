@@ -48,6 +48,7 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && /usr/local/bin/composer install \
     && chown -R www-data:www-data /var/www/app.xayma.sh \
     && php /var/www/app.xayma.sh/bin/console cache:clear \
+    && npm install \
     && npm run build
 
     
