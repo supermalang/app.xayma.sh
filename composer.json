@@ -48,10 +48,7 @@
         "symfony/webapp-meta": "^1.0",
         "symfony/webpack-encore-bundle": "^1.12",
         "symfony/workflow": "6.0.*",
-        "symfony/yaml": "6.0.*",
-        "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0",
-        "vich/uploader-bundle": "^1.19"
+        "symfony/yaml": "6.0.*"
     },
     "require-dev": {
         "symfony/debug-bundle": "6.0.*",
@@ -60,11 +57,6 @@
         "symfony/web-profiler-bundle": "6.0.*"
     },
     "config": {
-        "allow-plugins": {
-            "composer/package-versions-deprecated": true,
-            "symfony/flex": true,
-            "symfony/runtime": true
-        },
         "optimize-autoloader": true,
         "preferred-install": {
             "*": "dist"
