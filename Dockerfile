@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         nginx \
         unzip \
-        nodejs \
+        npm \
     && pecl install apcu \
     && docker-php-ext-enable apcu opcache \
     && docker-php-ext-configure intl \
