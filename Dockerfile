@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libxml2-dev \
         libicu-dev \
         nginx \
+        unzip \
     && pecl install apcu \
     && docker-php-ext-enable apcu opcache \
     && docker-php-ext-configure intl \
