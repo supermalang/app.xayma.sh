@@ -55,8 +55,6 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
 
 #CMD ["apachectl", "-D", "FOREGROUND"]
 #CMD ["nginx", "-g", "daemon off;"]
-#CMD ["php-fpm"]
+CMD ["php-fpm"]
 
 EXPOSE 80
-
-ENTRYPOINT ["/etc/entrypoint.sh"]
