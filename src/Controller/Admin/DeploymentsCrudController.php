@@ -99,6 +99,10 @@ class DeploymentsCrudController extends AbstractCrudController
         elseif (Crud::PAGE_NEW === $pageName) {
             $serviceField = AssociationField::new('service');
             $ownerField = TextField::new('organization', 'Owner')->hideWhenCreating();
+
+            if (Crud::PAGE_NEW === $pageName) {
+                $serviceField = $serviceField->addCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js');
+            }
         }
         // How customers can see the fields if not creating a new entity
         else {
