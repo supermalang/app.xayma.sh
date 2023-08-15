@@ -6,6 +6,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\OrganizationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -102,10 +103,16 @@ class Organization
      */
     private $category;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $remainingCredits;
+
     public function __construct()
     {
         $this->services = new ArrayCollection();
         $this->members = new ArrayCollection();
+        $this->remainingCredits = 0;
     }
 
     public function __toString()
@@ -315,6 +322,18 @@ class Organization
     public function setCategory(?array $category): self
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getRemainingCredits(): ?int
+    {
+        return $this->remainingCredits;
+    }
+
+    public function setRemainingCredits(int $remainingCredits): self
+    {
+        $this->remainingCredits = $remainingCredits;
 
         return $this;
     }

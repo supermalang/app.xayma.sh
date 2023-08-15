@@ -19,6 +19,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -71,6 +72,8 @@ class OrganizationCrudController extends AbstractCrudController
             TextField::new('status')->hideOnForm(),
             DateTimeField::new('created')->onlyOnDetail(),
             TextField::new('createdBy')->onlyOnDetail()->setPermission('ROLE_SUPPORT'),
+            // show number of remainingCredits to users
+            IntegerField::new('remainingCredits', 'Remaining Credits')->onlyOnDetail(),
         ];
     }
 
@@ -137,8 +140,8 @@ class OrganizationCrudController extends AbstractCrudController
             ->setCssClass('text-success btn btn-link')
         ;
 
-        // If org is suspended or archived, we suspend all actions except read only, for the customers
-        if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())) {
+        // If org is suspended or archived, or it does not have credit, we suspend all actions except read only, for the customers
+        if ($this->orgHelper->isCustomerOrgSuspended($this->getUser()) || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
                 ->setPermission(Action::NEW, 'ROLE_SUPPORT')
