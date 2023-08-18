@@ -108,11 +108,18 @@ class Organization
      */
     private $remainingCredits;
 
+    /**
+     * @ORM\Column(type="boolean")
+     * help: Allow the organization to have a negative credit balance up to 75 credits
+     */
+    private $allowCreditDebt;
+
     public function __construct()
     {
         $this->services = new ArrayCollection();
         $this->members = new ArrayCollection();
         $this->remainingCredits = 0;
+        $this->allowCreditDebt = false;
     }
 
     public function __toString()
@@ -334,6 +341,18 @@ class Organization
     public function setRemainingCredits(int $remainingCredits): self
     {
         $this->remainingCredits = $remainingCredits;
+
+        return $this;
+    }
+
+    public function isAllowCreditDebt(): ?bool
+    {
+        return $this->allowCreditDebt;
+    }
+
+    public function setAllowCreditDebt(bool $allowCreditDebt): self
+    {
+        $this->allowCreditDebt = $allowCreditDebt;
 
         return $this;
     }

@@ -10,6 +10,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
@@ -36,9 +37,11 @@ class ServiceCrudController extends AbstractCrudController
             AssociationField::new('controleNode')->setRequired(true)->setDefaultColumns(5),
             IntegerField::new('awxId', 'Job Template ID')->onlyOnForms()->setDefaultColumns(5),
             TextField::new('version', 'Supported versions')->setDefaultColumns(5)
-                ->addCssClass('supportedVersions-tagin')
-                ->addCssFiles('css/admin/tagin.min.css')
-                ->addJsFiles('js/admin/tagin.min.js'),
+            ->addCssClass('supportedVersions-tagin')
+            ->addCssFiles('css/admin/tagin.min.css')
+            ->addJsFiles('js/admin/tagin.min.js'),
+            IntegerField::new('monthlyCreditConsumption', 'Monthly Credit Consumption')->setDefaultColumns(5),
+            NumberField::new('hourlyCreditConsumption', 'Hourly Credit Consumption')->hideOnForm()->setDefaultColumns(5),
             TextField::new('deployTags')->onlyOnForms()->setDefaultColumns(5),
             TextField::new('stopTags')->onlyOnForms()->setDefaultColumns(5),
             TextField::new('startTags')->onlyOnForms()->setDefaultColumns(5),

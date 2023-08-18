@@ -184,8 +184,8 @@ class DeploymentsCrudController extends AbstractCrudController
             ->setCssClass('text-danger btn btn-link')
         ;
 
-        // If org is suspended or archived, we suspend all actions except read only, for the customers
-        if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())) {
+        // If org is suspended or archived, or there is no enough credits, we disable all actions except read only, for the customers
+        if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())  || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
                 ->setPermission(Action::NEW, 'ROLE_SUPPORT')
@@ -213,7 +213,7 @@ class DeploymentsCrudController extends AbstractCrudController
     }
 
     /**
-     * Run transition from one state to another and redirect to the list view.
+     * Apply the desired transition from one state to another and redirect to the list view.
      *
      * @param string $transition Transition fo fire
      */
@@ -225,8 +225,6 @@ class DeploymentsCrudController extends AbstractCrudController
 
         if ($workflow->can($entity, $transition)) {
             $workflow->apply($entity, $transition);
-            $entity->setModified(new \DateTime());
-            $entity->setModifiedBy($this->security->getUser());
             $this->updateEntity($this->em, $entity);
 
             $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(DeploymentsCrudController::class)->setAction(Action::INDEX)->generateUrl();
@@ -305,6 +303,10 @@ class DeploymentsCrudController extends AbstractCrudController
         return $this->fireTransition($context, 'stopped_to_archive');
     }
 
+    /**
+     * Update the deployment entity in the database, but also checks whether there are deployment updates that need to be sent to 
+     * the configuraTion management system (AWX).
+     */
     public function updateEntity(EntityManagerInterface $entityManager, $entity): void
     {
         $qb = $entityManager->createQueryBuilder('d')->select('d.domainName')->from(Deployments::class, 'd')
@@ -348,7 +350,8 @@ class DeploymentsCrudController extends AbstractCrudController
 
         $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
 
-        return $this->client->request(
+        return "";
+        $this->client->request(
             'POST',
             $controlNodeUrl,
             ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]

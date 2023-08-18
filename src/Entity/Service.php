@@ -96,11 +96,17 @@ class Service
     /**
      * @ORM\Column(type="string", length=40)
      */
-    private $editDomainNameTags; // = 'editinstancedomainname'; //Deprecated
+    private $editDomainNameTags;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $monthlyCreditConsumption; // = 'editinstancedomainname'; //Deprecated
 
     public function __construct()
     {
         $this->deployments = new ArrayCollection();
+        $this->monthlyCreditConsumption = 0;
     }
 
     public function __toString()
@@ -310,5 +316,23 @@ class Service
         $this->editDomainNameTags = $editDomainNameTags;
 
         return $this;
+    }
+
+    public function getMonthlyCreditConsumption(): ?int
+    {
+        return $this->monthlyCreditConsumption;
+    }
+
+    public function setMonthlyCreditConsumption(int $monthlyCreditConsumption): self
+    {
+        $this->monthlyCreditConsumption = $monthlyCreditConsumption;
+
+        return $this;
+    }
+
+    /** Unmapped field / virtual field */
+    public function getHourlyCreditConsumption(): ?int
+    {
+        return number_format($this->monthlyCreditConsumption / 30 / 24, 2);
     }
 }

@@ -15,6 +15,7 @@ framework:
                 - suspended
                 - suspended_by_admin
                 - stopped
+                - stopped_by_creditworker
                 - archived
             transitions:
                 stop:
@@ -46,6 +47,12 @@ framework:
                 stopped_to_archive:
                     from: stopped
                     to: archived
+                cw_stop:
+                    from: active
+                    to: stopped_by_creditworker
+                cw_start:
+                    from: stopped_by_creditworker
+                    to: active
         manage_organization_status:
             type: 'state_machine'
             audit_trail:
@@ -59,6 +66,9 @@ framework:
             places:
                 - active
                 - suspended
+                - low_credit
+                - no_credit
+                - on_debt
                 - archived
                 - pending_deletion
             transitions:
@@ -76,10 +86,24 @@ framework:
                     from: suspended
                     to: archived
                 reactivate:
-                    guard: "is_granted('ROLE_SUPPORT')"
                     from: archived
                     to: active
                 delete:
                     guard: "is_granted('ROLE_SUPPORT')"
                     from: archived
                     to: pending_deletion
+                consume_credit:
+                    from: active
+                    to: low_credit
+                consume_low_credit:
+                    from: low_credit
+                    to: no_credit
+                allow_credit_debt:
+                    from: no_credit
+                    to: on_debt
+                suspend_from_debt:
+                    from: on_debt
+                    to: suspended
+                suspend_subscription:
+                    from: no_credit
+                    to: suspended
