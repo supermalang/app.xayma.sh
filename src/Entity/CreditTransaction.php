@@ -48,6 +48,29 @@ class CreditTransaction
      */
     private $modifiedBy;
 
+    /**
+     * @ORM\Column(type="string", length=20)
+     */
+    private $transactionType;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $creditsUsed;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $creditsRemaining;
+
+    public function __construct()
+    {
+        $this->transactionType = 'reporting';
+        $this->creditsUsed = 0;
+        $this->creditsRemaining = 0;
+        $this->creditsPurchased = 0;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -121,6 +144,42 @@ class CreditTransaction
     public function setModifiedBy(?User $modifiedBy): self
     {
         $this->modifiedBy = $modifiedBy;
+
+        return $this;
+    }
+
+    public function getTransactionType(): ?string
+    {
+        return $this->transactionType;
+    }
+
+    public function setTransactionType(string $transactionType): self
+    {
+        $this->transactionType = $transactionType;
+
+        return $this;
+    }
+
+    public function getCreditsUsed(): ?int
+    {
+        return $this->creditsUsed;
+    }
+
+    public function setCreditsUsed(int $creditsUsed): self
+    {
+        $this->creditsUsed = $creditsUsed;
+
+        return $this;
+    }
+
+    public function getCreditsRemaining(): ?int
+    {
+        return $this->creditsRemaining;
+    }
+
+    public function setCreditsRemaining(int $creditsRemaining): self
+    {
+        $this->creditsRemaining = $creditsRemaining;
 
         return $this;
     }
