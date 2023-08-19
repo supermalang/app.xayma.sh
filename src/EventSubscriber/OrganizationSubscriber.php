@@ -8,15 +8,17 @@ use Symfony\Component\Workflow\Event\Event;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use App\Repository\OrganizationRepository;
+use App\Repository\SettingsRepository;
 
 
 class OrganizationSubscriber implements EventSubscriberInterface
 {
-    public function __construct(EntityManagerInterface $em, Registry $workflowRegistry, OrganizationRepository $organizationRepository)
+    public function __construct(EntityManagerInterface $em, Registry $workflowRegistry, OrganizationRepository $organizationRepository, SettingsRepository $settingsRepository)
     {
         $this->workflowRegistry = $workflowRegistry;
         $this->em = $em;
         $this->organizationRepository = $organizationRepository;
+        $this->settingsRepository = $settingsRepository;
     }
 
     public static function getSubscribedEvents(): array
@@ -61,9 +63,10 @@ class OrganizationSubscriber implements EventSubscriberInterface
             }
         }
 
-        // for each organization with credit debt, if debt is more than 75 credits, disable it
+        // for each organization with credit debt, if debt is more than MaxCreditsDebt credits, disable it
         foreach ($orgs_with_credit_debts as $organization) {
-            if ($organization->getRemainingCredits() <= -75) {
+            $settings = $this->settingsRepository->find(1);
+            if ($organization->getRemainingCredits() <= (-1 * $settings->getMaxCreditsDebt())) {
                 if ($workflow->can($organization, 'suspend_from_debt')) {
                     $workflow->apply($organization, 'suspend_from_debt');
                 }

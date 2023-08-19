@@ -49,9 +49,13 @@ class DashboardController extends AbstractDashboardController
             $is_advanced_user = true;
         }
 
-        if (!$is_advanced_user && 'active' != $firstOrgStatus) {
+        if ('suspended' == $firstOrgStatus) {
             // user is not advanced and first org is not active, we display the banner notice of suspension
-            $this->addFlash('notice-xayma-danger', 'This account is suspended. You have <b>read-only access</b>. Please contact your administrator.');
+            $this->addFlash('notice-xayma-danger', '<b>Inactive subscribtion</b> : Your account subscription has ended. Please add more credits.');
+        }
+        if ('on_debt' == $firstOrgStatus) {
+            // user is not advanced and first org is not active, we display the banner notice of suspension
+            $this->addFlash('notice-xayma-danger', '<b>Negative balance</b> : You do not have any credit left. Please add more credits to avoid suspension.');
         }
 
         return Dashboard::new()
