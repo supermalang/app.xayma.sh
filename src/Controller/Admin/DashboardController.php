@@ -8,6 +8,7 @@ use App\Entity\Deployments;
 use App\Entity\Organization;
 use App\Entity\Service;
 use App\Entity\User;
+use App\Entity\Settings;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -69,10 +70,11 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToCrud('Applications', 'fas fa-rocket', Deployments::class),
             MenuItem::linkToCrud('Customers', 'far fa-building', Organization::class),
             MenuItem::linkToCrud('Addons', 'fas fa-puzzle-piece', AddonsFolder::class),
-            MenuItem::section('Parametres')->setPermission('ROLE_SUPPORT'),
+            MenuItem::section('Settings')->setPermission('ROLE_SUPPORT'),
             MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Noeuds de Controle', 'fa fa-sitemap', ControlNode::class)->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Utilisateurs', 'fas fa-users', User::class)->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Control nodes', 'fa fa-sitemap', ControlNode::class)->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Users', 'fas fa-users', User::class)->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Advanced settings', 'fas fa-cog', Settings::class)->setPermission('ROLE_ADMIN'),
         ];
     }
 
