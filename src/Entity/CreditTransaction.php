@@ -63,12 +63,20 @@ class CreditTransaction
      */
     private $creditsRemaining;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Organization::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $organization;
+
     public function __construct()
     {
-        $this->transactionType = 'reporting';
+        // Can be 'debit' or 'credit'
+        $this->transactionType = 'debit';
         $this->creditsUsed = 0;
         $this->creditsRemaining = 0;
         $this->creditsPurchased = 0;
+        $this->amountPaid = 0;
     }
 
     public function getId(): ?int
@@ -180,6 +188,18 @@ class CreditTransaction
     public function setCreditsRemaining(int $creditsRemaining): self
     {
         $this->creditsRemaining = $creditsRemaining;
+
+        return $this;
+    }
+
+    public function getOrganization(): ?Organization
+    {
+        return $this->organization;
+    }
+
+    public function setOrganization(?Organization $organization): self
+    {
+        $this->organization = $organization;
 
         return $this;
     }

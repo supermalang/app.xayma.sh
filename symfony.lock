@@ -228,9 +228,6 @@
     "symfony/doctrine-bridge": {
         "version": "v4.4.13"
     },
-    "symfony/doctrine-messenger": {
-        "version": "v6.0.8"
-    },
     "symfony/dotenv": {
         "version": "v4.4.13"
     },
@@ -329,7 +326,7 @@
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "6.0",
-            "ref": "25e3c964d3aee480b3acc3114ffb7940c89edfed"
+            "ref": "ba1ac4e919baba5644d31b57a3284d6ba12d52ee"
         },
         "files": [
             "config/packages/messenger.yaml"

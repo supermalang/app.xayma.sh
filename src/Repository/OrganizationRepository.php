@@ -29,23 +29,6 @@ class OrganizationRepository extends ServiceEntityRepository
         ;
     }
 
-    // /**
-    //  * @return Organization[] Returns an array of Organization objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('o')
-            ->andWhere('o.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('o.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
     public function findOneBySomeField($value): ?Organization
     {
         return $this->createQueryBuilder('o')
@@ -55,4 +38,5 @@ class OrganizationRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
+
 }

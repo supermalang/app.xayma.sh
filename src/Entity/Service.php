@@ -331,8 +331,8 @@ class Service
     }
 
     /** Unmapped field / virtual field */
-    public function getHourlyCreditConsumption(): ?int
+    public function getHourlyCreditConsumption(): ?float
     {
-        return number_format($this->monthlyCreditConsumption / 30 / 24, 2);
+        return (float) number_format($this->monthlyCreditConsumption / 30 / 24, 2);
     }
 }

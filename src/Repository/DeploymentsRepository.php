@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Deployments;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Organization;
+
 
 /**
  * @method null|Deployments find($id, $lockMode = null, $lockVersion = null)
@@ -30,6 +32,19 @@ class DeploymentsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    public function getCurrentMonthlyConsumption(Organization $organization)
+    {
+        return $this->createQueryBuilder('d')
+            ->select('SUM(s.monthlyCreditConsumption) as creditsConsumed')
+            ->join('d.service', 's')
+            ->where('d.organization = :organization')
+            ->andWhere('d.status = :status')
+            ->setParameter('organization', $organization)
+            ->setParameter('status', 'active')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     // /**
