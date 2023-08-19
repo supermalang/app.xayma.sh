@@ -39,4 +39,30 @@ class OrganizationRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * Get all organizations that have 0 remainingCredits and can have a credit debt
+     */
+    public function findAllExpiredWithCreditDebts()
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.remainingCredits <= 0')
+            ->andWhere('o.allowCreditDebt = true')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Get all organizations that have 0 remainingCredits and cannot have a credit debt
+     */
+    public function findAllExpiredWithoutCreditDebts()
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.remainingCredits <= 0')
+            ->andWhere('o.allowCreditDebt = false')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 }
