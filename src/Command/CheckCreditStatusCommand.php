@@ -19,7 +19,7 @@ use Symfony\Component\Workflow\Registry;
 
 #[AsCommand(
     name: 'app:check-credit-status',
-    description: 'Add a short description for your command',
+    description: 'Periodically update the org status based on credit remaining',
 )]
 class CheckCreditStatusCommand extends Command
 {
@@ -38,71 +38,78 @@ class CheckCreditStatusCommand extends Command
 
     protected function configure(): void
     {
-        $this
-        ->addOption('periodicity', null, InputOption::VALUE_OPTIONAL, 'Periodicity of the command in seconds', 3600)
-        ;
+        //$this
+        //->addOption('periodicity', null, InputOption::VALUE_OPTIONAL, 'Periodicity of the command in seconds', 3600)
+        //;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $workflow = $this->workflowRegistry->get(new \App\Entity\Organization(), 'manage_organization_status');
         $io = new SymfonyStyle($input, $output);
+        $workflow = $this->workflowRegistry->get(new \App\Entity\Organization(), 'manage_organization_status');
         $organizations = $this->organizationRepository->findAll();
 
         $lowCreditThreshold = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getLowCreditThreshold();
         $MaxCreditsDebt = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getMaxCreditsDebt();
 
-        foreach ($organizations as $organization) {
-            // get the remaining credits of the organization
-            $remainingCredits = $organization->getRemainingCredits();
+        $orgsWithLowCredit = $this->organizationRepository->findAllLowCredit($lowCreditThreshold);
+        $orgsOnDebt = $this->organizationRepository->findAllOnDebt();
+        $orgsWithoutCredit = $this->organizationRepository->findAllWithoutCredit();
+        $orgsBeyondMaxDebt = $this->organizationRepository->findAllBeyondMaxDebt($MaxCreditsDebt);
 
-            
-            // if the remaining credits are less than the low credit threshold, change the status of the organization to low credit
-            if ($remainingCredits < $lowCreditThreshold && $remainingCredits > 0) {
-                
-                if ($workflow->can($organization, 'consume_credit')) {
-                    $workflow->apply($organization, 'consume_credit');
-                }
+        
+        /**
+         * Orgs that have low credit
+         */
+        foreach ($orgsWithLowCredit as $organization) {
+            if ($workflow->can($organization, 'consume_credit')) {
+                $workflow->apply($organization, 'consume_credit');
+                $this->entityManager->flush();
             }
-            
-            if($remainingCredits <= 0 && !$organization->isAllowCreditDebt()){
-                if ($workflow->can($organization, 'consume_low_credit')) {
-                    $workflow->apply($organization, 'consume_low_credit');
-                }
+        }
+
+        /**
+         * Orgs that have finished their credit
+         */
+        foreach ($orgsWithoutCredit as $organization) {
+            if ($workflow->can($organization, 'consume_low_credit')) {
+                $workflow->apply($organization, 'consume_low_credit');
+                $this->entityManager->flush();
             }
-            
-            /**
-             * If org can have debts
-             */
-            if($remainingCredits <= 0 && $organization->isAllowCreditDebt()){
-                /** Has gone beyond authorized debt credits */
-                if($remainingCredits < (-1 * $MaxCreditsDebt)){
-                    if ($workflow->can($organization, 'suspend_from_debt')) {
-                        $workflow->apply($organization, 'suspend_from_debt');
-                    }
-                }
-                /** Is within authorized debt credits limits */
-                else {
-                    if ($workflow->can($organization, 'allow_credit_debt')) {
-                        $workflow->apply($organization, 'allow_credit_debt');
-                    }
-                }
+        }
+
+        /*
+        * Orgs that have finished their credit and cannot have debt
+        */
+        foreach ($orgsWithoutCredit as $organization) {
+            if ($workflow->can($organization, 'suspend_subscription')) {
+                $workflow->apply($organization, 'suspend_subscription');
+                $this->entityManager->flush();
             }
-            
-            /**
-             * If org can't have debts
-             */
-            if($remainingCredits <= 0 && !$organization->isAllowCreditDebt()){
-                if ($workflow->can($organization, 'suspend_subscription')) {
-                    $workflow->apply($organization, 'suspend_subscription');
-                }
+        }
+
+        /**
+         * Orgs that have finished their credit and can have debt
+         */
+        foreach ($orgsOnDebt as $organization) {
+            if ($workflow->can($organization, 'allow_credit_debt')) {
+                $workflow->apply($organization, 'allow_credit_debt');
+                $this->entityManager->flush();
             }
-            $this->entityManager->flush();
+        }
+
+        /**
+         * Orgs that have gone beyond authorized debt credits
+         */
+        foreach ($orgsBeyondMaxDebt as $organization) {
+            if ($workflow->can($organization, 'suspend_from_debt')) {
+                $workflow->apply($organization, 'suspend_from_debt');
+                $this->entityManager->flush();
+            }
         }
 
         $io->success('The Organizations statuses have been updated');
         
         return Command::SUCCESS;
     }
-
 }

@@ -42,7 +42,7 @@ class OrganizationRepository extends ServiceEntityRepository
     /**
      * Get all organizations that have 0 remainingCredits and can have a credit debt
      */
-    public function findAllExpiredWithCreditDebts()
+    public function findAllOnDebt()
     {
         return $this->createQueryBuilder('o')
             ->andWhere('o.remainingCredits <= 0')
@@ -55,11 +55,34 @@ class OrganizationRepository extends ServiceEntityRepository
     /**
      * Get all organizations that have 0 remainingCredits and cannot have a credit debt
      */
-    public function findAllExpiredWithoutCreditDebts()
+    public function findAllWithoutCredit()
     {
         return $this->createQueryBuilder('o')
             ->andWhere('o.remainingCredits <= 0')
             ->andWhere('o.allowCreditDebt = false')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Get all organizations that are below the low credit threshold, but still have credits
+     */
+    public function findAllLowCredit($lowCreditThreshold){
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.remainingCredits < :lowCreditThreshold')
+            ->andWhere('o.remainingCredits > 0')
+            ->setParameter('lowCreditThreshold', $lowCreditThreshold)
+            ->getQuery()
+            ->getResult()
+        ;
+    }    
+    
+    /** Get all organization that have credits below the MaxCreditsDebt */
+    public function findAllBeyondMaxDebt($MaxCreditsDebt){
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.remainingCredits < :MaxCreditsDebt')
+            ->setParameter('MaxCreditsDebt', (-1 * $MaxCreditsDebt))
             ->getQuery()
             ->getResult()
         ;

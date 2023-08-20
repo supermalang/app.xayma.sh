@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Deployments;
 use App\Service\OrgHelper;
+use App\Service\AwxHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,13 +38,15 @@ class DeploymentsCrudController extends AbstractCrudController
     private $security;
     private $workflow;
 
-    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper)
+    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper, AwxHelper $awxHelper)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
         $this->crudUrlGenerator = $crudUrlGenerator;
         $this->em = $em;
         $this->client = $client;
+        $this->orgHelper = $orgHelper;
+        $this->awxHelper = $awxHelper;
     }
 
     public static function getEntityFqcn(): string
@@ -240,7 +243,7 @@ class DeploymentsCrudController extends AbstractCrudController
         $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->updateDeployment($entity, $job_tags_);
+        $this->awxHelper->updateDeployment($entity, $job_tags_);
 
         return $this->fireTransition($context, 'suspend');
     }
@@ -252,7 +255,7 @@ class DeploymentsCrudController extends AbstractCrudController
         $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->updateDeployment($entity, $job_tags_);
+        $this->awxHelper->updateDeployment($entity, $job_tags_);
 
         return $this->fireTransition($context, 'admin_suspend');
     }
@@ -264,7 +267,7 @@ class DeploymentsCrudController extends AbstractCrudController
         $job_tags = $entity->getService()->getStartTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->updateDeployment($entity, $job_tags_);
+        $this->awxHelper->updateDeployment($entity, $job_tags_);
 
         return $this->fireTransition($context, 'reactivate');
     }
@@ -276,7 +279,7 @@ class DeploymentsCrudController extends AbstractCrudController
         $job_tags = $entity->getService()->getStartTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->updateDeployment($entity, $job_tags_);
+        $this->awxHelper->updateDeployment($entity, $job_tags_);
 
         return $this->fireTransition($context, 'admin_reactivate');
     }
@@ -294,7 +297,7 @@ class DeploymentsCrudController extends AbstractCrudController
         $job_tags = $entity->getService()->getSuspendTags();
 
         $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->updateDeployment($entity, $job_tags_);
+        $this->awxHelper->updateDeployment($entity, $job_tags_);
 
         $this->fireTransition($context, 'suspended_to_archive');
 
@@ -321,40 +324,12 @@ class DeploymentsCrudController extends AbstractCrudController
             $job_tags = $entity->getService()->getEditDomainNameTags();
 
             $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-            $this->updateDeployment($entity, $job_tags_);
+            $this->awxHelper->updateDeployment($entity, $job_tags_);
         }
 
         $entityManager->persist($entity);
         $entityManager->flush();
     }
 
-    public function updateDeployment(Deployments $entity, $job_tags)
-    {
-        $awxId = $entity->getService()->getAwxId();
-        $controlNodeUrl = $entity->getService()->getControleNode()->getAddress()
-            .'/api/v2/job_templates/'.$awxId.'/launch/';
-        $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
-
-        // Deprecated
-        // $slugger = new AsciiSlugger();
-        // $instance_slug = strtolower($slugger->slug($entity->getLabel())->toString());
-
-        $instance_slug = $entity->getSlug();
-        $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
-        $version = $entity->getServiceVersion();
-
-        $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
-
-        $domain = str_replace('http://', '', $entity->getDomainName());
-        $domain = str_replace('https://', '', $domain);
-
-        $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
-
-        return "";
-        $this->client->request(
-            'POST',
-            $controlNodeUrl,
-            ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
-        );
-    }
+    
 }

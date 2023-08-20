@@ -19,7 +19,7 @@ use App\Entity\User;
 
 #[AsCommand(
     name: 'app:update-remaining-credits',
-    description: 'A command to periodically report the credits available for each organization',
+    description: 'Periodically update the credits remaining for each organization',
 )]
 class UpdateRemainingCreditsCommand extends Command
 {

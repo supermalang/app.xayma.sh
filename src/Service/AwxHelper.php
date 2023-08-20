@@ -68,4 +68,37 @@ class AwxHelper
 
         return $response->getStatusCode();
     }
+
+    /**
+     * Update the deployment in AWX.
+     * @param Deployments $entity The deployment entity to update
+     * @param string $job_tags The tags to use for the deployment. If no tag is given the default stop tags will be used
+     */
+    public function updateDeployment(Deployments $entity, $job_tags = null): void
+    {
+        // if job_tags is null, use the default stop tags from the service
+        $job_tags = $job_tags ?? $entity->getService()->getStopTags();
+
+        $awxId = $entity->getService()->getAwxId();
+        $controlNodeUrl = $entity->getService()->getControleNode()->getAddress()
+            .'/api/v2/job_templates/'.$awxId.'/launch/';
+        $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
+
+        $instance_slug = $entity->getSlug();
+        $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
+        $version = $entity->getServiceVersion();
+
+        $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
+
+        $domain = str_replace('http://', '', $entity->getDomainName());
+        $domain = str_replace('https://', '', $domain);
+
+        $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
+
+        $this->httpclient->request(
+            'POST',
+            $controlNodeUrl,
+            ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
+        );
+    }
 }
