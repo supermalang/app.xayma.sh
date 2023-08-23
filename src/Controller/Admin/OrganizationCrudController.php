@@ -140,6 +140,18 @@ class OrganizationCrudController extends AbstractCrudController
             ->setCssClass('text-success btn btn-link')
         ;
 
+        $allowDebt = Action::new('allowDebtAction', 'Allow Debt', 'fas fa-thumbs-up')
+            ->displayIf(static function ($entity) { return in_array($entity->isAllowCreditDebt(), [false]); })
+            ->linkToCrudAction('allowCreditDebt')
+            ->setCssClass('text-danger btn btn-link')
+        ;
+
+        $disallowDebt = Action::new('disallowDebtAction', 'Forbid Debt', 'fas fa-ban')
+            ->displayIf(static function ($entity) { return in_array($entity->isAllowCreditDebt(), [true]); })
+            ->linkToCrudAction('disallowCreditDebt')
+            ->setCssClass('text-danger btn btn-link')
+        ;
+
         // If org is suspended or archived, or it does not have credit, we suspend all actions except read only, for the customers
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser()) || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
@@ -158,14 +170,18 @@ class OrganizationCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $activateOrg)
             ->add(Crud::PAGE_DETAIL, $archiveOrg)
             ->add(Crud::PAGE_DETAIL, $reactivateOrg)
+            ->add(Crud::PAGE_DETAIL, $allowDebt)
+            ->add(Crud::PAGE_DETAIL, $disallowDebt)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->setPermission(Action::NEW, 'ROLE_SUPPORT')
             ->setPermission($suspendOrg, 'ROLE_SUPPORT')
-            ->setPermission($activateOrg, 'ROLE_SUPPORT')
-            ->setPermission($archiveOrg, 'ROLE_SUPPORT')
-            ->setPermission($reactivateOrg, 'ROLE_SUPPORT')
+            ->setPermission($activateOrg, 'ROLE_ADMIN')
+            ->setPermission($archiveOrg, 'ROLE_ADMIN')
+            ->setPermission($reactivateOrg, 'ROLE_ADMIN')
+            ->setPermission($allowDebt, 'ROLE_SUPPORT')
+            ->setPermission($disallowDebt, 'ROLE_SUPPORT')
 
         ;
     }
@@ -222,5 +238,41 @@ class OrganizationCrudController extends AbstractCrudController
     public function reactivateOrg(AdminContext $context)
     {
         return $this->fireTransition($context, 'reactivate');
+    }
+
+    public function allowCreditDebt(AdminContext $context)
+    {
+        // Update the org entity and set setAllowCreditDebt to true
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
+        $entity->setAllowCreditDebt(true);
+
+        $this->updateEntity($this->doctrine->getManager(), $entity);
+
+        // Add a flash message notification to say the credit debt is now allowed for this org
+        $this->addFlash('success', 'The credit debt is now allowed for this organization.');
+
+        // Redirect to the same detail page of the org
+        $detailUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::DETAIL)->setEntityId($id)->generateUrl();
+
+        return $this->redirect($detailUrl);
+    }
+
+    public function disallowCreditDebt(AdminContext $context)
+    {
+        // Update the org entity and set setAllowCreditDebt to false
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
+        $entity->setAllowCreditDebt(false);
+
+        $this->updateEntity($this->doctrine->getManager(), $entity);
+
+        // Add a flash message notification to say the credit debt is now allowed for this org
+        $this->addFlash('warning', 'The credit debt is now forbidden for this organization.');
+
+        // Redirect to the same detail page of the org
+        $detailUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::DETAIL)->setEntityId($id)->generateUrl();
+
+        return $this->redirect($detailUrl);
     }
 }
