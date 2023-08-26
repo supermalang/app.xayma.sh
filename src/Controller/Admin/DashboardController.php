@@ -35,8 +35,10 @@ class DashboardController extends AbstractDashboardController
         // Deprecated
         // $routeBuilder = $this->get(AdminUrlGenerator::class)->build();
         $routeBuilder = $this->adminUrlGenerator;
-
-        return $this->redirect($routeBuilder->setController(DeploymentsCrudController::class)->generateUrl());
+        
+        return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig');
+        
+        //return $this->redirect($routeBuilder->setController(DeploymentsCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard
@@ -58,12 +60,17 @@ class DashboardController extends AbstractDashboardController
             $this->addFlash('notice-xayma-danger', '<b>Negative balance</b> : You do not have any credit left. Please add more credits to avoid suspension.');
         }
 
-        return Dashboard::new()
+        $dashboard = Dashboard::new()
             ->setTitle('<img src="/img/logo.png" style="width:32px;"> Xayma.sh')
             ->generateRelativeUrls()
-            ->disableDarkMode()
             ->setFaviconPath('/favicon.png')
         ;
+
+        if(!$is_advanced_user){
+            $dashbard->disableDarkMode();
+        }
+
+        return $dashboard;
     }
 
     public function configureMenuItems(): iterable
