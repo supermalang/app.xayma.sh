@@ -1,4 +1,39 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
+{% block head_javascript %}
+    {{parent()}}
+    {{ encore_entry_script_tags('app') }}
+{% endblock head_javascript %}
+
 {% block main %}
-    Bonjour
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Consumption of credits</h5>
+                        <p class="card-text">
+                            {{ render_chart(chart) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Consumption of credits</h5>
+                        <p class="card-text">
+                            {{ render_chart(chart) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+
+
 {% endblock %}

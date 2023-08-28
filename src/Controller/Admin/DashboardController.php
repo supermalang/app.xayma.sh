@@ -17,14 +17,21 @@ use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
+use App\Repository\OrganizationRepository;
+use App\Repository\CreditTransactionRepository;
 
 class DashboardController extends AbstractDashboardController
 {
     private $adminUrlGenerator;
 
-    public function __construct(AdminUrlGenerator $adminUrlGenerator)
+    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository)
     {
         $this->adminUrlGenerator = $adminUrlGenerator;
+        $this->chartBuilder = $chartBuilder;
+        $this->organizationRepository = $organizationRepository;
+        $this->creditTransactionRepository = $creditTransactionRepository;
     }
 
     /**
@@ -35,8 +42,38 @@ class DashboardController extends AbstractDashboardController
         // Deprecated
         // $routeBuilder = $this->get(AdminUrlGenerator::class)->build();
         $routeBuilder = $this->adminUrlGenerator;
-        
-        return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig');
+
+        // Get the credit transactions of the last 24 hours
+        $credits = $this->creditTransactionRepository->creditsUsedLast24Hours();
+        $creditsUsed = array_column($credits, 'creditsUsed');
+        $labelHours = array_column($credits, 'hour');
+
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+
+        $chart->setData([
+            'labels' => $labelHours,
+            'datasets' => [
+                [
+                    'label' => 'Credit consumption',
+                    'backgroundColor' => 'rgb(255, 99, 132)',
+                    'borderColor' => 'rgb(255, 99, 132)',
+                    'data' => $creditsUsed,
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'scales' => [
+                'y' => [
+                    'suggestedMin' => 0,
+                    'suggestedMax' => 100,
+                ],
+            ],
+        ]);
+
+        return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig', [
+            'chart' => $chart,
+        ]);
         
         //return $this->redirect($routeBuilder->setController(DeploymentsCrudController::class)->generateUrl());
     }

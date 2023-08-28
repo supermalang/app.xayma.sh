@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import snarkdown from 'snarkdown';
 
 /*
  * This is an example Stimulus controller!
@@ -10,7 +11,9 @@ import { Controller } from '@hotwired/stimulus';
  * Delete this file or adapt it for your use!
  */
 export default class extends Controller {
+    static targets = ['input', 'preview'];
     connect() {
-        this.element.textContent = 'Hello Stimulus! Edit me in assets/controllers/hello_controller.js';
+        //this.previewTarget.textContent = 'Hello Stimulus! Edit me in assets/controllers/hello_controller.js';
+        this.previewTarget.innerHTML = 'Hello Stimulus! Edit me in assets/controllers/hello_controller.js';
     }
 }

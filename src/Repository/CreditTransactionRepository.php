@@ -39,6 +39,35 @@ class CreditTransactionRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * Get the credit used in the last 24 hours by the given organization or all organizations
+     * @param int|null $organizationId
+     * @return CreditTransaction[]
+     */
+    public function creditsUsedLast24Hours(?int $organizationId = null): array
+    {
+        $qb = $this->createQueryBuilder('ct')
+        // select average of credits used and max of created date for each hour
+            ->select('AVG(ct.creditsUsed) as creditsUsed')
+            ->addSelect('MAX(ct.created) as created')
+            // add select the max of created date for each hour to group by hour. so format by hour
+            ->addSelect('DATE_FORMAT(ct.created, \'%H\') as hour')
+            ->where('ct.created >= :date')
+            ->setParameter('date', new \DateTime('-24 hours'));
+
+        if ($organizationId) {
+            $qb->andWhere('ct.organization = :organizationId')
+                ->setParameter('organizationId', $organizationId);
+        }
+
+        // Group by hour and average the credits used
+        $qb->groupBy('hour')
+        ->orderBy('created', 'ASC');
+            
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return CreditTransaction[] Returns an array of CreditTransaction objects
 //     */
