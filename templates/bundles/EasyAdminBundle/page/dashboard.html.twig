@@ -7,18 +7,24 @@
 {% block main %}
     <div class="container">
         <div class="row">
-            <div class="col-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Consumption of credits</h5>
-                        <p class="card-text">
-                            {{ render_chart(chart) }}
-                        </p>
-                    </div>
-                </div>
+            <div class="col-4">
+                <h5 class="card-titleA">Your applications</h5>
+                <ul class="list-group list-group-flush">
+                {% for dep in lastfivedeps %}
+                    <li class="list-group-item">
+                        <a href="
+                            {{ ea_url()
+                            .setController('App\\Controller\\Admin\\DeploymentsCrudController')
+                            .setAction('detail')
+                            .setEntityId(dep.id)}}">
+                            {{ dep.label }}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
             </div>
 
-            <div class="col-6">
+            <div class="col">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Consumption of credits</h5>

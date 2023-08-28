@@ -47,6 +47,22 @@ class DeploymentsRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    // public function to get the last five edited deployments that belong to the given organization. if no organization is given, it will return the last five edited deployments of all organizations 
+    public function getLastFiveEditedDeployments(Organization $organization = null)
+    {
+        $query = $this->createQueryBuilder('d')
+            ->orderBy('d.modified', 'DESC')
+            ->setMaxResults(5)
+            ->getQuery();
+
+        if ($organization) {
+            $query->andWhere('d.organization = :organization')
+                ->setParameter('organization', $organization);
+        }
+
+        return $query->getResult();
+    }
+
     // /**
     //  * @return Deployments[] Returns an array of Deployments objects
     //  */

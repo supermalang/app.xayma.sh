@@ -21,17 +21,19 @@ use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 use App\Repository\OrganizationRepository;
 use App\Repository\CreditTransactionRepository;
+use App\Repository\DeploymentsRepository;
 
 class DashboardController extends AbstractDashboardController
 {
     private $adminUrlGenerator;
 
-    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository)
+    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository, DeploymentsRepository $deploymentsRepository)
     {
         $this->adminUrlGenerator = $adminUrlGenerator;
         $this->chartBuilder = $chartBuilder;
         $this->organizationRepository = $organizationRepository;
         $this->creditTransactionRepository = $creditTransactionRepository;
+        $this->deploymentsRepository = $deploymentsRepository;
     }
 
     /**
@@ -43,11 +45,18 @@ class DashboardController extends AbstractDashboardController
         // $routeBuilder = $this->get(AdminUrlGenerator::class)->build();
         $routeBuilder = $this->adminUrlGenerator;
 
+        // if user is not admin or support, we only display the last five deployments of the current organization
+        if ($this->isAdvancedUser()) {
+            $lastFiveDeployments = $this->deploymentsRepository->getLastFiveEditedDeployments();
+        }
+        else {
+            $lastFiveDeployments = $this->deploymentsRepository->getLastFiveEditedDeployments($this->getUser()->getOrganizations()[0]);
+        }
+
         // Get the credit transactions of the last 24 hours
         $credits = $this->creditTransactionRepository->creditsUsedLast24Hours();
         $creditsUsed = array_column($credits, 'creditsUsed');
         $labelHours = array_column($credits, 'hour');
-
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
 
         $chart->setData([
@@ -62,20 +71,12 @@ class DashboardController extends AbstractDashboardController
             ],
         ]);
 
-        $chart->setOptions([
-            'scales' => [
-                'y' => [
-                    'suggestedMin' => 0,
-                    'suggestedMax' => 100,
-                ],
-            ],
-        ]);
+        $chart->setOptions(['scales' => ['y' => [ 'suggestedMin' => 0, 'suggestedMax' => 100, ],], ]);
 
         return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig', [
             'chart' => $chart,
+            'lastfivedeps' => $lastFiveDeployments,
         ]);
-        
-        //return $this->redirect($routeBuilder->setController(DeploymentsCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard
@@ -142,5 +143,16 @@ class DashboardController extends AbstractDashboardController
                 MenuItem::linkToUrl('My profile', 'fa fa-id-card', $url),
             ])
         ;
+    }
+
+    // function to check if user is admin or support
+    public function isAdvancedUser()
+    {
+        if (count(array_intersect($this->getUser()->getRoles(), ['ROLE_SUPPORT', 'ROLE_ADMIN'])) > 0) {
+            // at least user has one of the roles ROLE_SUPPORT or ROLE_ADMIN
+            return true;
+        } else {
+            return false;
+        }
     }
 }
