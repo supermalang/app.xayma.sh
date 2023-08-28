@@ -34,17 +34,25 @@ class DeploymentsRepository extends ServiceEntityRepository
         ;
     }
 
-    public function getCurrentMonthlyConsumption(Organization $organization)
+    /**
+     * Return the current monthly credits consumption of the organization (or all organizations if no organization is given)
+     */
+    public function getCurrentMonthlyConsumption(Organization $organization = null)
     {
-        return $this->createQueryBuilder('d')
+        $query = $this->createQueryBuilder('d')
             ->select('SUM(s.monthlyCreditConsumption) as creditsConsumed')
             ->join('d.service', 's')
-            ->where('d.organization = :organization')
-            ->andWhere('d.status = :status')
-            ->setParameter('organization', $organization)
-            ->setParameter('status', 'active')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->where('d.status = :status');
+
+            if ($organization) {
+                $query = $query->andWhere('d.organization = :organization')
+                    ->setParameter('organization', $organization);
+            }
+
+            $query = $query->setParameter('status', 'active')
+                ->getQuery()->getSingleScalarResult();
+
+            return $query;
     }
 
     // public function to get the last five edited deployments that belong to the given organization. if no organization is given, it will return the last five edited deployments of all organizations 
@@ -52,15 +60,14 @@ class DeploymentsRepository extends ServiceEntityRepository
     {
         $query = $this->createQueryBuilder('d')
             ->orderBy('d.modified', 'DESC')
-            ->setMaxResults(5)
-            ->getQuery();
-
+            ->setMaxResults(5);
+            
         if ($organization) {
-            $query->andWhere('d.organization = :organization')
+            $query = $query->andWhere('d.organization = :organization')
                 ->setParameter('organization', $organization);
         }
-
-        return $query->getResult();
+        
+        return $query->getQuery()->getResult();
     }
 
     // /**

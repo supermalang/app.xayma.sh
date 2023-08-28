@@ -5,26 +5,91 @@
 {% endblock head_javascript %}
 
 {% block main %}
+    <div class="d-flex justify-content-start mx-3 mb-3">
+        <div class="shadow bg-info text-white bg-gradient border border-secondary rounded py-5 px-3 me-2 text-center">
+            <span class="fs-3">{{hourlyCreditConsumption|format_number({rounding_mode: 'floor'})}}</span> <br/>
+            <span class="text-white-50">Credit Consumption per hour</span>
+        </div>
+        <div class="border border-secondary rounded py-5 px-3 mx-2 text-center">
+            <span class="fs-3">{{monthlyCreditConsumption|format_number({rounding_mode: 'floor'})}}</span> <br/>
+            <span class="text-black-50">Credit Consumption per month</span>
+        </div>
+        {% if remainingCredits is same as ('N/A') %}
+            <div class="border rounded py-5 px-3 mx-2 text-center">
+                <span class="fs-3 text-info">{{monthCostofCredit|format_currency('XOF', locale='fr')}}</span> <br/>
+                <span class="text-black-50">Foresight month cost</span>
+            </div>
+        {% else %}
+            <div class="border rounded py-5 px-3 mx-2 text-center">
+                <span class="fs-3">{{remainingCredits|format_number({rounding_mode: 'floor'})}}</span> <br/>
+                <span class="text-black-50">Remaining credits</span>
+            </div>
+        {% endif %}
+        <a class="btn btn-primary align-self-center ms-auto px-2 py-1" href="
+                                        {{ ea_url()
+                                        .setController('App\\Controller\\Admin\\CreditTransactionCrudController')
+                                        .setAction('new')}}" >
+            Buy credits
+        </a>
+    </div>
+
     <div class="container">
+
         <div class="row">
             <div class="col-4">
-                <h5 class="card-titleA">Your applications</h5>
-                <ul class="list-group list-group-flush">
-                {% for dep in lastfivedeps %}
-                    <li class="list-group-item">
-                        <a href="
-                            {{ ea_url()
-                            .setController('App\\Controller\\Admin\\DeploymentsCrudController')
-                            .setAction('detail')
-                            .setEntityId(dep.id)}}">
-                            {{ dep.label }}
-                        </a>
-                    </li>
-                {% endfor %}
-                </ul>
+                <div class="card">
+                    <div class="card-body">
+                    <h5 class="card-title">Your applications</h5>
+                        <p class="card-text">
+                            <ul class="list-group list-group-flush">
+                            {% for dep in lastfivedeps %}
+                                <li class="list-group-item">
+                                    <a href="
+                                        {{ ea_url()
+                                        .setController('App\\Controller\\Admin\\DeploymentsCrudController')
+                                        .setAction('detail')
+                                        .setEntityId(dep.id)}}">
+                                        {{ dep.label }}
+                                    </a>
+                                    <br/>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div class="col">
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Transactions</h5>
+                            <p class="card-text">
+                                <ul class="list-group list-group-flush">
+                                {% for transaction in creditPurchases %}
+                                    <li class="list-group-item">
+                                        {{ transaction.creditsPurchased }} credits bought on {{ transaction.created|format_datetime('medium', 'short', locale='fr') }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Notifications</h5>
+                            <p class="card-text">
+                            - You have ... days left before your credits expire
+                            </p>
+                    </div>
+                </div>
+            </div>
+            
+
+            <div class="col my-3">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Consumption of credits</h5>

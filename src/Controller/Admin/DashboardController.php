@@ -22,18 +22,21 @@ use Symfony\UX\Chartjs\Model\Chart;
 use App\Repository\OrganizationRepository;
 use App\Repository\CreditTransactionRepository;
 use App\Repository\DeploymentsRepository;
+use App\Repository\SettingsRepository;
 
 class DashboardController extends AbstractDashboardController
 {
     private $adminUrlGenerator;
+    const SYSTEM_SETTINGS_ID = 1;
 
-    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository, DeploymentsRepository $deploymentsRepository)
+    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository)
     {
         $this->adminUrlGenerator = $adminUrlGenerator;
         $this->chartBuilder = $chartBuilder;
         $this->organizationRepository = $organizationRepository;
         $this->creditTransactionRepository = $creditTransactionRepository;
         $this->deploymentsRepository = $deploymentsRepository;
+        $this->settingsRepository = $settingsRepository;
     }
 
     /**
@@ -48,9 +51,19 @@ class DashboardController extends AbstractDashboardController
         // if user is not admin or support, we only display the last five deployments of the current organization
         if ($this->isAdvancedUser()) {
             $lastFiveDeployments = $this->deploymentsRepository->getLastFiveEditedDeployments();
+            $monthlyCreditConsumption = $this->deploymentsRepository->getCurrentMonthlyConsumption();
+            $hourlyCreditConsumption = $monthlyCreditConsumption / 720;
+            $remainingCredits = 'N/A';
+            $costOfCredit = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getCreditPrice();
+            $globalMonthlyCostOfCredit = $costOfCredit * $monthlyCreditConsumption;
+            $creditPurchases = $this->creditTransactionRepository->getLastPurchases();
         }
         else {
             $lastFiveDeployments = $this->deploymentsRepository->getLastFiveEditedDeployments($this->getUser()->getOrganizations()[0]);
+            $monthlyCreditConsumption = $this->deploymentsRepository->getCurrentMonthlyConsumption($this->getUser()->getOrganizations()[0]);
+            $hourlyCreditConsumption = $monthlyCreditConsumption / 720;
+            $remainingCredits = $this->getUser()->getOrganizations()[0]->getRemainingCredits();
+            $creditPurchases = $this->creditTransactionRepository->getLastPurchases($this->getUser()->getOrganizations()[0]);            
         }
 
         // Get the credit transactions of the last 24 hours
@@ -76,18 +89,18 @@ class DashboardController extends AbstractDashboardController
         return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig', [
             'chart' => $chart,
             'lastfivedeps' => $lastFiveDeployments,
+            'monthlyCreditConsumption' => $monthlyCreditConsumption,
+            'hourlyCreditConsumption' => $hourlyCreditConsumption,
+            'remainingCredits' => $remainingCredits,
+            'monthCostofCredit' => $globalMonthlyCostOfCredit,
+            'creditPurchases' => $creditPurchases,
         ]);
     }
 
     public function configureDashboard(): Dashboard
     {
-        $is_advanced_user = false;
+        $is_advanced_user = $this->isAdvancedUser();
         $firstOrgStatus = $this->getUser()->getOrganizations()[0] ? $this->getUser()->getOrganizations()[0]->getStatus() : null;
-
-        if (count(array_intersect($this->getUser()->getRoles(), ['ROLE_SUPPORT', 'ROLE_ADMIN'])) > 0) {
-            // at least user has one of the roles ROLE_SUPPORT or ROLE_ADMIN
-            $is_advanced_user = true;
-        }
 
         if ('suspended' == $firstOrgStatus) {
             // user is not advanced and first org is not active, we display the banner notice of suspension

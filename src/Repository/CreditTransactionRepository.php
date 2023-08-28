@@ -68,6 +68,22 @@ class CreditTransactionRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function getLastPurchases(?int $organizationId = null, $limit = 5): array
+    {
+        $qb = $this->createQueryBuilder('ct')
+            ->where('ct.transactionType = :transactionType')
+            ->setParameter('transactionType', 'credit');
+
+        if ($organizationId) {
+            $qb = $qb->andWhere('ct.organization = :organizationId')
+                ->setParameter('organizationId', $organizationId);
+        }
+
+        $qb = $qb->orderBy('ct.created', 'DESC')->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return CreditTransaction[] Returns an array of CreditTransaction objects
 //     */
