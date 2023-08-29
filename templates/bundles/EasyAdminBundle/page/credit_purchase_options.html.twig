@@ -1,0 +1,56 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block head_javascript %}
+    {{parent()}}
+    {{ encore_entry_script_tags('app') }}
+{% endblock head_javascript %}
+
+{% block main %}
+    <h3 class="page-title">Buy Credits</h3>
+    <hr/>
+    <div class="d-flex justify-content-between mx-3 mb-3">
+       <div class="card m-auto" style="width:500px">
+            <div class="card-body">
+                <p class="card-text">
+                    <h5 class="fs-5 d-flex"> <span class="d-inline text-center align-middle me-2 text-white" style="width:25px;height:25px;border-radius:20px;border:1px solid #09c;background-color:#09C;">1 </span> Choose a Credit Plan</h5>
+                    <div class="card mb-3 mt-4">
+                        <div class="card-body">
+                            <input type="radio" name="credit_plan" value="1" id="credit_plan_1" > <label for="credit_plan_1"><span class="fw-bold">{{"5000"|format_currency('XOF', locale='fr')}}</span> - 10 credits</label>
+                        </div>
+                    </div>
+                    <div class="card my-3">
+                        <div class="card-body">
+                            <input type="radio" name="credit_plan" value="2" id="credit_plan_2" > <label for="credit_plan_2"><span class="fw-bold">{{"25000"|format_currency('XOF', locale='fr')}}</span> - 70 credits</label>
+                        </div>
+                    </div>
+                    <div class="card mt-3 mb-5">
+                        <div class="card-body">
+                            <input type="radio" name="credit_plan" value="3" id="credit_plan_3" checked> <label for="credit_plan_3"><span class="fw-bold">{{"45000"|format_currency('XOF', locale='fr')}}</span> - 150 credits</label>
+                        </div>
+                    </div>
+
+                    {# Payment methods with the stimilus controller #}
+                    <div data-controller="purchaseoptions">
+                        <h5 class="fs-5 d-flex"> <span class="d-inline text-center align-middle me-2 text-white" style="width:25px;height:25px;border-radius:20px;border:1px solid #09c;background-color:#09C;">2 </span> Choose a Payment Method</h5>
+                        <div class="card mt-4 mb-3">
+                            <div class="card-body">
+                                <input type="radio" name="payment_method" value="1" id="payment_method_1" disabled > <label for="payment_method_1"><span class="fw-bold">Wave</label>
+                            </div>
+                        </div>
+                        <div class="card mt-3 mb-3">
+                            <div class="card-body">
+                                <input type="radio" name="payment_method" value="2" id="payment_method_2" disabled > <label for="payment_method_2"><span class="fw-bold">Orange Money</label>
+                            </div>
+                        </div>
+                        <div class="card mt-3 mb-5">
+                            <div class="card-body">
+                                <input type="radio" name="payment_method" value="3" id="payment_method_3" > <label for="payment_method_3"><span class="fw-bold">Other</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="#" class="btn btn-success mx-auto p-2" style="display: block; width:200px;">Checkout</a>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

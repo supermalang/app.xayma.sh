@@ -28,7 +28,7 @@
         <a class="btn btn-primary align-self-center ms-auto px-2 py-1" href="
                                         {{ ea_url()
                                         .setController('App\\Controller\\Admin\\CreditTransactionCrudController')
-                                        .setAction('new')}}" >
+                                        .setAction('priceoptions')}}" >
             Buy credits
         </a>
     </div>
@@ -39,7 +39,10 @@
             <div class="col-4">
                 <div class="card">
                     <div class="card-body">
-                    <h5 class="card-title">Your applications</h5>
+                    <h5 class="card-title d-flex"><span class="d-inline">Your applications</span> <a class="d-inline ms-auto fs-6" href="
+                                        {{ ea_url()
+                                        .setController('App\\Controller\\Admin\\DeploymentsCrudController')
+                                        .setAction('index')}}">View all</a> </h5>
                         <p class="card-text">
                             <ul class="list-group list-group-flush">
                             {% for dep in lastfivedeps %}
