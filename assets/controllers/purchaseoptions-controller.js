@@ -11,9 +11,18 @@ import snarkdown from 'snarkdown';
  * Delete this file or adapt it for your use!
  */
 export default class extends Controller {
-    static targets = ['input', 'preview'];
+    static targets = ["button"];
+    static values = { checked: Boolean };
+
     connect() {
-        //this.previewTarget.textContent = 'Hello Stimulus! Edit me in assets/controllers/hello_controller.js';
-        this.previewTarget.innerHTML = 'Hello Stimulus! Edit me in assets/controllers/hello_controller.js';
+        this.buttonTarget.setAttribute("disabled", "disabled");
+    }
+
+    updateButtonState(event) {
+        if (event.target.checked) {
+            this.buttonTarget.removeAttribute("disabled");
+        } else {
+            this.buttonTarget.setAttribute("disabled", "disabled");
+        }
     }
 }

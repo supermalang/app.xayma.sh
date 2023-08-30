@@ -73,6 +73,16 @@ class Settings
      */
     private $modifiedBy;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $paymentApiKey;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $paymentSecretKey;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -206,6 +216,30 @@ class Settings
     public function setModifiedBy(?User $modifiedBy): self
     {
         $this->modifiedBy = $modifiedBy;
+
+        return $this;
+    }
+
+    public function getPaymentApiKey(): ?string
+    {
+        return $this->paymentApiKey;
+    }
+
+    public function setPaymentApiKey(string $paymentApiKey): self
+    {
+        $this->paymentApiKey = $paymentApiKey;
+
+        return $this;
+    }
+
+    public function getPaymentSecretKey(): ?string
+    {
+        return $this->paymentSecretKey;
+    }
+
+    public function setPaymentSecretKey(?string $paymentSecretKey): self
+    {
+        $this->paymentSecretKey = $paymentSecretKey;
 
         return $this;
     }

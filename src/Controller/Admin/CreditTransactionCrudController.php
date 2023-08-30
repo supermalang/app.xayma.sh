@@ -61,9 +61,9 @@ class CreditTransactionCrudController extends AbstractCrudController
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
-                $apiKey = "53b284b424607a790dfef817297878089571ccc9fdf1940a19d0866a68f9aa29";
-                $secretKey = "b8e2f8d43d82083038d0a552b301ea48eef3f2629cfae9b2b806698bbae7fe2a";
-                
+                $apiKey = $this->paymentHelper->getApiKey();
+                $secretKey = $this->paymentHelper->getSecretKey();
+
                 $data = $form->getData();
                 $creditsAmount = $data['creditPurchaseOption'];
 
@@ -78,8 +78,12 @@ class CreditTransactionCrudController extends AbstractCrudController
                 return $this->RedirectToUrl($checkoutResult['redirect_url']);
             }
             else{
-                // Not valid
-                // Return error and redirect to form
+                // Add a notification banner
+                $this->addFlash('warning', 'Please select a credit purchase option');
+
+                return $this->render('bundles/EasyAdminBundle/page/credit_purchase_options.html.twig', [
+                    'form' => $form->createView(),
+                ]);
             }
 
             

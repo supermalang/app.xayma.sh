@@ -9,7 +9,8 @@
     <hr/>
     <div class="d-flex justify-content-between mx-3 mb-3">
        <div class="card m-auto" style="width:500px">
-            <div class="card-body">
+            <div class="card-body" data-controller="purchaseoptions">
+                {# The checkout form #}
                 {{ form_start(form, {'attr': {'class': 'card-text', 'action': ea_url()
                             .setController('App\\Controller\\Admin\\CreditTransactionCrudController')
                             .setAction('priceoptions')}}) }}
@@ -19,16 +20,18 @@
                     {% for label, value in field_choices(form.creditPurchaseOption) %}
                         <div class="card my-3">
                             <div class="card-body">
-                                <input type="radio" name="{{ field_name(form.creditPurchaseOption) }}" value="{{ value }}" id="{{value}}" > <label for="{{value}}"><span class="fw-bold">{{label|format_currency('XOF', locale='fr')}}</span> - {{ value }} credits</label>
+                                <input type="radio" name="{{ field_name(form.creditPurchaseOption) }}" value="{{ value }}" id="{{value}}" data-purchaseoptions-checked-value="false" data-action="change->purchaseoptions#updateButtonState" > 
+                                <label for="{{value}}"><span class="fw-bold">{{label|format_currency('XOF', locale='fr')}}</span> - {{ value }} credits</label>
                             </div>
                         </div>
                     {% endfor %}
 
-                    <button type="submit" class="btn btn-success mx-auto p-2" style="display: block; width:200px;">Checkout</button>
-                {{ form_widget(form._token) }}
+                    <button type="submit" class="btn btn-success mx-auto p-2" style="display: block; width:200px;" data-purchaseoptions-target="button">Checkout</button>
+                
+                    {{ form_widget(form._token) }}
                 {{ form_end(form) }}
-                </form>
             </div>
         </div>
     </div>
+   
 {% endblock %}

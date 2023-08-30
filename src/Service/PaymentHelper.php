@@ -53,5 +53,13 @@ class PaymentHelper
 
         return (int)$orderAmount;
     }
+
+    public function getApiKey(){
+        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentApiKey();
+    }
+
+    public function getSecretKey(){
+        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentSecretKey();
+    }
     
 }
