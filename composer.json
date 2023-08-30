@@ -18,6 +18,7 @@
         "nelmio/cors-bundle": "^2.2",
         "phpdocumentor/reflection-docblock": "^5.3",
         "sensio/framework-extra-bundle": "^6.1",
+        "supermalang/paytech-client": "master@dev",
         "symfony/asset": "6.0.*",
         "symfony/console": "6.0.*",
         "symfony/doctrine-messenger": "6.0.*",
