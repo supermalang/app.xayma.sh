@@ -10,7 +10,7 @@ class PaymentHelper
 
     public function __construct(SettingsRepository $settings)
     {
-        $this->settings = $settings;
+        $this->settings = $settings; 
     }
 
 
