@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\SettingsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=SettingsRepository::class)
@@ -82,6 +83,26 @@ class Settings
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $paymentSecretKey;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $PaymentSuccessUrl;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $PaymentCancelUrl;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * Add a regex to validate the url
+     * @Assert\Regex(
+     *    pattern="/^https?:\/\/[\w\-]+(\.[\w\-]+)+[\/#?]?.*({#}).*$/",
+     *   message="The value '{{ value }}' is not an accepted url. Please make sure your give a correct URL which contains '{#}' for the transaction id.",
+     * )
+     */
+    private $PaymentIpnUrl;
 
     public function getId(): ?int
     {
@@ -240,6 +261,42 @@ class Settings
     public function setPaymentSecretKey(?string $paymentSecretKey): self
     {
         $this->paymentSecretKey = $paymentSecretKey;
+
+        return $this;
+    }
+
+    public function getPaymentSuccessUrl(): ?string
+    {
+        return $this->PaymentSuccessUrl;
+    }
+
+    public function setPaymentSuccessUrl(?string $PaymentSuccessUrl): self
+    {
+        $this->PaymentSuccessUrl = $PaymentSuccessUrl;
+
+        return $this;
+    }
+
+    public function getPaymentCancelUrl(): ?string
+    {
+        return $this->PaymentCancelUrl;
+    }
+
+    public function setPaymentCancelUrl(?string $PaymentCancelUrl): self
+    {
+        $this->PaymentCancelUrl = $PaymentCancelUrl;
+
+        return $this;
+    }
+
+    public function getPaymentIpnUrl(): ?string
+    {
+        return $this->PaymentIpnUrl;
+    }
+
+    public function setPaymentIpnUrl(?string $PaymentIpnUrl): self
+    {
+        $this->PaymentIpnUrl = $PaymentIpnUrl;
 
         return $this;
     }

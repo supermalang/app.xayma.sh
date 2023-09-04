@@ -20,7 +20,7 @@ class PaymentHelper
         
         \PayTech\Config::setApiKey($apiKey);
         \PayTech\Config::setApiSecret($secretKey);
-        \PayTech\Config::setEnv($_ENV['PAYMENT_ENV']);
+        \PayTech\Config::setEnv($_ENV['PAYMENT_ENV'] );
         \PayTech\Config::setIpnUrl($_ENV['PAYMENT_IPN_URL']);
         \PayTech\Config::setSuccessUrl($_ENV['PAYMENT_SUCCESS_URL']);
         \PayTech\Config::setCancelUrl($_ENV['PAYMENT_CANCEL_URL']);
@@ -61,5 +61,4 @@ class PaymentHelper
     public function getSecretKey(){
         return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentSecretKey();
     }
-    
 }
