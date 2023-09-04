@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\CreditTransactionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=CreditTransactionRepository::class)
@@ -49,6 +50,7 @@ class CreditTransaction
     private $modifiedBy;
 
     /**
+     * Can be 'debit' or 'credit'
      * @ORM\Column(type="string", length=20)
      */
     private $transactionType;
@@ -69,6 +71,19 @@ class CreditTransaction
      */
     private $organization;
 
+    /**
+     * Can be 'pending', 'completed', 'failed'
+     * A 'pending' transaction is one that has been created but not yet paid for
+     * A 'completed' transaction is one that has been paid for and the credits have been added to the organization's account
+     * A 'failed' transaction is one that has been paid for but the credits have not been added to the organization's account
+     * This can happen if the IPN is not received or if the IPN is received but the credits are not added to the organization's account
+     * The IPN is received when the user is redirected back to the site after payment
+     * 
+     * @ORM\Column(type="string", length=20)
+     * @Assert\Choice(choices={"pending", "completed", "failed"})
+     */
+    private $status;
+
     public function __construct()
     {
         // Can be 'debit' or 'credit'
@@ -77,6 +92,7 @@ class CreditTransaction
         $this->creditsRemaining = 0;
         $this->creditsPurchased = 0;
         $this->amountPaid = 0;
+        $this->status = 'pending';
     }
 
     public function getId(): ?int
@@ -200,6 +216,18 @@ class CreditTransaction
     public function setOrganization(?Organization $organization): self
     {
         $this->organization = $organization;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }

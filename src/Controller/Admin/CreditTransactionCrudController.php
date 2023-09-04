@@ -14,14 +14,19 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\PaymentHelper;
 use App\Form\CreditPurchaseCheckoutType;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class CreditTransactionCrudController extends AbstractCrudController
 {
-    public function __construct(PaymentHelper $paymentHelper, AdminUrlGenerator $adminUrlGenerator)
+    const SYSTEM_USER_ID = 1;
+
+    public function __construct(PaymentHelper $paymentHelper, AdminUrlGenerator $adminUrlGenerator, UserRepository $userRepository, EntityManagerInterface $em)
     {
         $this->paymentHelper = $paymentHelper;
-        
-        $this->adminUrlGenerator = $adminUrlGenerator;        
+        $this->adminUrlGenerator = $adminUrlGenerator;
+        $this->userRepository = $userRepository;
+        $this->em = $em;
     }
 
     public static function getEntityFqcn(): string
@@ -61,21 +66,36 @@ class CreditTransactionCrudController extends AbstractCrudController
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
-                $apiKey = $this->paymentHelper->getApiKey();
-                $secretKey = $this->paymentHelper->getSecretKey();
-
                 $data = $form->getData();
                 $creditsAmount = $data['creditPurchaseOption'];
+                $orderAmount = $this->paymentHelper->getOrderAmount($creditsAmount);
 
                 // generates a timestamp like 20230830032723
                 $order_ref = date('YmdHis');
 
-                $orderAmount = $this->paymentHelper->getOrderAmount($creditsAmount);
+                // Generate a new credit transaction
+                $creditTransaction = new CreditTransaction();
+                $creditTransaction->setCreditsPurchased($creditsAmount);
+                $creditTransaction->setCreated(new \DateTime());
+                $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));
+                $creditTransaction->setStatus('pending');
+                $creditTransaction->setTransactionType('credit'); // Can be credit or debit
+                $creditTransaction->setAmountPaid($orderAmount);
+                $creditTransaction->setOrganization($this->getUser()->getOrganizations()[0]);
 
-                $checkoutResult = $this->paymentHelper->checkout("Bundle of $creditsAmount credits", $orderAmount, 'Purchase of credits for X', $order_ref, ['api_key' => $apiKey, 'secret_key' => $secretKey]);
+                // Save the entity
+                $this->em->persist($creditTransaction);
+                $this->em->flush();
 
-                // Return to a route that will handle the payment
-                return $this->RedirectToUrl($checkoutResult['redirect_url']);
+                // Get the ID of the new entity
+                $creditTransactionId = $creditTransaction->getId();
+
+                $checkoutResult = $this->paymentHelper->checkout("Pack de $creditsAmount credits", $orderAmount, "Purchase of $creditsAmount credits for ".$this->getUser()->getOrganizations()[0]->__tostring(), $order_ref, $creditTransactionId);
+
+                if($checkoutResult['success'] == 1){
+                    // Get us to an (external) route that will handle the payment
+                    return $this->RedirectToUrl($checkoutResult['redirect_url']);
+                }
             }
             else{
                 // Add a notification banner
