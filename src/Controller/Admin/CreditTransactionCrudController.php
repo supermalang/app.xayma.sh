@@ -62,7 +62,7 @@ class CreditTransactionCrudController extends AbstractCrudController
     public function priceoptions(Request $request): Response
     {
         $form = $this->createForm(CreditPurchaseCheckoutType::class);
-        
+
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
@@ -96,6 +96,12 @@ class CreditTransactionCrudController extends AbstractCrudController
                     // Get us to an (external) route that will handle the payment
                     return $this->RedirectToUrl($checkoutResult['redirect_url']);
                 }
+                else{
+                    // returns a symfony error page
+                    return $this->render('bundles/TwigBundle/Exception/customerror.html.twig', [
+                        'messages' => $checkoutResult['errors'],
+                    ]);
+                }
             }
             else{
                 // Add a notification banner
@@ -105,8 +111,6 @@ class CreditTransactionCrudController extends AbstractCrudController
                     'form' => $form->createView(),
                 ]);
             }
-
-            
         }
         else{
             return $this->render('bundles/EasyAdminBundle/page/credit_purchase_options.html.twig', [
