@@ -3,14 +3,21 @@
 namespace App\Service;
 
 use App\Repository\SettingsRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\CreditTransaction;
+use App\Repository\CreditTransactionRepository;
+use App\Entity\Organization;
+use App\Repository\OrganizationRepository;
 
 class PaymentHelper
 {
     const SYSTEM_SETTINGS_ID = 1;
 
-    public function __construct(SettingsRepository $settings)
+    public function __construct(SettingsRepository $settingsRepository, EntityManagerInterface $em, CreditTransactionRepository $creditTransactionRepository)
     {
-        $this->settings = $settings; 
+        $this->settingsRepository = $settingsRepository; 
+        $this->em = $em;
+        $this->creditTransactionRepository = $creditTransactionRepository;
     }
 
 
@@ -52,8 +59,7 @@ class PaymentHelper
      * @return int
      */
     public function getOrderAmount($creditsAmount){
-        // Get the price from the settings
-        $price = $this->settings->find(self::SYSTEM_SETTINGS_ID)->getCreditPrice();
+        $price = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getCreditPrice();
 
         if($creditsAmount < $_ENV['CREDIT_AMOUNT_OPTION2']){
             $orderAmount =  round($_ENV['OPTION1_COEF'] * $price * $creditsAmount);
@@ -69,22 +75,99 @@ class PaymentHelper
     }
 
     public function getApiKey(){
-        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentApiKey();
+        return $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentApiKey();
     }
 
     public function getSecretKey(){
-        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentSecretKey();
+        return $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentSecretKey();
     }
 
     public function getSuccessUrl(){
-        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentSuccessUrl();
+        return $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentSuccessUrl();
     }
 
     public function getCancelUrl(){
-        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentCancelUrl();
+        return $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentCancelUrl();
     }
 
     public function getIpnUrl(){
-        return $this->settings->find(self::SYSTEM_SETTINGS_ID)->getPaymentIpnUrl();
+        return $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentIpnUrl();
+    }
+    
+    #
+    # We want to make sure the IPN methods are agnostic of the payment provider
+    # We will have generic methods that will call the specific methods
+    # So in the future, if we decide to change the payment provider, we will only have to change the specific methods called
+    #
+
+    /**
+     * Check if the IPN is authorized to access the system.
+     */
+    public function isIpnRequestAuthorized($ipnData){
+        return $this->isPaytechIpnRequestAuthorized($ipnData);
+    }
+
+    /**
+     * Update the transaction status
+     */
+    public function processIpn($ipnData){
+        return $this->processPaytechIpn($ipnData);
+    }
+
+    #
+    # PAYTECH SPECIFIC FUNCTIONS
+    #
+
+    /**
+     * Check if the IPN is authorized to access the system
+     */
+    public function isPaytechIpnRequestAuthorized($ipnData){
+        $apiKey = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentApiKey();
+        $secretKey = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentSecretKey();
+
+        $api_key_sha256 = $ipnData['api_key_sha256'] ?? null;
+        $api_secret_sha256 = $ipnData['api_secret_sha256'] ?? null;
+
+        if($api_key_sha256 != hash('sha256', $apiKey) || $api_secret_sha256 != hash('sha256', $secretKey)){
+            
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    /**
+     * Update the transaction status
+     */
+    public function processPaytechIpn($ipnData){
+        // Get the credit transaction, using its id
+        $creditTransaction = $this->creditTransactionRepository->find($ipnData['custom_field']['creditTransactionId']);
+
+        // if evenType is sale_canceled, we need to cancel the transaction
+        if($ipnData['type_event'] == 'sale_canceled'){
+            $creditTransaction->setTransactionStatus('failed');
+        }
+        elseif($ipnData['type_event'] == 'sale_complete'){
+            $paymentMethod = $ipnData['payment_method'] ?? null;
+            $customerPhone = $ipnData['client_phone'] ?? null;
+
+            $creditTransaction->setPaymentMethod($paymentMethod);
+            $creditTransaction->setCustomerPhone($customerPhone);
+            $creditTransaction->setTransactionStatus('completed');
+
+            $organization = $creditTransaction->getOrganization();
+
+            // get the remaining credits of the organization
+            $remainingCredits = $organization->getRemainingCredits();
+
+            // update the remaining credits of the organization
+            $organization->setRemainingCredits($remainingCredits + $creditTransaction->getCreditsPurchased());
+            $organization->setModified(new \DateTime());
+
+            $this->entityManager->persist($organization);
+            $this->entityManager->persist($creditTransaction);
+            $this->entityManager->flush();
+        }
     }
 }

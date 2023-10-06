@@ -84,6 +84,16 @@ class CreditTransaction
      */
     private $status;
 
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
+     */
+    private $customerPhone;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $paymentMethod;
+
     public function __construct()
     {
         // Can be 'debit' or 'credit'
@@ -228,6 +238,30 @@ class CreditTransaction
     public function setStatus(string $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getCustomerPhone(): ?string
+    {
+        return $this->customerPhone;
+    }
+
+    public function setCustomerPhone(?string $customerPhone): self
+    {
+        $this->customerPhone = $customerPhone;
+
+        return $this;
+    }
+
+    public function getPaymentMethod(): ?string
+    {
+        return $this->paymentMethod;
+    }
+
+    public function setPaymentMethod(?string $paymentMethod): self
+    {
+        $this->paymentMethod = $paymentMethod;
 
         return $this;
     }
