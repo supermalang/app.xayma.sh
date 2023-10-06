@@ -64,7 +64,8 @@ class DashboardController extends AbstractDashboardController
             $monthlyCreditConsumption = $this->deploymentsRepository->getCurrentMonthlyConsumption($this->getUser()->getOrganizations()[0]);
             $hourlyCreditConsumption = $monthlyCreditConsumption / 720;
             $remainingCredits = $this->getUser()->getOrganizations()[0]->getRemainingCredits();
-            $creditPurchases = $this->creditTransactionRepository->getLastPurchases($this->getUser()->getOrganizations()[0]->getId());            
+            $creditPurchases = $this->creditTransactionRepository->getLastPurchases($this->getUser()->getOrganizations()[0]->getId());
+            $globalMonthlyCostOfCredit = $monthlyCreditConsumption;
         }
 
         // Get the credit transactions of the last 24 hours
