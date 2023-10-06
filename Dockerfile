@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         nginx \
         unzip \
         npm \
+        cron \
     && pecl install apcu \
     && docker-php-ext-enable apcu opcache \
     && docker-php-ext-configure intl \
@@ -45,7 +46,6 @@ COPY . /var/www/app.xayma.sh/
 WORKDIR /var/www
 
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
-    && cron \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && cd app.xayma.sh \
     && /usr/local/bin/composer install \
