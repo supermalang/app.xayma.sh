@@ -54,7 +54,10 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && npm install \
     && npm run build --if-present \
     && echo "*/5 * * * * /bin/bash /var/www/cron-commands.sh" > /etc/cron.d/xayma-cron-job \
-    && chmod +x /var/www/cron-commands.sh
+    && chmod +x /var/www/cron-commands.sh \
+    && chmod 0644 /etc/cron.d/xayma-cron-job \
+    && crontab /etc/cron.d/xayma-cron-job \
+    && touch /var/log/cron.log
 
 CMD /bin/bash /var/www/entrypoint.sh
 
