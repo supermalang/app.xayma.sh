@@ -36,7 +36,7 @@ COPY ./docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 COPY ./docker/nginx-block.conf /etc/nginx/sites-available/default 
 
-COPY ./docker/entrypoint.sh /etc/entrypoint.sh
+COPY ./docker/entrypoint.sh /var/www/entrypoint.sh
 
 COPY ./docker/cron-commands.sh  /var/www/cron-commands.sh
 #RUN ln -s /etc/nginx/sites-available/app.xayma.sh.conf /etc/nginx/sites-enabled/app.xayma.sh.conf
@@ -56,6 +56,6 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && echo "*/5 * * * * /bin/bash /var/www/cron-commands.sh" > /etc/cron.d/xayma-cron-job \
     && chmod +x /var/www/cron-commands.sh
 
-CMD php-fpm && service nginx start && tail -f /dev/null
+CMD /bin/bash /var/www/entrypoint.sh
 
 EXPOSE 80
