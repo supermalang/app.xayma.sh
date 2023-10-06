@@ -36,6 +36,8 @@ COPY ./docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY ./docker/nginx-block.conf /etc/nginx/sites-available/default 
 
 COPY ./docker/entrypoint.sh /etc/entrypoint.sh
+
+COPY ./docker/docker/cron-commands.sh  /var/www/cron-commands.sh
 #RUN ln -s /etc/nginx/sites-available/app.xayma.sh.conf /etc/nginx/sites-enabled/app.xayma.sh.conf
 
 COPY . /var/www/app.xayma.sh/
@@ -43,6 +45,7 @@ COPY . /var/www/app.xayma.sh/
 WORKDIR /var/www
 
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
+    && cron \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && cd app.xayma.sh \
     && /usr/local/bin/composer install \
@@ -51,10 +54,10 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && npm install \
     && npm run build
 
-    
+RUN echo "*/5 * * * * /bin/bash /var/www/cron-commands.sh" > /etc/cron.d/xayma-cron-job \
+    && chmod +x /var/www/cron-commands.sh
 
-#CMD ["apachectl", "-D", "FOREGROUND"]
-#CMD ["nginx", "-g", "daemon off;"]
-CMD "php-fpm" && nginx -g 'daemon off;'
+
+CMD php-fpm && service nginx start && tail -f /dev/null
 
 EXPOSE 80

@@ -80,7 +80,7 @@ class UpdateRemainingCreditsCommand extends Command
             $creditTransaction->setTransactionType('debit');
             $creditTransaction->setCreated(new \DateTime());
             $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));
-            $creditTransaction->setTransactionStatus('completed');
+            $creditTransaction->setStatus('completed');
 
             // persist if option dry-run is not set
             if (!$input->getOption('dry-run')) {

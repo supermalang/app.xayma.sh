@@ -97,7 +97,6 @@ class CreditTransactionCrudController extends AbstractCrudController
                     return $this->RedirectToUrl($checkoutResult['redirect_url']);
                 }
                 else{
-                    // returns a symfony error page
                     return $this->render('bundles/TwigBundle/Exception/customerror.html.twig', [
                         'messages' => $checkoutResult['errors'],
                     ]);

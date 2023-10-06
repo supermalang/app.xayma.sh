@@ -119,7 +119,7 @@ class DashboardController extends AbstractDashboardController
         ;
 
         if(!$is_advanced_user){
-            $dashbard->disableDarkMode();
+            $dashboard->disableDarkMode();
         }
 
         return $dashboard;
