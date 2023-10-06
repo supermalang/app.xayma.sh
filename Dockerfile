@@ -37,7 +37,7 @@ COPY ./docker/nginx-block.conf /etc/nginx/sites-available/default
 
 COPY ./docker/entrypoint.sh /etc/entrypoint.sh
 
-COPY ./docker/docker/cron-commands.sh  /var/www/cron-commands.sh
+COPY ./docker/cron-commands.sh  /var/www/cron-commands.sh
 #RUN ln -s /etc/nginx/sites-available/app.xayma.sh.conf /etc/nginx/sites-enabled/app.xayma.sh.conf
 
 COPY . /var/www/app.xayma.sh/
