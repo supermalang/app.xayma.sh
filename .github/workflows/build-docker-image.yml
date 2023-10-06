@@ -1,6 +1,8 @@
 name: Build and push docker image
 
 on:
+  push:
+    branches: [ master ]
   release:
     types: [published]
 
