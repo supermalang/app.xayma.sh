@@ -52,7 +52,7 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && chown -R www-data:www-data /var/www/app.xayma.sh \
     && php /var/www/app.xayma.sh/bin/console cache:clear \
     && npm install \
-    && npm run build
+    && npm run build --if-present
 
 RUN echo "*/5 * * * * /bin/bash /var/www/cron-commands.sh" > /etc/cron.d/xayma-cron-job \
     && chmod +x /var/www/cron-commands.sh
