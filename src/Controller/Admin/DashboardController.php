@@ -86,7 +86,7 @@ class DashboardController extends AbstractDashboardController
             ],
         ]);
 
-        $chart->setOptions(['scales' => ['y' => [ 'suggestedMin' => 0, 'suggestedMax' => 100, ],], ]);
+        $chart->setOptions(['scales' => ['y' => [ 'suggestedMin' => 0, 'suggestedMax' => 10, ],], ]);
 
         return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig', [
             'chart' => $chart,
