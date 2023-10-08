@@ -56,7 +56,7 @@ class CreditTransaction
     private $transactionType;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="float")
      */
     private $creditsUsed;
 
