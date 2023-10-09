@@ -89,8 +89,9 @@ class UpdateRemainingCreditsCommand extends Command
                 $this->entityManager->flush();
             }
         }
-        
-        $io->success('The remaining credits of the organizations have been updated');
+        // creates a variable that contains the current date and time
+        $now = new \DateTime();
+        $io->success("$now : The credit balance of the organizations have been successfully updated");
       
         return Command::SUCCESS;
     }

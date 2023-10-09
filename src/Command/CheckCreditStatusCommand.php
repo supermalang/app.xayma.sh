@@ -108,7 +108,8 @@ class CheckCreditStatusCommand extends Command
             }
         }
 
-        $io->success('The Organizations statuses have been updated');
+        $now = new \DateTime();
+        $io->success("$now: The Organizations statuses have been successfully updated");
         
         return Command::SUCCESS;
     }
