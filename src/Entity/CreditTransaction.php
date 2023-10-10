@@ -194,17 +194,6 @@ class CreditTransaction
         return $this;
     }
 
-    public function getCreditsUsed(): ?int
-    {
-        return $this->creditsUsed;
-    }
-
-    public function setCreditsUsed(int $creditsUsed): self
-    {
-        $this->creditsUsed = $creditsUsed;
-
-        return $this;
-    }
 
     public function getCreditsRemaining(): ?int
     {
@@ -262,6 +251,18 @@ class CreditTransaction
     public function setPaymentMethod(?string $paymentMethod): self
     {
         $this->paymentMethod = $paymentMethod;
+
+        return $this;
+    }
+
+    public function getCreditsUsed(): ?float
+    {
+        return $this->creditsUsed;
+    }
+
+    public function setCreditsUsed(float $creditsUsed): self
+    {
+        $this->creditsUsed = $creditsUsed;
 
         return $this;
     }

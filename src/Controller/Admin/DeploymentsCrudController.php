@@ -186,7 +186,7 @@ class DeploymentsCrudController extends AbstractCrudController
             ->linkToCrudAction('archiveInstance')
             ->setCssClass('text-danger btn btn-link')
         ;
-        
+
         // If org is suspended or archived, or there is no enough credits, we disable all actions except read only, for the customers
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())  || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions

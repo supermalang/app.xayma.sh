@@ -60,19 +60,23 @@ class DashboardController extends AbstractDashboardController
             $creditPurchases = $this->creditTransactionRepository->getLastPurchases();
         }
         else {
-            $lastFiveDeployments = $this->deploymentsRepository->getLastFiveEditedDeployments($this->getUser()->getOrganizations()[0]);
-            $monthlyCreditConsumption = $this->deploymentsRepository->getCurrentMonthlyConsumption($this->getUser()->getOrganizations()[0]);
+            $lastFiveDeployments = $this->getUser()->getOrganizations()[0] ? $this->deploymentsRepository->getLastFiveEditedDeployments($this->getUser()->getOrganizations()[0]) : null;
+            $monthlyCreditConsumption = $this->getUser()->getOrganizations()[0] ? $this->deploymentsRepository->getCurrentMonthlyConsumption($this->getUser()->getOrganizations()[0]) : 0;
             $hourlyCreditConsumption = $monthlyCreditConsumption / 720;
-            $remainingCredits = $this->getUser()->getOrganizations()[0]->getRemainingCredits();
-            $creditPurchases = $this->creditTransactionRepository->getLastPurchases($this->getUser()->getOrganizations()[0]->getId());
+            $remainingCredits = $this->getUser()->getOrganizations()[0] ? $this->getUser()->getOrganizations()[0]->getRemainingCredits() : 0;
+            $creditPurchases = $this->getUser()->getOrganizations()[0] ? $this->creditTransactionRepository->getLastPurchases($this->getUser()->getOrganizations()[0]->getId()) : null;
             $globalMonthlyCostOfCredit = $monthlyCreditConsumption;
         }
 
         // Get the credit transactions of the last 24 hours
-        $credits = $this->creditTransactionRepository->creditsUsedLast24Hours();
+        $credits = $this->getUser()->getOrganizations()[0] ? $this->creditTransactionRepository->creditsUsedLast24Hours($this->getUser()->getOrganizations()[0]->getId()) : array(array('creditsUsed' => 0, 'hour' => 0));
+        if (empty($credits)) {
+            $credits = array(array('creditsUsed' => 0, 'hour' => 0));
+        }
         $creditsUsed = array_column($credits, 'creditsUsed');
         $labelHours = array_column($credits, 'hour');
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+
 
         $chart->setData([
             'labels' => $labelHours,
@@ -86,7 +90,7 @@ class DashboardController extends AbstractDashboardController
             ],
         ]);
 
-        $chart->setOptions(['scales' => ['y' => [ 'suggestedMin' => 0, 'suggestedMax' => 10, ],], ]);
+        $chart->setOptions(['scales' => ['y' => [ 'suggestedMin' => 0, 'suggestedMax' => max($creditsUsed)+0.5, ],], ]);
 
         return $this->render('bundles/EasyAdminBundle/page/dashboard.html.twig', [
             'chart' => $chart,
@@ -104,13 +108,18 @@ class DashboardController extends AbstractDashboardController
         $is_advanced_user = $this->isAdvancedUser();
         $firstOrgStatus = $this->getUser()->getOrganizations()[0] ? $this->getUser()->getOrganizations()[0]->getStatus() : null;
 
-        if ('suspended' == $firstOrgStatus) {
-            // user is not advanced and first org is not active, we display the banner notice of suspension
+        if (!$is_advanced_user && 'suspended' == $firstOrgStatus) {
             $this->addFlash('notice-xayma-danger', '<b>Inactive subscribtion</b> : Your account subscription has ended. Please add more credits.');
         }
-        if ('on_debt' == $firstOrgStatus) {
-            // user is not advanced and first org is not active, we display the banner notice of suspension
+        if (!$is_advanced_user && 'on_debt' == $firstOrgStatus) {
             $this->addFlash('notice-xayma-danger', '<b>Negative balance</b> : You do not have any credit left. Please add more credits to avoid suspension.');
+        }
+        
+        if (!$is_advanced_user && 'low_credit' == $firstOrgStatus) {
+            $this->addFlash('notice-xayma-warning', '<b>Low balance</b> : Your credit balance is very low. Please add more credits to avoid suspension..');
+        }
+        if (!$is_advanced_user && 'no_credit' == $firstOrgStatus) {
+            $this->addFlash('notice-xayma-danger', '<b>No credit</b> : You do not have any credit left. Please add more credits to avoid suspension.');
         }
 
         $dashboard = Dashboard::new()

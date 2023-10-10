@@ -88,10 +88,15 @@ class UpdateRemainingCreditsCommand extends Command
                 $this->entityManager->persist($creditTransaction);
                 $this->entityManager->flush();
             }
+            else{
+                // Just display the SQL commands that would be run
+                // TODO
+            }
         }
         // creates a variable that contains the current date and time
         $now = new \DateTime();
-        $io->success("$now : The credit balance of the organizations have been successfully updated");
+        $nowFormatted = $now->format('Y-m-d H:i:s');
+        $io->success("$nowFormatted : The credit balance of the organizations have been successfully updated");
       
         return Command::SUCCESS;
     }

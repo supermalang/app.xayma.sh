@@ -109,7 +109,8 @@ class CheckCreditStatusCommand extends Command
         }
 
         $now = new \DateTime();
-        $io->success("$now: The Organizations statuses have been successfully updated");
+        $nowFormatted = $now->format('Y-m-d H:i:s');
+        $io->success("$nowFormatted: The Organizations statuses have been successfully updated");
         
         return Command::SUCCESS;
     }

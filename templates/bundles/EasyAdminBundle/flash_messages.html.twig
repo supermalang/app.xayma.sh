@@ -14,6 +14,10 @@
                         <div class="alert alert-danger fade show" role="alert">
                             {{ message|trans|raw }}
                         </div>
+                    {% elseif label == 'notice-xayma-warning' %}
+                        <div class="alert alert-warning fade show" role="alert">
+                            {{ message|trans|raw }}
+                        </div>
                     {% else %}
                         <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

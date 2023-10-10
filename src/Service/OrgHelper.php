@@ -63,9 +63,11 @@ class OrgHelper
             $is_advanced_user = true;
         }
 
-        if (!$is_advanced_user && 'active' != $firstOrgStatus) {
+        if (!$is_advanced_user && 'suspended' == $firstOrgStatus) {
             return true;
         }
+
+        return false;
     }
 
     public function isCustomerOrgCreditsFinished(User $user)
@@ -78,9 +80,11 @@ class OrgHelper
             $is_advanced_user = true;
         }
 
-        if (!$is_advanced_user && 'active' != $firstOrgCredits) {
+        if (!$is_advanced_user && $firstOrgCredits <= 0) {
             return true;
         }
+
+        return false;
     }
 
 

@@ -22,7 +22,7 @@
                 </div>
             {% else %}
                 <div class="border rounded py-3 px-3 mx-2 text-center">
-                    <span class="fs-3">{{remainingCredits|format_number({rounding_mode: 'floor'})}}</span> <br/>
+                    <span class="fs-3 text-info">{{remainingCredits|format_number({rounding_mode: 'floor'})}}</span> <br/>
                     <span class="text-black-50">Remaining credits</span>
                 </div>
             {% endif %}

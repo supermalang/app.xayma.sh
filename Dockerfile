@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         nginx \
         unzip \
         npm \
-        cron \
     && pecl install apcu \
     && docker-php-ext-enable apcu opcache \
     && docker-php-ext-configure intl \
@@ -37,9 +36,6 @@ COPY ./docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY ./docker/nginx-block.conf /etc/nginx/sites-available/default 
 
 COPY ./docker/entrypoint.sh /var/www/entrypoint.sh
-
-COPY ./docker/cron-commands.sh  /var/www/cron-commands.sh
-#RUN ln -s /etc/nginx/sites-available/app.xayma.sh.conf /etc/nginx/sites-enabled/app.xayma.sh.conf
 
 COPY . /var/www/app.xayma.sh/
 
