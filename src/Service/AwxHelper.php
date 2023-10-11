@@ -85,7 +85,7 @@ class AwxHelper
         $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
 
         $instance_slug = $entity->getSlug();
-        $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getLabel()));
+        $organization = strtolower(preg_replace('/\s+/', '', $entity->getOrganization()->getSlug()));
         $version = $entity->getServiceVersion();
 
         $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
