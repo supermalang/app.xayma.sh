@@ -104,13 +104,13 @@ class Organization
     private $category;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="float")
      */
     private $remainingCredits;
 
     /**
      * @ORM\Column(type="boolean")
-     * help: Allow the organization to have a negative credit balance up to 75 credits
+     * help: Allow the organization to have a negative credit balance 
      */
     private $allowCreditDebt;
 
@@ -333,12 +333,12 @@ class Organization
         return $this;
     }
 
-    public function getRemainingCredits(): ?int
+    public function getRemainingCredits(): ?float
     {
         return $this->remainingCredits;
     }
 
-    public function setRemainingCredits(int $remainingCredits): self
+    public function setRemainingCredits(float $remainingCredits): self
     {
         $this->remainingCredits = $remainingCredits;
 
