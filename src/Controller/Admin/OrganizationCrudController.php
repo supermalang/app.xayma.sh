@@ -23,6 +23,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Security\Core\Security;
@@ -57,6 +58,7 @@ class OrganizationCrudController extends AbstractCrudController
             IdField::new('id')->onlyOnIndex()->setPermission('ROLE_SUPPORT'),
             TextField::new('label')->setColumns(7),
             TextField::new('slug')->onlyOnDetail()->setPermission('ROLE_SUPPORT')->setColumns(7),
+            NumberField::new('remainingCredits', 'Credits Available')->onlyOnDetail(),
             ChoiceField::new('category', 'Activity area')
                 ->setChoices($this->orgHelper->getCategories())
                 ->allowMultipleChoices()

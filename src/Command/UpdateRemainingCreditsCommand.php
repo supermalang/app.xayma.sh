@@ -69,14 +69,14 @@ class UpdateRemainingCreditsCommand extends Command
             $remainingCredits = $organization->getRemainingCredits();
 
             // update the remaining credits of the organization
-            $organization->setRemainingCredits($remainingCredits - $periodicityCreditConsumption);
+            $organization->setRemainingCredits((float)($remainingCredits - $periodicityCreditConsumption));
             $organization->setModified(new \DateTime());
 
             // create a new credit transaction
             $creditTransaction = new CreditTransaction();
             $creditTransaction->setOrganization($organization);
             $creditTransaction->setCreditsUsed($periodicityCreditConsumption);
-            $creditTransaction->setCreditsRemaining($remainingCredits - $periodicityCreditConsumption);
+            $creditTransaction->setCreditsRemaining((float)($remainingCredits - $periodicityCreditConsumption));
             $creditTransaction->setTransactionType('debit');
             $creditTransaction->setCreated(new \DateTime());
             $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));

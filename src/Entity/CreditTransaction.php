@@ -61,7 +61,7 @@ class CreditTransaction
     private $creditsUsed;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="float")
      */
     private $creditsRemaining;
 
@@ -195,12 +195,12 @@ class CreditTransaction
     }
 
 
-    public function getCreditsRemaining(): ?int
+    public function getCreditsRemaining(): ?float
     {
         return $this->creditsRemaining;
     }
 
-    public function setCreditsRemaining(int $creditsRemaining): self
+    public function setCreditsRemaining(float $creditsRemaining): self
     {
         $this->creditsRemaining = $creditsRemaining;
 

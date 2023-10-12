@@ -18,6 +18,7 @@ class SecurityController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render('security/login.html.twig', [
+            'app_version' => $_ENV['APP_VERSION'],
             // parameters usually defined in Symfony login forms
             'error' => $error,
             'last_username' => $lastUsername,

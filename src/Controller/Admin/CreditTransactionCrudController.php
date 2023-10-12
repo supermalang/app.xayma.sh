@@ -16,6 +16,14 @@ use App\Form\CreditPurchaseCheckoutType;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 
 class CreditTransactionCrudController extends AbstractCrudController
 {
@@ -34,16 +42,32 @@ class CreditTransactionCrudController extends AbstractCrudController
         return CreditTransaction::class;
     }
 
-    /*
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id'),
-            TextField::new('title'),
-            TextEditorField::new('description'),
+            IdField::new('id')->hideOnForm(),
+            AssociationField::new('organization'),
+            ChoiceField::new('transactionType', 'Transaction Type')
+                ->setChoices([
+                    'Credit' => 'credit', 
+                    'Debit' => 'debit'
+                ])
+                ->renderAsBadges([
+                    'credit' => 'success',
+                    'debit' => 'danger',
+                ]),
+            IntegerField::new('amountPaid'),
+            IntegerField::new('creditsPurchased'),
+            NumberField::new('creditsUsed'),
+            NumberField::new('creditsRemaining'),
+            TextField::new('paymentMethod'),
+            TelephoneField::new('customerPhone')->hideOnIndex(),
+            DateTimeField::new('created')->onlyOnDetail(),
+            AssociationField::new('createdBy')->onlyOnDetail(),
+            DateTimeField::new('modified')->onlyOnDetail(),
+            AssociationField::new('modifiedBy')->onlyOnDetail(),
         ];
     }
-    */
 
     public function configureActions(Actions $actions): Actions
     {
