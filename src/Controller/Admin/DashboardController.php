@@ -144,11 +144,14 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToCrud('Customers', 'far fa-building', Organization::class),
             MenuItem::linkToCrud('Addons', 'fas fa-puzzle-piece', AddonsFolder::class),
             MenuItem::section('Settings')->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Credit Transactions', 'fa-solid fa-magnifying-glass-dollar', CreditTransaction::class)->setPermission('ROLE_SUPPORT'),
+            MenuItem::linkToCrud('Credit Transactions', 'fa-solid fa-magnifying-glass-dollar', CreditTransaction::class)->setPermission('ROLE_SUPPORT')
+                ->setDefaultSort(['id' => 'DESC']),
             MenuItem::linkToCrud('Services', 'fab fa-docker', Service::class)->setPermission('ROLE_SUPPORT'),
             MenuItem::linkToCrud('Control nodes', 'fa fa-sitemap', ControlNode::class)->setPermission('ROLE_SUPPORT'),
             MenuItem::linkToCrud('Users', 'fas fa-users', User::class)->setPermission('ROLE_SUPPORT'),
-            MenuItem::linkToCrud('Advanced settings', 'fas fa-cog', Settings::class)->setPermission('ROLE_ADMIN'),
+            MenuItem::linkToCrud('Advanced settings', 'fas fa-cog', Settings::class)->setPermission('ROLE_ADMIN')
+                ->setAction('detail')
+                ->setEntityId(1)
         ];
     }
 

@@ -13,9 +13,15 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\PaymentHelper;
 use App\Form\CreditPurchaseCheckoutType;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
@@ -29,7 +35,7 @@ class CreditTransactionCrudController extends AbstractCrudController
 {
     const SYSTEM_USER_ID = 1;
 
-    public function __construct(PaymentHelper $paymentHelper, AdminUrlGenerator $adminUrlGenerator, UserRepository $userRepository, EntityManagerInterface $em)
+    public function __construct(PaymentHelper $paymentHelper, AdminUrlGenerator $adminUrlGenerator, UserRepository $userRepository, EntityManagerInterface $em, private ManagerRegistry $doctrine)
     {
         $this->paymentHelper = $paymentHelper;
         $this->adminUrlGenerator = $adminUrlGenerator;
@@ -42,11 +48,21 @@ class CreditTransactionCrudController extends AbstractCrudController
         return CreditTransaction::class;
     }
 
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setEntityLabelInSingular('Credit Transaction')
+            ->setEntityLabelInPlural('Credit Transactions')
+            ->setEntityPermission('ROLE_SUPPORT')
+            ->setPageTitle('new', 'New Credit Transaction')
+        ;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
             IdField::new('id')->hideOnForm(),
-            AssociationField::new('organization'),
+            AssociationField::new('organization')->setColumns(7),
             ChoiceField::new('transactionType', 'Transaction Type')
                 ->setChoices([
                     'Credit' => 'credit', 
@@ -55,18 +71,28 @@ class CreditTransactionCrudController extends AbstractCrudController
                 ->renderAsBadges([
                     'credit' => 'success',
                     'debit' => 'danger',
-                ]),
-            IntegerField::new('amountPaid'),
-            IntegerField::new('creditsPurchased'),
-            NumberField::new('creditsUsed'),
-            NumberField::new('creditsRemaining'),
-            TextField::new('paymentMethod'),
-            TelephoneField::new('customerPhone')->hideOnIndex(),
-            DateTimeField::new('created')->onlyOnDetail(),
-            AssociationField::new('createdBy')->onlyOnDetail(),
-            DateTimeField::new('modified')->onlyOnDetail(),
-            AssociationField::new('modifiedBy')->onlyOnDetail(),
+                ])->setColumns(7),
+            IntegerField::new('amountPaid')->setColumns(7),
+            IntegerField::new('creditsPurchased')->setColumns(7),
+            NumberField::new('creditsUsed')->setColumns(7),
+            NumberField::new('creditsRemaining')->setColumns(7)->hideOnForm(),
+            TextField::new('paymentMethod')->onlyOnDetail(),
+            TelephoneField::new('customerPhone')->hideOnIndex()->hideOnForm(),
+            DateTimeField::new('created')->onlyOnDetail()->hideOnForm(),
+            AssociationField::new('createdBy')->onlyOnDetail()->hideOnForm(),
+            DateTimeField::new('modified')->onlyOnDetail()->hideOnForm(),
+            AssociationField::new('modifiedBy')->onlyOnDetail()->hideOnForm(),
         ];
+    }
+
+    public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
+    {
+        return $this->doctrine->getRepository(CreditTransaction::class)->createQueryBuilder('entity')
+        // Get only results from the last 3 days
+        ->where('entity.created >= :date')
+        ->setParameter('date', new \DateTime('-3 days'))
+        ->orderBy('entity.created', 'DESC')
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
