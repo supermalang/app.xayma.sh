@@ -1,0 +1,34 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block head_javascript %}
+    {{parent()}}
+    {{ encore_entry_script_tags('app') }}
+{% endblock head_javascript %}
+
+{% block main %}
+    <h3 class="page-title">Applications</h3>
+    <hr/>
+    <div class="d-flex justify-content-start">
+        {% for service in services %}
+            <div class="card mx-3 mb-3 shadow rounded" style="width: 18rem;">
+                <img src="/uploads/services/thumbnails/{{service.thumbnail}}" class="card-img-top img-fluid" style="height: 150px; object-fit: cover;" />
+                <div class="card-body">
+                    <h5 class="card-title">{{service.label}}</h5>
+                    <p class="card-text" style="height: 150px;">
+                        {% if service.description|length > 260 %}
+                            {{ service.description|slice(0, 260) ~ '...' }}
+                        {% else %}
+                            {{ service.description }}
+                        {% endif %}
+                    </p>
+                    
+                    {% set url = ea_url()
+                                .setController('App\\Controller\\Admin\\ServiceCrudController')
+                                .setAction('showserviceplans')
+                                .set('id', service.id)
+                    %}
+                    <p class="text-right"><a href="{{url}}" class="btn btn-link"><i class="fa-solid fa-list-check"></i> See offers</a></p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

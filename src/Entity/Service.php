@@ -101,12 +101,53 @@ class Service
     /**
      * @ORM\Column(type="integer")
      */
-    private $monthlyCreditConsumption; // = 'editinstancedomainname'; //Deprecated
+    private $monthlyCreditConsumption;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $BusinessMonthlyCreditConsumption;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $HighPerformanceMonthlyCreditConsumption;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $essentialPlanTag;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $businessPlanTag;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $highPerformancePlanTag;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isPubliclyAvailable;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $thumbnail; 
 
     public function __construct()
     {
         $this->deployments = new ArrayCollection();
         $this->monthlyCreditConsumption = 0;
+        $this->BusinessMonthlyCreditConsumption = 0;
+        $this->HighPerformanceMonthlyCreditConsumption = 0;
+        $this->essentialPlanTag = "N/A";
+        $this->businessPlanTag = "N/A";
+        $this->highPerformancePlanTag = "N/A";
+        $this->isPubliclyAvailable = true;
     }
 
     public function __toString()
@@ -334,5 +375,89 @@ class Service
     public function getHourlyCreditConsumption(): ?float
     {
         return (float) number_format($this->monthlyCreditConsumption / 30 / 24, 2);
+    }
+
+    public function getBusinessMonthlyCreditConsumption(): ?int
+    {
+        return $this->BusinessMonthlyCreditConsumption;
+    }
+
+    public function setBusinessMonthlyCreditConsumption(int $BusinessMonthlyCreditConsumption): self
+    {
+        $this->BusinessMonthlyCreditConsumption = $BusinessMonthlyCreditConsumption;
+
+        return $this;
+    }
+
+    public function getHighPerformanceMonthlyCreditConsumption(): ?int
+    {
+        return $this->HighPerformanceMonthlyCreditConsumption;
+    }
+
+    public function setHighPerformanceMonthlyCreditConsumption(int $HighPerformanceMonthlyCreditConsumption): self
+    {
+        $this->HighPerformanceMonthlyCreditConsumption = $HighPerformanceMonthlyCreditConsumption;
+
+        return $this;
+    }
+
+    public function getEssentialPlanTag(): ?string
+    {
+        return $this->essentialPlanTag;
+    }
+
+    public function setEssentialPlanTag(?string $essentialPlanTag): self
+    {
+        $this->essentialPlanTag = $essentialPlanTag;
+
+        return $this;
+    }
+
+    public function getBusinessPlanTag(): ?string
+    {
+        return $this->businessPlanTag;
+    }
+
+    public function setBusinessPlanTag(string $businessPlanTag): self
+    {
+        $this->businessPlanTag = $businessPlanTag;
+
+        return $this;
+    }
+
+    public function getHighPerformancePlanTag(): ?string
+    {
+        return $this->highPerformancePlanTag;
+    }
+
+    public function setHighPerformancePlanTag(string $highPerformancePlanTag): self
+    {
+        $this->highPerformancePlanTag = $highPerformancePlanTag;
+
+        return $this;
+    }
+
+    public function isIsPubliclyAvailable(): ?bool
+    {
+        return $this->isPubliclyAvailable;
+    }
+
+    public function setIsPubliclyAvailable(bool $isPubliclyAvailable): self
+    {
+        $this->isPubliclyAvailable = $isPubliclyAvailable;
+
+        return $this;
+    }
+
+    public function getThumbnail(): ?string
+    {
+        return $this->thumbnail;
+    }
+
+    public function setThumbnail(?string $thumbnail): self
+    {
+        $this->thumbnail = $thumbnail;
+
+        return $this;
     }
 }

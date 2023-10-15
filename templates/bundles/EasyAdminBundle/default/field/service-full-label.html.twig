@@ -1,0 +1,9 @@
+{% if field.value matches '/performance/i' %}
+    <span class="badge badge-success">{{ field.value }}</span>
+{% elseif field.value matches '/business/i' %}
+    <span class="badge badge-primary">{{ field.value }}</span>
+{% elseif field.value matches '/essential/i' %}
+    <span class="badge badge-secondary fst-normal">{{ field.value }}</span>
+{% else %}
+    {{ field.value }}
+{% endif %}

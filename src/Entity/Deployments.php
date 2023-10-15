@@ -87,6 +87,16 @@ class Deployments
      */
     private $ServiceVersion;
 
+    /**
+     * @ORM\Column(type="string", length=30)
+     */
+    private $deploymentPlan;
+    
+    public function __construct()
+    {
+        $this->deploymentPlan = "essential";
+    }
+
     public function getUpdateInfo()
     {
         if (null != $this->getModified()) {
@@ -94,6 +104,12 @@ class Deployments
         }
 
         return ' - ';
+    }
+
+    public function getServiceFullLabel(): ?string
+    {
+        $deplplan = $this->deploymentPlan == "" ? 'essential' : $this->deploymentPlan;
+        return $this->service->getLabel().' '.$this->ServiceVersion.' - '.ucfirst(strtolower($deplplan));
     }
 
     public function getId(): ?int
@@ -234,6 +250,18 @@ class Deployments
     public function setServiceVersion(?string $ServiceVersion): self
     {
         $this->ServiceVersion = $ServiceVersion;
+
+        return $this;
+    }
+
+    public function getDeploymentPlan(): ?string
+    {
+        return $this->deploymentPlan;
+    }
+
+    public function setDeploymentPlan(string $deploymentPlan): self
+    {
+        $this->deploymentPlan = $deploymentPlan;
 
         return $this;
     }

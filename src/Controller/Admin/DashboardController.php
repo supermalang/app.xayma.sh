@@ -24,6 +24,7 @@ use App\Repository\OrganizationRepository;
 use App\Repository\CreditTransactionRepository;
 use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 
 class DashboardController extends AbstractDashboardController
 {
@@ -137,10 +138,18 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
+        $marketplaceUrl = $this->adminUrlGenerator
+            ->setController(ServiceCrudController::class)
+            ->setAction('showmarketplace')
+            ->generateUrl();
+
+            //dd($marketplaceUrl);
+
         return [
             MenuItem::linkToDashboard('Dashboard', 'far fa-chart-bar'),
             MenuItem::section('Mes services'),
-            MenuItem::linkToCrud('Applications', 'fas fa-rocket', Deployments::class),
+            MenuItem::linkToCrud('My Deployments', 'fas fa-rocket', Deployments::class),
+            MenuItem::linkToUrl('Marketplace', 'fas fa-store', $marketplaceUrl),
             MenuItem::linkToCrud('Customers', 'far fa-building', Organization::class),
             MenuItem::linkToCrud('Addons', 'fas fa-puzzle-piece', AddonsFolder::class),
             MenuItem::section('Settings')->setPermission('ROLE_SUPPORT'),

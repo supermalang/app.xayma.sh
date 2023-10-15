@@ -1,0 +1,69 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block head_javascript %}
+    {{parent()}}
+    {{ encore_entry_script_tags('app') }}
+{% endblock head_javascript %}
+
+{% block main %}
+    <h3 class="page-title text-center">Deployment options for {{service.label|default("#")}}</h3>
+    <p class="text-center">{{service.description}}</p>
+    <hr/>
+    <div class="d-flex justify-content-evenly" style="padding: 0 150px;">
+        {% if service == null %}
+        <div>
+            <p>There is no service to show.</p>
+            <a class="btn btn-info" href="{{ea_url().setController('App\\Controller\\Admin\\ServiceCrudController').setAction('showmarketplace')}}">Go to the marketplace</a>
+        </div>
+        {% else %}
+            {% set depl_ess_url = ea_url().setController('App\\Controller\\Admin\\DeploymentsCrudController').setAction('new').set('plan', options.essential).set('app', servicelabelencoded) %}
+            {% set depl_biz_url = ea_url().setController('App\\Controller\\Admin\\DeploymentsCrudController').setAction('new').set('plan', options.business).set('app', servicelabelencoded) %}
+            {% set depl_hpe_url = ea_url().setController('App\\Controller\\Admin\\DeploymentsCrudController').setAction('new').set('plan', options.performance).set('app', servicelabelencoded) %}
+
+            <div class="card my-2 mx-2">
+                <img src="/img/essentials-plan.jpg" class="card-img-top img-fluid" style="height: 250px; object-fit: cover;" />
+                <div class="card-body">
+                    <h5 class="card-title text-info text-center fs-4">Essentials</h5>
+                    <p class="card-text text-center" style="height:150px;">
+                        <span class="text-muted fs-5"><i class="fas fa-tags"></i> {{service.monthlyCreditConsumption}} credits per month</span>
+                        <br/>
+                        <br/>
+                        {{service.essentialPlanTag|split('#')|last}}
+                    </p>
+                    <div class="d-grid">
+                        <a href="{{depl_ess_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card my-2 mx-2 shadow">
+                <img src="/img/business-plan.jpg" class="card-img-top img-fluid" style="height: 250px; object-fit: cover;" />
+                <div class="card-body">
+                    <h5 class="card-title text-info text-center fs-4">Business</h5>
+                    <p class="card-text text-center" style="height:150px;">
+                        <span class="text-muted fs-5"><i class="fas fa-tags"></i> {{service.BusinessMonthlyCreditConsumption}} credits per month</span>
+                        <br/>
+                        <br/>
+                        {{service.businessPlanTag|split('#')|last}}
+                    </p>
+                    <div class="d-grid">
+                        <a href="{{depl_biz_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card my-2 mx-2">
+                <img src="/img/highperformance-plan.png" class="card-img-top img-fluid" style="height: 250px; object-fit: cover;" />
+                <div class="card-body">
+                    <h5 class="card-title text-info text-center fs-4">High Performance</h5>
+                    <p class="card-text text-center" style="height:150px;">
+                        <span class="text-muted fs-5"><i class="fas fa-tags"></i> {{service.HighPerformanceMonthlyCreditConsumption}} credits per month</span>
+                        <br/>
+                        <br/>
+                        {{service.highPerformancePlanTag|split('#')|last}}
+                    </p>
+                    <div class="d-grid">
+                        <a href="{{depl_hpe_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -61,6 +61,7 @@ class SettingsCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_DETAIL, Action::INDEX)
             ->setPermission(Action::NEW, 'ROLE_ADMIN')
             ->setPermission(Action::EDIT, 'ROLE_ADMIN')
+            ->setPermission(Action::DELETE, 'ROLE_ADMIN')
         ;
     }
 

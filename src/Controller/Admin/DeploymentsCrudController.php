@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Deployments;
 use App\Service\OrgHelper;
 use App\Service\AwxHelper;
+use App\Entity\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,6 +26,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\HiddenField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -32,13 +35,16 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+
 
 class DeploymentsCrudController extends AbstractCrudController
 {
     private $security;
     private $workflow;
+    private $requestStack;
 
-    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper, AwxHelper $awxHelper)
+    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper, AwxHelper $awxHelper, RequestStack $requestStack)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
@@ -47,6 +53,10 @@ class DeploymentsCrudController extends AbstractCrudController
         $this->client = $client;
         $this->orgHelper = $orgHelper;
         $this->awxHelper = $awxHelper;
+        $this->requestStack = $requestStack;
+        
+        $this->applabel =  base64_decode($this->requestStack->getCurrentRequest()->query->get('app')) ?? null;
+        $this->serviceid =  base64_decode($this->requestStack->getCurrentRequest()->query->get('id')) ?? null;
     }
 
     public static function getEntityFqcn(): string
@@ -75,52 +85,64 @@ class DeploymentsCrudController extends AbstractCrudController
 
     public function configureCrud(Crud $crud): Crud
     {
+        $deploymentplanHashed =  $this->requestStack->getCurrentRequest()->query->get('plan') ?? null;
+        $deploymentplan = null;
+
+        if (md5('businessplan') == $deploymentplanHashed) {
+            $deploymentplan = 'business';
+        } 
+        if (md5('performanceplan') == $deploymentplanHashed) {
+            $deploymentplan = 'performance';
+        } 
+        if(md5('essentialplan') == $deploymentplanHashed){
+            $deploymentplan = 'essentials';
+        }
+
         return $crud
-            ->setEntityLabelInSingular('Application')
-            ->setEntityLabelInPlural('Applications')
+            ->setEntityLabelInSingular('Deployment')
+            ->setEntityLabelInPlural('Applications Deployed')
             ->setPageTitle('detail', fn (Deployments $app) => sprintf('Details of App : %s', $app->getSlug()))
             ->setPageTitle('edit', fn (Deployments $app) => sprintf('Editing App : %s', $app->getSlug()))
+            ->setPageTitle('new', fn () => sprintf("Deploy a new %s %s app", $this->applabel, $deploymentplan ? ucfirst(strtolower($deploymentplan)) : ''))
         ;
     }
 
     public function configureFields(string $pageName): iterable
     {
+        $serviceField = TextField::new('service')->onlyOnDetail();
+
+        /** We use this js file to retrieve the service's versions */
+        $emptyrow = FormField::addRow()->onlyWhenCreating()->setCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js');
+
         // How admin and helpdesk users can see the fields when creating a new entity
-        // - Association field for the service (for dropdown selection of service when creating entity)
         // - Association field for the owner (for dropdown selection of service when creating entity)
         if ($this->isGranted('ROLE_SUPPORT')) {
-            $serviceField = AssociationField::new('service')->hideWhenUpdating();
-            $ownerField = AssociationField::new('organization', 'Owner');
-
-            if (Crud::PAGE_NEW === $pageName) {
-                $serviceField = $serviceField->addCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js');
-            }
+            $ownerField = AssociationField::new('organization', 'Owning Customer');
         }
         // How customers can see the fields when creating a new entity
-        // - Association field for the service (for dropdown selection of service when creating entity)
         // - Customer's organization will be automatically chosen as owner org. So customer will not have to select owner.
         elseif (Crud::PAGE_NEW === $pageName) {
-            $serviceField = AssociationField::new('service');
-            $ownerField = TextField::new('organization', 'Owner')->hideWhenCreating();
-
-            if (Crud::PAGE_NEW === $pageName) {
-                $serviceField = $serviceField->addCssClass('ServiceField')->addJsFiles('js/admin/DeploymentsCrud-serviceversion.js');
-            }
+            $ownerField = TextField::new('organization', 'Owning Customer')->hideWhenCreating();
         }
         // How customers can see the fields if not creating a new entity
         else {
-            $serviceField = TextField::new('service')->hideWhenUpdating();
-            $ownerField = TextField::new('organization', 'Owner')->onlyOnDetail();
+            $ownerField = TextField::new('organization', 'Owning Customer')->onlyOnDetail();
         }
+
+        $serviceFullLabelField = TextField::new('serviceFullLabel', 'Service')->onlyOnIndex()->setSortable(false);
+        $serviceFullLabelField->setTemplatePath('bundles/EasyAdminBundle/default/field/service-full-label.html.twig');
 
         return [
             IdField::new('id')->onlyOnIndex()->setPermission('ROLE_SUPPORT'),
-            TextField::new('label'),
-            TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
-            UrlField::new('domainName')->setDefaultColumns(5),
-            $serviceField->setDefaultColumns(5),
-            HiddenField::new('ServiceVersion'),
             $ownerField->setSortable(false)->setDefaultColumns(5)->hideWhenUpdating(),
+            TextField::new('label')->setDefaultColumns(5),
+            TextField::new('slug')->hideWhenCreating()->hideOnIndex()->setDisabled(true),
+            UrlField::new('domainName')->setDefaultColumns(5)->setSortable(false),
+            $serviceField,
+            $serviceFullLabelField,
+            $emptyrow,
+            HiddenField::new('ServiceVersion')->setCssClass('col-md-5')->hideOnIndex(), // Managed by the js file
+            HiddenField::new('deploymentPlan')->hideOnIndex(),
             TextField::new('status')->hideOnForm()->addCssClass('text-success lead'),
             DateTimeField::new('created')->onlyOnDetail(),
             TextField::new('createdBy')->onlyOnDetail(),
@@ -187,11 +209,16 @@ class DeploymentsCrudController extends AbstractCrudController
             ->setCssClass('text-danger btn btn-link')
         ;
 
+        $gotomarketplace = Action::new('gotomarketplace', 'Go to marketplace', 'fas fa-store')
+            ->linkToUrl(fn() => $this->container->get(AdminUrlGenerator::class)->setController(ServiceCrudController::class)->setAction('showmarketplace')->generateUrl())
+            ->setCssClass('btn btn-primary')
+            ->createAsGlobalAction()
+        ;
+
         // If org is suspended or archived, or there is no enough credits, we disable all actions except read only, for the customers
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())  || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
-                ->setPermission(Action::NEW, 'ROLE_SUPPORT')
                 ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
                 ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
                 ->setPermission($archiveInstance, 'ROLE_SUPPORT')
@@ -202,9 +229,12 @@ class DeploymentsCrudController extends AbstractCrudController
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->add(Crud::PAGE_INDEX, $gotomarketplace)
+            ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
+            ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
             ->add(Crud::PAGE_DETAIL, $archiveInstance)
             ->add(Crud::PAGE_DETAIL, $adminSuspendInstance)
             ->add(Crud::PAGE_DETAIL, $adminReactivateInstance)
@@ -330,6 +360,4 @@ class DeploymentsCrudController extends AbstractCrudController
         $entityManager->persist($entity);
         $entityManager->flush();
     }
-
-    
 }

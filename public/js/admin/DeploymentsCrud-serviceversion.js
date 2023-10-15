@@ -1,12 +1,16 @@
+
+// We use this js file to retrieve the service's versions
 window.onload = function() {
+
+    // Get the URLSearchParams object for the current URL
+    const urlSearchParams = new URLSearchParams(window.location.search);
     
-    serviceField = $(".ServiceField").parent();
-    serviceFieldClasses = $(".ServiceField").parent().attr('class');
+    serviceField = $(".ServiceField");
+    serviceFieldClasses = $(".ServiceField").prevUntil('div[class^="col-md-"]').prev().attr('class');
     serviceOptions = $(".ServiceField select");
-    
-    selectedServiceId = serviceOptions.find(":selected").val();
-    
-    rowBreak = '<div class="flex-fill"></div>';
+
+    selectedServiceId = urlSearchParams.get('id');
+
     ServiceVersionWidget = '<div class="'+serviceFieldClasses+'">\
                                 <div class="field-association ServiceVersionField form-group">\
                                     <label class="form-control-label required" for="" id="">Version</label>\
@@ -17,7 +21,7 @@ window.onload = function() {
                                 </div>\
                             </div>';
                                 
-    serviceField.after(rowBreak+ServiceVersionWidget);
+    serviceField.after(ServiceVersionWidget);
     ServiceVersionField = $(".ServiceVersionField select");
 
 

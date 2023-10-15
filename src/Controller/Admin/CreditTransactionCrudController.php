@@ -103,6 +103,9 @@ class CreditTransactionCrudController extends AbstractCrudController
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
+            ->setPermission(Action::NEW, 'ROLE_ADMIN')
+            ->setPermission(Action::EDIT, 'ROLE_ADMIN')
+            ->setPermission(Action::DELETE, 'ROLE_ADMIN')
         ;
     }
 

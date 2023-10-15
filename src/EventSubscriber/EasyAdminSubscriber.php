@@ -3,6 +3,7 @@
 namespace App\EventSubscriber;
 
 use App\Entity\Deployments;
+use App\Entity\Service;
 use App\Entity\Organization;
 use App\Entity\User;
 use App\Service\AwxHelper;
@@ -15,6 +16,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class EasyAdminSubscriber implements EventSubscriberInterface
 {
@@ -23,14 +25,16 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     private $client;
     private $awxHelper;
     private $em;
+    private $requestStack;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, Security $security, HttpClientInterface $client, AwxHelper $awxHelper, EntityManagerInterface $em)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, Security $security, HttpClientInterface $client, AwxHelper $awxHelper, EntityManagerInterface $em, RequestStack $requestStack)
     {
         $this->passwordHasher = $passwordHasher;
         $this->security = $security;
         $this->client = $client;
         $this->awxHelper = $awxHelper;
         $this->em = $em;
+        $this->requestStack = $requestStack;
     }
 
     public static function getSubscribedEvents()
@@ -38,7 +42,7 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         return [
             // Before creating any entity managed by EasyAdmin
             BeforeEntityPersistedEvent::class => [
-                ['setDeploymentOrganization', 40],
+                ['setDeploymentOrganizationAppAndPlan', 40],
                 ['setSlug', 35],
                 ['launchNewDeployment', 30],
                 ['setCreatedTime', 25],
@@ -53,14 +57,39 @@ class EasyAdminSubscriber implements EventSubscriberInterface
     }
 
     /** Defines the organization that owns the deployment */
-    public function setDeploymentOrganization(BeforeEntityPersistedEvent $event)
+    public function setDeploymentOrganizationAppAndPlan(BeforeEntityPersistedEvent $event)
     {
         $entity = $event->getEntityInstance();
 
         if ($entity instanceof Deployments) {
+            $request = $this->requestStack->getCurrentRequest();
+            $deploymentplan = $request->query->get('plan') ?? null;
+            $appid = $request->query->get('id') ?? null;
+
+            // Set the organization using the first organization of the user
             if (null == $entity->getOrganization()) {
                 $Organizations_array = $this->security->getUser()->getOrganizations()->toArray();
                 $entity->setOrganization($Organizations_array[0]);
+            }
+
+            // Set the app using the application id parameter/option from the url
+            if (null != $appid) {
+                $entity->setService($this->em->getRepository(Service::class)->find($appid));
+            }
+
+
+            // Set the deployment plan using the hashed plan parameter/option from the url
+            $hashedoptions = [
+                'essential' => fn() => (md5('essentialplan') === $deploymentplan),
+                'business' => fn() => (md5('businessplan') == $deploymentplan),
+                'performance' => fn() => (md5('performanceplan') == $deploymentplan),
+            ];
+
+            foreach ($hashedoptions as $plan => $condition) {
+                if ($condition()) {
+                    $entity->setDeploymentPlan($plan);
+                    break;
+                }
             }
         }
     }
