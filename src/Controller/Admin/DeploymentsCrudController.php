@@ -103,7 +103,7 @@ class DeploymentsCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Applications Deployed')
             ->setPageTitle('detail', fn (Deployments $app) => sprintf('Details of App : %s', $app->getSlug()))
             ->setPageTitle('edit', fn (Deployments $app) => sprintf('Editing App : %s', $app->getSlug()))
-            ->setPageTitle('new', fn () => sprintf("Deploy a new %s %s app", $this->applabel, $deploymentplan ? ucfirst(strtolower($deploymentplan)) : ''))
+            ->setPageTitle('new', fn () => sprintf("Deploy a new %s - %s service", $this->applabel, $deploymentplan ? ucfirst(strtolower($deploymentplan)) : ''))
         ;
     }
 

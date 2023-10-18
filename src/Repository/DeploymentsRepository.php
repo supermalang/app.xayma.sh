@@ -39,20 +39,41 @@ class DeploymentsRepository extends ServiceEntityRepository
      */
     public function getCurrentMonthlyConsumption(Organization $organization = null)
     {
-        $query = $this->createQueryBuilder('d')
+        $queries = [];
+        $monthlyCreditConsumption = 0;
+
+        $essentials_query = $this->createQueryBuilder('d')
             ->select('SUM(s.monthlyCreditConsumption) as creditsConsumed')
             ->join('d.service', 's')
             ->where('d.status = :status');
 
-            if ($organization) {
-                $query = $query->andWhere('d.organization = :organization')
-                    ->setParameter('organization', $organization);
-            }
+        $business_query = $this->createQueryBuilder('d')
+            ->select('SUM(s.BusinessMonthlyCreditConsumption) as creditsConsumed')
+            ->join('d.service', 's')
+            ->where('d.status = :status');
+            
+        $highperformance_query = $this->createQueryBuilder('d')
+            ->select('SUM(s.HighPerformanceMonthlyCreditConsumption) as creditsConsumed')
+            ->join('d.service', 's')
+            ->where('d.status = :status');         
 
-            $query = $query->setParameter('status', 'active')
-                ->getQuery()->getSingleScalarResult();
+        if ($organization) {
+            $essentials_query = $essentials_query->andWhere('d.organization = :organization')
+            ->setParameter('organization', $organization);
+            $business_query = $business_query->andWhere('d.organization = :organization')
+            ->setParameter('organization', $organization);
+            $business_query = $business_query->andWhere('d.organization = :organization')
+            ->setParameter('organization', $organization);
+        }
 
-            return $query;
+        array_push($queries, $essentials_query, $business_query, $highperformance_query);
+        
+        foreach ($queries as $query) {
+            $query = $query->setParameter('status', 'active');
+            $monthlyCreditConsumption += 0 + $query->getQuery()->getSingleScalarResult();
+        }
+        
+        return $monthlyCreditConsumption;
     }
 
     // public function to get the last five edited deployments that belong to the given organization. if no organization is given, it will return the last five edited deployments of all organizations 

@@ -6,6 +6,7 @@ use App\Entity\Deployments;
 use App\Entity\Service;
 use App\Entity\Organization;
 use App\Entity\User;
+use App\Entity\CreditTransaction;
 use App\Service\AwxHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
@@ -48,6 +49,7 @@ class EasyAdminSubscriber implements EventSubscriberInterface
                 ['setCreatedTime', 25],
                 ['setCreatedByUser', 20],
                 ['encryptUserPassword', 15],
+                ['addCreditTransaction', 20],
             ],
             BeforeEntityUpdatedEvent::class => [
                 ['setModifiedTime', 20],
@@ -194,6 +196,37 @@ class EasyAdminSubscriber implements EventSubscriberInterface
             if (!$fs->exists($folder)) {
                 $fs->mkdir($folder);
             }
+        }
+    }
+
+    /** Add a credit transaction when an admin add a transaction for a customer */
+    public function addCreditTransaction(BeforeEntityPersistedEvent $event)
+    {
+        $entity = $event->getEntityInstance();
+        
+        if ($entity instanceof CreditTransaction) {
+            $organizationId = $entity->getOrganization()->getId();
+            $organization = $this->em->getRepository(Organization::class)->find($organizationId);
+
+            $transactiontype = $entity->getTransactionType();
+
+            // If transaction type is debit, we need to substract the credits used to the credit of the organization
+            // If transaction type is credit, we need to add the credits used to the credit of the organization
+            if(strtolower($transactiontype) == 'debit'){
+                $organization->setRemainingCredits($organization->getRemainingCredits() - $entity->getCreditsUsed());
+            }elseif(strtolower($transactiontype) == 'credit'){
+                $organization->setRemainingCredits($organization->getRemainingCredits() + $entity->getCreditsPurchased());
+                
+                if(strtolower($entity->getStatus()) == 'temporary'){
+                    $entity->setStatus('completed');
+                }
+            }
+            
+
+
+            
+            $this->em->persist($organization);
+            //$this->em->flush();
         }
     }
 }

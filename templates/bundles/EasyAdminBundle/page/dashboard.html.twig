@@ -60,8 +60,13 @@
                         <p class="card-text">
                             <ul class="list-group list-group-flush">
                                 {% for transaction in creditPurchases %}
+                                    {# Is user is admin (Admins dont have remaining credits) #}
+                                    {% if remainingCredits is same as ('N/A') %}
+                                        {% set customersuffix = " for " ~ transaction.organization %}
+                                    {% endif %}
+
                                     <li class="list-group-item">
-                                        {{ transaction.creditsPurchased }} credits bought on {{ transaction.created|format_datetime('medium', 'short', locale='fr') }}
+                                        {{ transaction.creditsPurchased }} credits bought on {{ transaction.created|format_datetime('medium', 'short', locale='fr') }} {{ customersuffix|default('') }}
                                     </li>
                                 {% endfor %}
                             </ul>

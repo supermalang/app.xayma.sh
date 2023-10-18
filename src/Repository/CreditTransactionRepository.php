@@ -40,7 +40,7 @@ class CreditTransactionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get the credit used in the last 24 hours by the given organization or all organizations
+     * Get the Sum of credits used per hour in the last 24 hours by the given organization or all organizations
      * @param int|null $organizationId
      * @return CreditTransaction[]
      */
@@ -48,7 +48,7 @@ class CreditTransactionRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('ct')
         // select average of credits used and max of created date for each hour
-            ->select('AVG(ct.creditsUsed) as creditsUsed')
+            ->select('SUM(ct.creditsUsed) as creditsUsed')
             ->addSelect('MAX(ct.created) as created')
             // add select the max of created date for each hour to group by hour. so format by hour
             ->addSelect('DATE_FORMAT(ct.created, \'%H\') as hour')
@@ -64,7 +64,6 @@ class CreditTransactionRepository extends ServiceEntityRepository
         $qb->groupBy('hour')
         ->orderBy('created', 'ASC');
             
-
         return $qb->getQuery()->getResult();
     }
 
@@ -72,7 +71,9 @@ class CreditTransactionRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('ct')
             ->where('ct.transactionType = :transactionType')
-            ->setParameter('transactionType', 'credit');
+            ->andWhere('ct.status = :status')
+            ->setParameter('transactionType', 'credit')
+            ->setParameter('status', 'completed');
 
         if ($organizationId) {
             $qb = $qb->andWhere('ct.organization = :organizationId')

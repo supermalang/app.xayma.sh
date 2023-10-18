@@ -80,7 +80,7 @@ class CreditTransaction
      * The IPN is received when the user is redirected back to the site after payment
      * 
      * @ORM\Column(type="string", length=20)
-     * @Assert\Choice(choices={"pending", "completed", "failed"})
+     * @Assert\Choice(choices={"temporary", "pending", "completed", "failed"})
      */
     private $status;
 
@@ -102,7 +102,7 @@ class CreditTransaction
         $this->creditsRemaining = 0;
         $this->creditsPurchased = 0;
         $this->amountPaid = 0;
-        $this->status = 'pending';
+        $this->status = 'temporary';
     }
 
     public function getId(): ?int

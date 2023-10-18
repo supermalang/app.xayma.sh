@@ -50,7 +50,7 @@ class DashboardController extends AbstractDashboardController
         // $routeBuilder = $this->get(AdminUrlGenerator::class)->build();
         $routeBuilder = $this->adminUrlGenerator;
 
-        // if user is not admin or support, we only display the last five deployments of the current organization
+        // if user is admin or support, we display the last five deployments of all organizations
         if ($this->isAdvancedUser()) {
             $lastFiveDeployments = $this->deploymentsRepository->getLastFiveEditedDeployments();
             $monthlyCreditConsumption = $this->deploymentsRepository->getCurrentMonthlyConsumption();
@@ -60,6 +60,7 @@ class DashboardController extends AbstractDashboardController
             $globalMonthlyCostOfCredit = $costOfCredit * $monthlyCreditConsumption;
             $creditPurchases = $this->creditTransactionRepository->getLastPurchases();
         }
+        // if user is not admin or support, we only display the last five deployments of the current organization
         else {
             $lastFiveDeployments = $this->getUser()->getOrganizations()[0] ? $this->deploymentsRepository->getLastFiveEditedDeployments($this->getUser()->getOrganizations()[0]) : null;
             $monthlyCreditConsumption = $this->getUser()->getOrganizations()[0] ? $this->deploymentsRepository->getCurrentMonthlyConsumption($this->getUser()->getOrganizations()[0]) : 0;
@@ -70,7 +71,7 @@ class DashboardController extends AbstractDashboardController
         }
 
         // Get the credit transactions of the last 24 hours
-        $credits = $this->getUser()->getOrganizations()[0] ? $this->creditTransactionRepository->creditsUsedLast24Hours($this->getUser()->getOrganizations()[0]->getId()) : array(array('creditsUsed' => 0, 'hour' => 0));
+        $credits = $this->getUser()->getOrganizations()[0] ? $this->creditTransactionRepository->creditsUsedLast24Hours($this->getUser()->getOrganizations()[0]->getId()) : $this->creditTransactionRepository->creditsUsedLast24Hours();//array(array('creditsUsed' => 0, 'hour' => 0));
         if (empty($credits)) {
             $credits = array(array('creditsUsed' => 0, 'hour' => 0));
         }
@@ -166,7 +167,7 @@ class DashboardController extends AbstractDashboardController
 
     public function configureUserMenu(UserInterface $user): UserMenu
     {
-        $url = $this->adminUrlGenerator
+        $myprofileUrl = $this->adminUrlGenerator
             ->setController(UserCrudController::class)
             ->setAction('detail')
             ->setEntityId($this->getUser()->getId())
@@ -177,7 +178,7 @@ class DashboardController extends AbstractDashboardController
             ->setName($user->getFirstName())
             ->displayUserName(true)
             ->addMenuItems([
-                MenuItem::linkToUrl('My profile', 'fa fa-id-card', $url),
+                MenuItem::linkToUrl('My profile', 'fa fa-id-card', $myprofileUrl),
             ])
         ;
     }

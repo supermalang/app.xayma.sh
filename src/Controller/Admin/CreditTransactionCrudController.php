@@ -78,6 +78,7 @@ class CreditTransactionCrudController extends AbstractCrudController
             NumberField::new('creditsRemaining')->setColumns(7)->hideOnForm(),
             TextField::new('paymentMethod')->onlyOnDetail(),
             TelephoneField::new('customerPhone')->hideOnIndex()->hideOnForm(),
+            TextField::new('status')->onlyOnDetail(),
             DateTimeField::new('created')->onlyOnDetail()->hideOnForm(),
             AssociationField::new('createdBy')->onlyOnDetail()->hideOnForm(),
             DateTimeField::new('modified')->onlyOnDetail()->hideOnForm(),
@@ -109,9 +110,6 @@ class CreditTransactionCrudController extends AbstractCrudController
         ;
     }
 
-    /**
-     * @Route("/admin/credit_purchase/checkout", name="admin_credit_purchase_checkout")
-     */
     public function priceoptions(Request $request): Response
     {
         $form = $this->createForm(CreditPurchaseCheckoutType::class);
