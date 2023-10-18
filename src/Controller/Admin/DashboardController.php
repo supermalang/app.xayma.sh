@@ -25,13 +25,14 @@ use App\Repository\CreditTransactionRepository;
 use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class DashboardController extends AbstractDashboardController
 {
     private $adminUrlGenerator;
     const SYSTEM_SETTINGS_ID = 1;
 
-    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository)
+    public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository, RequestStack $requestStack)
     {
         $this->adminUrlGenerator = $adminUrlGenerator;
         $this->chartBuilder = $chartBuilder;
@@ -39,6 +40,7 @@ class DashboardController extends AbstractDashboardController
         $this->creditTransactionRepository = $creditTransactionRepository;
         $this->deploymentsRepository = $deploymentsRepository;
         $this->settingsRepository = $settingsRepository;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -46,8 +48,16 @@ class DashboardController extends AbstractDashboardController
      */
     public function index(): Response
     {
-        // Deprecated
-        // $routeBuilder = $this->get(AdminUrlGenerator::class)->build();
+        $request = $this->requestStack->getCurrentRequest();
+        $cts = $request->query->get('cts') ?? null; // Credit transaction status
+
+        if ($cts == base64_encode('success') || $cts == 'completed' || $cts == 'paid' || $cts == 'approved' || $cts == 'successful') {
+            $this->addFlash('success', '<b>Success</b> : Your payment was successful. Thank you for your purchase. Your credits will be added to your account shortly.');
+        }
+        if ($cts == 'cancel' || $cts == 'error' || $cts == 'failed') {
+            $this->addFlash('danger', '<b>Failed</b> : Your payment was not successful. Please try again.');
+        }
+
         $routeBuilder = $this->adminUrlGenerator;
 
         // if user is admin or support, we display the last five deployments of all organizations

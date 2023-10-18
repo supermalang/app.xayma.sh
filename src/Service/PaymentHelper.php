@@ -20,8 +20,16 @@ class PaymentHelper
         $this->creditTransactionRepository = $creditTransactionRepository;
     }
 
-
-    public function checkout($article_name, $article_price, $command_name, $order_ref, $creditTransactionId){
+    /**
+     * Create a new credit transaction and checkout the order using the payment provider
+     * @param string $article_name The name of the article the customer is buying
+     * @param int $article_price The amount the customer pays
+     * @param string $command_name The command label
+     * @param string $order_ref The order reference
+     * @param int $creditTransactionId The id of the credit transaction
+     * @return array
+     */
+    public function checkout($article_name, $article_price, $command_name, $order_ref, $creditTransactionId): array{
         $apiKey = $this->getApiKey();
         $secretKey = $this->getSecretKey();
         
@@ -110,8 +118,8 @@ class PaymentHelper
     /**
      * Update the transaction status
      */
-    public function processIpn($ipnData){
-        return $this->processPaytechIpn($ipnData);
+    public function processIpn($id, $ipnData){
+        return $this->processPaytechIpn($id, $ipnData);
     }
 
     #
@@ -129,7 +137,6 @@ class PaymentHelper
         $api_secret_sha256 = $ipnData['api_secret_sha256'] ?? null;
 
         if($api_key_sha256 != hash('sha256', $apiKey) || $api_secret_sha256 != hash('sha256', $secretKey)){
-            
             return false;
         }
         else{
@@ -140,9 +147,14 @@ class PaymentHelper
     /**
      * Update the transaction status
      */
-    public function processPaytechIpn($ipnData){
+    public function processPaytechIpn($id, $ipnData){
         // Get the credit transaction, using its id
-        $creditTransaction = $this->creditTransactionRepository->find($ipnData['custom_field']['creditTransactionId']);
+        $creditTransaction = $this->creditTransactionRepository->find($id);
+
+        // if the credit transaction is not found, we return an error
+        if(!$creditTransaction){
+            return new Response("Credit transaction not found", 404);
+        }
 
         // if evenType is sale_canceled, we need to cancel the transaction
         if($ipnData['type_event'] == 'sale_canceled'){
@@ -154,7 +166,7 @@ class PaymentHelper
 
             $creditTransaction->setPaymentMethod($paymentMethod);
             $creditTransaction->setCustomerPhone($customerPhone);
-            $creditTransaction->setTransactionStatus('completed');
+            $creditTransaction->setStatus('completed');
 
             $organization = $creditTransaction->getOrganization();
 
@@ -165,9 +177,9 @@ class PaymentHelper
             $organization->setRemainingCredits($remainingCredits + $creditTransaction->getCreditsPurchased());
             $organization->setModified(new \DateTime());
 
-            $this->entityManager->persist($organization);
-            $this->entityManager->persist($creditTransaction);
-            $this->entityManager->flush();
+            $this->em->persist($organization);
+            $this->em->persist($creditTransaction);
+            $this->em->flush();
         }
     }
 }
