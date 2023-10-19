@@ -45,10 +45,12 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && cd app.xayma.sh \
     && /usr/local/bin/composer install \
-    && chown -R www-data:www-data /var/www/app.xayma.sh \
     && php /var/www/app.xayma.sh/bin/console cache:clear \
     && npm install \
-    && npm run build --if-present 
+    && npm run build --if-present \
+    && chmod +x /var/www/entrypoint.sh \
+    && chown -R www-data:www-data /var/www/app.xayma.sh \
+    && chmod -R 777 /var/www/app.xayma.sh/var
 
 CMD /bin/bash /var/www/entrypoint.sh
 
