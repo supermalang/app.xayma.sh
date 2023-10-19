@@ -19,11 +19,22 @@ class IpnController extends AbstractController
     // Receives and IPN through a POST request
     public function index($id): Response
     {
-        $ipnData = json_decode(file_get_contents('php://input'), true) ?? null;
-        
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $ipnData = null;
+
+        if ($contentType === 'application/x-www-form-urlencoded') {
+            $ipnData = $_POST ?? null;
+        } 
+        elseif ($contentType === 'application/json') {
+            $ipnData = json_decode(file_get_contents('php://input'), true) ?? null;
+        } 
+        else {
+            return new Response('Unsupported content type', 400);
+        }
+
         // Check the IPN posted data is of Json type and properly formated
         if ($ipnData === null || json_last_error() !== JSON_ERROR_NONE) {
-            return new Response("Received data is not of Json type or not properly formated", 400);
+            return new Response("Received data content type is not supported or not properly formated", 400);
         }
         else{
             // Check the IPN posted data comes from the payment system
@@ -33,7 +44,6 @@ class IpnController extends AbstractController
                 return new Response("Payment request received and processed successfully.", 200);
             }
             else{
-                var_dump(json_decode($ipnData, true));
                 return new Response('Unauthorized', 401);
             }
         }

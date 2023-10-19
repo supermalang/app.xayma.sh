@@ -51,7 +51,7 @@ class DashboardController extends AbstractDashboardController
         $request = $this->requestStack->getCurrentRequest();
         $cts = $request->query->get('cts') ?? null; // Credit transaction status
 
-        if ($cts == base64_encode('success') || $cts == 'completed' || $cts == 'paid' || $cts == 'approved' || $cts == 'successful') {
+        if ($cts == 'success' || $cts == 'completed' || $cts == 'paid' || $cts == 'approved' || $cts == 'successful') {
             $this->addFlash('success', '<b>Success</b> : Your payment was successful. Thank you for your purchase. Your credits will be added to your account shortly.');
         }
         if ($cts == 'cancel' || $cts == 'error' || $cts == 'failed') {

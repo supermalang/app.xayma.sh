@@ -133,8 +133,8 @@ class PaymentHelper
         $apiKey = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentApiKey();
         $secretKey = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getPaymentSecretKey();
 
-        $api_key_sha256 = $ipnData['api_key_sha256'] ?? null;
-        $api_secret_sha256 = $ipnData['api_secret_sha256'] ?? null;
+        $api_key_sha256 = $ipnData['api_key_sha256'] ?? $ipnData->api_key_sha256 ?? null;
+        $api_secret_sha256 = $ipnData['api_secret_sha256'] ?? $ipnData->api_secret_sha256 ?? null;
 
         if($api_key_sha256 != hash('sha256', $apiKey) || $api_secret_sha256 != hash('sha256', $secretKey)){
             return false;
