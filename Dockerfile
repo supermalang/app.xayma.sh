@@ -19,8 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-configure intl \
     && docker-php-ext-configure zip \
     && docker-php-ext-install zip mysqli pdo pdo_mysql intl opcache \
-
-    # POST RUN
     && docker-php-source delete \
     && rm -rf /tmp/pear \
     && rm -rf /var/cache/apk/*

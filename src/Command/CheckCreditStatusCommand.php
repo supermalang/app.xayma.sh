@@ -56,7 +56,6 @@ class CheckCreditStatusCommand extends Command
         $orgsOnDebt = $this->organizationRepository->findAllOnDebt();
         $orgsWithoutCredit = $this->organizationRepository->findAllWithoutCredit();
         $orgsBeyondMaxDebt = $this->organizationRepository->findAllBeyondMaxDebt($MaxCreditsDebt);
-
         
         /**
          * Orgs that have low credit

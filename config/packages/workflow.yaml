@@ -69,6 +69,7 @@ framework:
                 - low_credit
                 - no_credit
                 - on_debt
+                - pending_credit_addition # Staging state to add/remove credit to an organization
                 - archived
                 - pending_deletion
             transitions:
@@ -81,7 +82,6 @@ framework:
                     from: suspended
                     to: active
                 archive:
-                # 6 months after the organization is archived, it is deleted from the database
                     guard: "is_granted('ROLE_SUPPORT')"
                     from: suspended
                     to: archived
@@ -107,3 +107,15 @@ framework:
                 suspend_subscription:
                     from: no_credit
                     to: suspended
+                suspended_add_credit:
+                    from: suspended
+                    to: pending_credit_addition
+                ondebt_add_credit:
+                    from: on_debt
+                    to: pending_credit_addition
+                nocredit_add_credit:
+                    from: no_credit
+                    to: pending_credit_addition
+                lowcredit_add_credit:
+                    from: low_credit
+                    to: pending_credit_addition

@@ -34,7 +34,7 @@ class Organization
     private $services;
 
     /**
-     * @ORM\Column(type="string", length=20)
+     * @ORM\Column(type="string", length=50)
      */
     private $status = 'active';
 
