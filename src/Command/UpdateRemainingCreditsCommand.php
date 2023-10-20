@@ -72,20 +72,26 @@ class UpdateRemainingCreditsCommand extends Command
             $organization->setRemainingCredits((float)($remainingCredits - $periodicityCreditConsumption));
             $organization->setModified(new \DateTime());
 
-            // create a new credit transaction
-            $creditTransaction = new CreditTransaction();
-            $creditTransaction->setOrganization($organization);
-            $creditTransaction->setCreditsUsed($periodicityCreditConsumption);
-            $creditTransaction->setCreditsRemaining((float)($remainingCredits - $periodicityCreditConsumption));
-            $creditTransaction->setTransactionType('debit');
-            $creditTransaction->setCreated(new \DateTime());
-            $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));
-            $creditTransaction->setStatus('completed');
+            // create a new credit transaction for orgs that are not suspended
+            // suspended orgs are not supposed to be running
+            if($organization->getStatus() != 'suspended' && $organization->getStatus() != 'archived' && $organization->getStatus() != 'pending_deletion'){
+                $creditTransaction = new CreditTransaction();
+                $creditTransaction->setOrganization($organization);
+                $creditTransaction->setCreditsUsed($periodicityCreditConsumption);
+                $creditTransaction->setCreditsRemaining((float)($remainingCredits - $periodicityCreditConsumption));
+                $creditTransaction->setTransactionType('debit');
+                $creditTransaction->setCreated(new \DateTime());
+                $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));
+                $creditTransaction->setStatus('completed');
+
+                if (!$input->getOption('dry-run')) {
+                    $this->entityManager->persist($creditTransaction);
+                }
+            }
 
             // persist if option dry-run is not set
             if (!$input->getOption('dry-run')) {
                 $this->entityManager->persist($organization);
-                $this->entityManager->persist($creditTransaction);
                 $this->entityManager->flush();
             }
             else{
@@ -97,7 +103,7 @@ class UpdateRemainingCreditsCommand extends Command
         $now = new \DateTime();
         $nowFormatted = $now->format('Y-m-d H:i:s');
         $io->success("$nowFormatted : The credit balance of the organizations have been successfully updated");
-      
+
         return Command::SUCCESS;
     }
 }

@@ -103,6 +103,10 @@ class Settings
      * )
      */
     private $PaymentIpnUrl;
+    
+    public function __construct(){
+        $this->created = new \DateTime();
+    }
 
     public function getId(): ?int
     {
