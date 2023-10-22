@@ -35,11 +35,11 @@ class CreateInitialDataCommand extends Command
         $io = new SymfonyStyle($input, $output);
         
         $user = new User();
-        $user->setEmail('adminada');
+        $user->setEmail('admin');
         $user->setPassword('$2y$13$3ejjFXqC5.IXuk35/p1G/e5CLwv.2B/eQhD8r2cjyKaboILE.1VOG'); // admin
         $user->setRoles(['ROLE_ADMIN']);
-        $user->setLastName('System');
-        $user->setFirstName('User');
+        $user->setFirstName('System');
+        $user->setLastName('User');
 
         $settings = new Settings();
         $settings->setMaxDaysToArchiveDepl(30);

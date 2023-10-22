@@ -67,13 +67,13 @@ class ServiceCrudController extends AbstractCrudController
             FormField::addPanel('Monthly Credit Consumption')->setIcon('fas fa-coins'),
             TextField::new('essentialPlanTag', 'Essentials Plan Tag')->setColumns(6)->hideOnIndex()
                 ->setHelp('Put the tag label, then #, then the tag description. Example: "basic#This plan is suitable for a small business with 5 users"'),
-            IntegerField::new('monthlyCreditConsumption', 'Essentials')->setColumns(6)->hideOnIndex(),
+            IntegerField::new('monthlyCreditConsumption', 'Essentials - Monthly credit consumption')->setColumns(6)->hideOnIndex(),
             TextField::new('businessPlanTag')->setColumns(6)->hideOnIndex()
                 ->setHelp('Put the tag label, then #, then the tag description. Example: "pro#This plan is suitable for enterprises with 50 users"'),
-            IntegerField::new('BusinessMonthlyCreditConsumption', 'Business')->setColumns(6)->hideOnIndex(),
+            IntegerField::new('BusinessMonthlyCreditConsumption', 'Business - Monthly credit consumption')->setColumns(6)->hideOnIndex(),
             TextField::new('highPerformancePlanTag')->setColumns(6)->hideOnIndex()
                 ->setHelp('Put the tag label, then #, then the tag description. Example: "basic#This plan is suitable for large enterprises with 500 users"'),
-            IntegerField::new('HighPerformanceMonthlyCreditConsumption', 'High Performance')->setColumns(6)->hideOnIndex(),
+            IntegerField::new('HighPerformanceMonthlyCreditConsumption', 'High Performance - Monthly credit consumption')->setColumns(6)->hideOnIndex(),
             FormField::addTab('Deployment tags')->setIcon('fa-solid fa-tags'),
             TextField::new('version', 'Supported versions')->setDefaultColumns(6)
                 ->addCssClass('supportedVersions-tagin')
