@@ -34,3 +34,6 @@ services:
         class: 'App\Service\CustomFileManager'
         public: true  
         #arguments: ['@security.token_storage']
+    
+    App\MessageHandler\LaunchDeploymentMessageHandler: 
+        tags: [messenger.message_handler]

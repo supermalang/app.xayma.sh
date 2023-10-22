@@ -10,6 +10,8 @@ use Symfony\Component\Workflow\Registry;
 class DeploymentsSubscriber implements EventSubscriberInterface
 {
     private $workflow;
+    private $workflowRegistry;
+    private $em;
 
     public function __construct(EntityManagerInterface $em, Registry $workflowRegistry)
     {

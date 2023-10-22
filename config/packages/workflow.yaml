@@ -9,8 +9,9 @@ framework:
                 property: 'status'
             supports:
                 - App\Entity\Deployments
-            initial_marking: active
+            initial_marking: pending_deployment
             places:
+                - pending_deployment
                 - active
                 - suspended
                 - suspended_by_admin
@@ -18,6 +19,9 @@ framework:
                 - stopped_by_creditworker
                 - archived
             transitions:
+                enable:
+                    from: pending_deployment
+                    to: active
                 stop:
                     from: active
                     to: stopped
