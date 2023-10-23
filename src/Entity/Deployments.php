@@ -42,7 +42,7 @@ class Deployments
     /**
      * @ORM\Column(type="string", length=20)
      */
-    private $status = 'active';
+    private $status;
 
     /**
      * @ORM\Column(type="datetime", nullable=false)
@@ -95,6 +95,7 @@ class Deployments
     public function __construct()
     {
         $this->deploymentPlan = "essential";
+        $this->status = "pending_deployment";
     }
 
     public function getUpdateInfo()
