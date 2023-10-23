@@ -27,15 +27,15 @@ final class LaunchDeploymentMessageHandler implements MessageHandlerInterface
     {
         $deployment = $this->deplRep->find($message->getDeploymentId());
         $jobTemplateId = $deployment->getService()->getJobTemplateId();
-        $controlNode = $this->cnRep->find($deployment->getService()->getControlNode()->getId());
+        $controlNode = $this->cnRep->find($deployment->getService()->getControleNode()->getId());
 
         // Launch the deployment
-        $this->orchestrator->launchJobTemplate($controlNode, $jobTemplateId, $deployment);
+        $statuscode = $this->orchestrator->launchJobTemplate($controlNode, $jobTemplateId, $deployment);
 
         $to = $deployment->getOrganization()->getEmail();
         $subject = "Your application has just been deployed";
         $content = "Your new app deployment has been successfuly launched";
 
-        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        //$this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
     }
 }

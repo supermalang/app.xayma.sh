@@ -279,6 +279,11 @@ class Service
     {
         return $this->awxId;
     }
+    
+    public function getJobTemplateId(): ?int
+    {
+        return $this->awxId;
+    }
 
     public function setAwxId(int $awxId): self
     {

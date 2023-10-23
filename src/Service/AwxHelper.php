@@ -48,7 +48,7 @@ class AwxHelper
         $organization = $appInstance->getOrganization()->getSlug();
         $version = $appInstance->getServiceVersion();
 
-        $domain = str_replace('http://', '', $appInstance->getDomainName());
+        $domain = str_replace('http://', '', $appInstance->getDomainName() ?? '');
         $domain = str_replace('https://', '', $domain);
 
         $extra_vars = ['organization' => $organization, 'instancename' => $instance, 'domain' => $domain, 'version' => $version];

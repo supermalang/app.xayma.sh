@@ -14,6 +14,12 @@ class OrgStatusSubscriber implements EventSubscriberInterface
 {
     const SYSTEM_SETTINGS_ID = 1;
 
+    private $workflowRegistry;
+    private $em;
+    private $awxHelper;
+    private $deploymentsRepository;
+    private $settingsRepository;
+
     public function __construct(EntityManagerInterface $em, Registry $workflowRegistry, AwxHelper $awxHelper, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository)
     {
         $this->workflowRegistry = $workflowRegistry;

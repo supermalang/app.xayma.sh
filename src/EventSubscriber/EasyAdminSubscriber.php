@@ -3,11 +3,8 @@
 namespace App\EventSubscriber;
 
 use App\Entity\Deployments;
-use App\Entity\Service;
 use App\Entity\Organization;
 use App\Entity\User;
-use App\Entity\CreditTransaction;
-use App\Service\AwxHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
@@ -16,26 +13,18 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\String\Slugger\AsciiSlugger;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class EasyAdminSubscriber implements EventSubscriberInterface
 {
     private $passwordHasher;
     private $security;
-    private $client;
-    private $awxHelper;
     private $em;
-    private $requestStack;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, Security $security, HttpClientInterface $client, AwxHelper $awxHelper, EntityManagerInterface $em, RequestStack $requestStack)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, Security $security, EntityManagerInterface $em)
     {
         $this->passwordHasher = $passwordHasher;
         $this->security = $security;
-        $this->client = $client;
-        $this->awxHelper = $awxHelper;
         $this->em = $em;
-        $this->requestStack = $requestStack;
     }
 
     public static function getSubscribedEvents()
@@ -43,9 +32,7 @@ class EasyAdminSubscriber implements EventSubscriberInterface
         return [
             // Before creating any entity managed by EasyAdmin
             BeforeEntityPersistedEvent::class => [
-                ['setDeploymentOrganizationAppAndPlan', 40],
                 ['setSlug', 35],
-                ['launchNewDeployment', 30],
                 ['setCreatedTime', 25],
                 ['setCreatedByUser', 20],
                 ['encryptUserPassword', 15],
@@ -55,60 +42,6 @@ class EasyAdminSubscriber implements EventSubscriberInterface
                 ['setModifiedByUser', 15],
             ],
         ];
-    }
-
-    /** Defines the organization that owns the deployment */
-    public function setDeploymentOrganizationAppAndPlan(BeforeEntityPersistedEvent $event)
-    {
-        $entity = $event->getEntityInstance();
-
-        if ($entity instanceof Deployments) {
-            $request = $this->requestStack->getCurrentRequest();
-            $deploymentplan = $request->query->get('plan') ?? null;
-            $appid = $request->query->get('id') ?? null;
-
-            // Set the organization using the first organization of the user
-            if (null == $entity->getOrganization()) {
-                $Organizations_array = $this->security->getUser()->getOrganizations()->toArray();
-                $entity->setOrganization($Organizations_array[0]);
-            }
-
-            // Set the app using the application id parameter/option from the url
-            if (null != $appid) {
-                $entity->setService($this->em->getRepository(Service::class)->find($appid));
-            }
-
-
-            // Set the deployment plan using the hashed plan parameter/option from the url
-            $hashedoptions = [
-                'essential' => fn() => (md5('essentialplan') === $deploymentplan),
-                'business' => fn() => (md5('businessplan') == $deploymentplan),
-                'performance' => fn() => (md5('performanceplan') == $deploymentplan),
-            ];
-
-            foreach ($hashedoptions as $plan => $condition) {
-                if ($condition()) {
-                    $entity->setDeploymentPlan($plan);
-                    break;
-                }
-            }
-        }
-    }
-
-    /** Launch a job template in AWX for the provisionning of a new application */
-    public function launchNewDeployment(BeforeEntityPersistedEvent $event)
-    {
-        $entity = $event->getEntityInstance();
-
-        if ($entity instanceof Deployments) {
-            $controlNode = $entity->getService()->getControleNode();
-            $jobTemplId = $entity->getService()->getAwxId();
-
-            $statusCode = $this->awxHelper->launchJobTemplate($controlNode, $jobTemplId, $entity);
-
-            // TODO
-            // Launch exceptions when the status code is not 200
-        }
     }
 
     public function setCreatedTime(BeforeEntityPersistedEvent $event)
