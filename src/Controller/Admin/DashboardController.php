@@ -29,8 +29,15 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class DashboardController extends AbstractDashboardController
 {
-    private $adminUrlGenerator;
     const SYSTEM_SETTINGS_ID = 1;
+
+    private $adminUrlGenerator;
+    private $chartBuilder;
+    private $organizationRepository ;
+    private $creditTransactionRepository ;
+    private $deploymentsRepository ;
+    private $settingsRepository ;
+    private $requestStack ;
 
     public function __construct(AdminUrlGenerator $adminUrlGenerator, ChartBuilderInterface $chartBuilder, OrganizationRepository $organizationRepository, CreditTransactionRepository $creditTransactionRepository, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository, RequestStack $requestStack)
     {
@@ -152,9 +159,9 @@ class DashboardController extends AbstractDashboardController
         $marketplaceUrl = $this->adminUrlGenerator
             ->setController(ServiceCrudController::class)
             ->setAction('showmarketplace')
+            ->setEntityId(null)
             ->generateUrl();
 
-            //dd($marketplaceUrl);
 
         return [
             MenuItem::linkToDashboard('Dashboard', 'far fa-chart-bar'),

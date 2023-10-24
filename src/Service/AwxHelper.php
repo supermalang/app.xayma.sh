@@ -25,7 +25,7 @@ class AwxHelper
 
         $headers = ['Content-Type' => 'application/json', 'Authorization' => 'Bearer '.$authToken];
 
-        $response = $this->client->request('GET', $endpoint, ['headers' => $headers]);
+        $response = $this->httpclient->request('GET', $endpoint, ['headers' => $headers]);
         $results = $response['results'];
 
         $jobTemplate_IDs = array_map(function ($e) { return is_object($e) ? $e->getId() : $e['id']; }, $results);
