@@ -3,40 +3,36 @@
 namespace App\MessageHandler;
 
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use App\Message\UpdateDeploymentMessage;
 use App\Service\Notifier;
 use App\Service\AwxHelper;
-use App\Message\LaunchDeploymentMessage;
 use App\Repository\DeploymentsRepository;
-use App\Repository\ControlNodeRepository;
 
-final class LaunchDeploymentMessageHandler implements MessageHandlerInterface
+final class UpdateDeploymentMessageHandler implements MessageHandlerInterface
 {
     private $deplRep;
-    private $cnRep;
     private $notifier;
     private $orchestrator;
 
-    public function __construct(DeploymentsRepository $deplRep, Notifier $notifier, ControlNodeRepository $cnRep, AwxHelper $orchestrator){
+    public function __construct(DeploymentsRepository $deplRep, Notifier $notifier, AwxHelper $orchestrator){
         $this->deplRep = $deplRep;
-        $this->cnRep = $cnRep;
         $this->notifier = $notifier;
         $this->orchestrator = $orchestrator;
     }
 
-    public function __invoke(LaunchDeploymentMessage $message)
+    public function __invoke(UpdateDeploymentMessage $message)
     {
         $deployment = $this->deplRep->find($message->getDeploymentId());
-        $jobTemplateId = $deployment->getService()->getJobTemplateId();
-        $controlNode = $this->cnRep->find($deployment->getService()->getControleNode()->getId());
+        $job_tags = $message->getDeploymentOperation();
 
         // Launch the deployment
-        $statuscode = $this->orchestrator->launchJobTemplate($controlNode, $jobTemplateId, $deployment);
+        $statuscode = $this->orchestrator->updateDeployment($deployment, $job_tags);
 
         // If status code is not 200, then the deployment failed, we send an email
         if ($statuscode != 200 && $statuscode != 201) {
             $to = $_ENV['ADMIN_EMAIL'] ?? 'admin@localhost';
-            $subject = "Your application deployment has failed";
-            $content = "Your new app deployment has failed to launch. "
+            $subject = "Your application deployment operation has failed";
+            $content = "Your app deployment operation has failed to execute successfully. "
                         ."Deployment ID: ".$deployment->getId()
                         .".\n Instance name: ".$deployment->getSlug()
                         .".\n Service: ".$deployment->getService()->getLabel()
@@ -48,8 +44,8 @@ final class LaunchDeploymentMessageHandler implements MessageHandlerInterface
         }
 
         $to = $deployment->getOrganization()->getEmail();
-        $subject = "Your application has just been deployed";
-        $content = "Your new app deployment has been successfuly launched";
+        $subject = "Your application has just been updated";
+        $content = "Your new app deployment has been successfuly updated with the operation '$job_tags'";
 
         return $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
     }

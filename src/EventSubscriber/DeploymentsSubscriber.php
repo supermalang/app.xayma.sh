@@ -13,19 +13,26 @@ use App\Entity\Deployments;
 use App\Entity\Service;
 use App\Message\LaunchDeploymentMessage;
 
+use Symfony\Component\Workflow\Event\Event;
+use App\Service\AwxHelper;
+use App\Repository\DeploymentsRepository;
+use App\Repository\ServiceRepository;
+
 class DeploymentsSubscriber implements EventSubscriberInterface
 {
     private $em;
     private $requestStack;
     private $security;
     private $bus;
+    private $serviceRepository;
 
-    public function __construct(EntityManagerInterface $em, Security $security, RequestStack $requestStack, MessageBusInterface $bus)
+    public function __construct(EntityManagerInterface $em, Security $security, RequestStack $requestStack, MessageBusInterface $bus, ServiceRepository $serviceRepository)
     {
         $this->em = $em;
         $this->security = $security;
         $this->requestStack = $requestStack;
         $this->bus = $bus;
+        $this->serviceRepository = $serviceRepository;
     }
 
     public static function getSubscribedEvents()
@@ -37,7 +44,12 @@ class DeploymentsSubscriber implements EventSubscriberInterface
             
             AfterEntityPersistedEvent::class =>[
                 ['launchNewDeployment', 90],
-            ]
+            ],
+            'workflow.manage_app_deployments.entered.active' => 'start_app',
+            'workflow.manage_app_deployments.entered.suspended' => 'stop_app',
+            'workflow.manage_app_deployments.entered.suspended_by_admin' => 'stop_app',
+            'workflow.manage_app_deployments.entered.stopped' => 'stop_app',
+            'workflow.manage_app_deployments.entered.stopped_by_creditworker' => 'stop_app',
         ];
     }
 
@@ -79,7 +91,7 @@ class DeploymentsSubscriber implements EventSubscriberInterface
         }
     }
 
-    /** Launch a job template in AWX for the provisionning of a new application */
+    /** Launch a job template for the provisionning of a new application */
     public function launchNewDeployment(AfterEntityPersistedEvent $event)
     {
         $entity = $event->getEntityInstance();
@@ -89,4 +101,31 @@ class DeploymentsSubscriber implements EventSubscriberInterface
         }
     }
 
+    /** Starts the app */
+    public function start_app(Event $event)
+    {
+        $deployment = $event->getSubject();
+        
+        if ($deployment instanceof Deployments) {
+            $service = $this->serviceRepository->find($deployment->getService()->getId());
+            $start_tags = $service->getStartTags();
+            $job_tags = is_array($start_tags) ? implode(', ', $start_tags) : $start_tags;
+
+            $this->bus->dispatch(new LaunchDeploymentMessage($deployment->getId(), $job_tags));
+        }
+    }
+
+    /** Stops the app */
+    public function stop_app(Event $event)
+    {
+        $deployment = $event->getSubject();
+        
+        if ($deployment instanceof Deployments) {
+            $service = $this->serviceRepository->find($deployment->getService()->getId());
+            $stop_tags = $service->getStopTags();
+            $job_tags = is_array($stop_tags) ? implode(', ', $stop_tags) : $stop_tags;
+
+            $this->bus->dispatch(new LaunchDeploymentMessage($deployment->getId(), $job_tags));
+        }
+    }
 }

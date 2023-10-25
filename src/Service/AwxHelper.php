@@ -36,6 +36,7 @@ class AwxHelper
 
     /**
      * Launch a Job Template on a given AWX instance.
+     * Here launch means create and start
      */
     public function launchJobTemplate(ControlNode $controlNode, int $jobTemplateId, Deployments $appInstance)
     {
@@ -67,6 +68,8 @@ class AwxHelper
 
     /**
      * Update the deployment in AWX.
+     * Here update means stop or start after it has been created
+     * 
      * @param Deployments $entity The deployment entity to update
      * @param string $job_tags The tags to use for the deployment. If no tag is given the default stop tags will be used
      */
@@ -75,9 +78,10 @@ class AwxHelper
         // if job_tags is null, use the default stop tags from the service
         $job_tags = $job_tags ?? $entity->getService()->getStopTags();
 
-        $awxId = $entity->getService()->getAwxId();
-        $controlNodeUrl = $entity->getService()->getControleNode()->getAddress()
-            .'/api/v2/job_templates/'.$awxId.'/launch/';
+        $jobTemplateId = $entity->getService()->getJobTemplateId();
+        $controlNodeAddress = $entity->getService()->getControleNode()->getAddress();
+        $endpoint = $controlNodeAddress.str_replace('#', $jobTemplateId, self::LAUNCH_JOB_TEMPLATE);
+
         $authToken = $entity->getService()->getControleNode()->getAuthorizationToken();
 
         $instance_slug = $entity->getSlug();
@@ -93,7 +97,7 @@ class AwxHelper
 
         $this->httpclient->request(
             'POST',
-            $controlNodeUrl,
+            $endpoint,
             ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
         );
     }

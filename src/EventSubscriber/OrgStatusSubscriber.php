@@ -6,9 +6,10 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Workflow\Event\Event;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Workflow\Registry;
-use App\Service\AwxHelper;
 use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
+use App\Service\Notifier;
+
 
 class OrgStatusSubscriber implements EventSubscriberInterface
 {
@@ -16,15 +17,15 @@ class OrgStatusSubscriber implements EventSubscriberInterface
 
     private $workflowRegistry;
     private $em;
-    private $awxHelper;
+    private $notifier;
     private $deploymentsRepository;
     private $settingsRepository;
 
-    public function __construct(EntityManagerInterface $em, Registry $workflowRegistry, AwxHelper $awxHelper, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository)
+    public function __construct(EntityManagerInterface $em, Registry $workflowRegistry, Notifier $notifier, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository)
     {
         $this->workflowRegistry = $workflowRegistry;
         $this->em = $em;
-        $this->awxHelper = $awxHelper;
+        $this->notifier = $notifier;
         $this->deploymentsRepository = $deploymentsRepository;
         $this->settingsRepository = $settingsRepository;
     }
@@ -32,7 +33,19 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'workflow.manage_organization_status.entered.suspended' => 'start_orgSuspension',
+            'workflow.manage_organization_status.entered.suspended' => [
+                ['start_orgSuspension',10],
+                ['notifySuspension',9]
+            ],
+            'workflow.manage_organization_status.entered.on_debt' => [
+                ['notifyOnDebt',9]
+            ],
+            'workflow.manage_organization_status.entered.low_credit' => [
+                ['notifyLowCredit',9]
+            ],
+            'workflow.manage_organization_status.entered.active' => [
+                ['notifyReactivation',9]
+            ],
             'workflow.manage_organization_status.entered.pending_credit_addition' => 'updateOrgStatusAfterTransaction',
         ];
     }
@@ -47,16 +60,18 @@ class OrgStatusSubscriber implements EventSubscriberInterface
 
         // Loop through all deployments and stop them
         foreach ($deployments as $deployment) {
-            $job_tags = $deployment->getService()->getStopTags();
-            $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
+            $workflow = $this->workflowRegistry->get($deployment);
 
-            $this->awxHelper->updateDeployment($deployment, $job_tags_);
+            if ($workflow->can($deployment, 'cw_stop')) {
+                $workflow->apply($deployment, 'cw_stop');
+            }
         }
     }
 
     /** 
      * Update the status of the organization after a credit transaction 
      * Here we do not consider the current status of the org, we rather check the remaining credits
+     * So we are not using the workflow Registry
      */
     public function updateOrgStatusAfterTransaction(Event $event): void
     {
@@ -90,5 +105,41 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         }
         
         $this->em->persist($organization);
+    }
+
+    public function notifySuspension(Event $event): void{
+        $organization = $event->getSubject();
+        $to = $organization->getEmail();
+        $subject = "Your organization has been suspended";
+        $content = "Your organization has been suspended because because you do not have any credit left. Please buy credits to enable.";
+
+        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+    }
+
+    public function notifyOnDebt(Event $event): void{
+        $organization = $event->getSubject();
+        $to = $organization->getEmail();
+        $subject = "Your organization is on negative balance";
+        $content = "Your organization has a negative balance of credits. Please buy more credits to avoid suspension";
+
+        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+    }
+
+    public function notifyLowCredit(Event $event): void{
+        $organization = $event->getSubject();
+        $to = $organization->getEmail();
+        $subject = "Your application has a low balance of credits";
+        $content = "Your organization has a low balance of credits. Please buy more credits to avoid suspension";
+
+        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+    }
+
+    public function notifyReactivation(Event $event): void{
+        $organization = $event->getSubject();
+        $to = $organization->getEmail();
+        $subject = "Your application has been unsuspended";
+        $content = "Your organization has just been unsuspended. You can now deploy and manage your apps again";
+
+        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
     }
 }

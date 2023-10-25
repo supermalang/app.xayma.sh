@@ -5,7 +5,6 @@ namespace App\Controller\Admin;
 use App\Entity\Deployments;
 use App\Service\OrgHelper;
 use App\Service\AwxHelper;
-use App\Entity\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -26,13 +25,11 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\HiddenField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -41,16 +38,19 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class DeploymentsCrudController extends AbstractCrudController
 {
     private $security;
-    private $workflow;
+    private $workflowRegistry;
     private $requestStack;
+    private $em;
+    private $awxHelper;
+    private $applabel;
+    private $serviceid;
+
 
     public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper, AwxHelper $awxHelper, RequestStack $requestStack)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
-        $this->crudUrlGenerator = $crudUrlGenerator;
         $this->em = $em;
-        $this->client = $client;
         $this->orgHelper = $orgHelper;
         $this->awxHelper = $awxHelper;
         $this->requestStack = $requestStack;
@@ -246,7 +246,8 @@ class DeploymentsCrudController extends AbstractCrudController
     }
 
     /**
-     * Apply the desired transition from one state to another and redirect to the list view.
+     * Apply the desired workflow transition from one state to another and redirect to the list view.
+     * This is for the manual actions. It only updates the status value, then the workflow event subscribers will take it from there.
      *
      * @param string $transition Transition fo fire
      */
@@ -268,49 +269,21 @@ class DeploymentsCrudController extends AbstractCrudController
 
     public function suspendInstance(AdminContext $context)
     {
-        $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $job_tags = $entity->getService()->getSuspendTags();
-
-        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->awxHelper->updateDeployment($entity, $job_tags_);
-
         return $this->fireTransition($context, 'suspend');
     }
 
     public function adminSuspendInstance(AdminContext $context)
     {
-        $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $job_tags = $entity->getService()->getSuspendTags();
-
-        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->awxHelper->updateDeployment($entity, $job_tags_);
-
         return $this->fireTransition($context, 'admin_suspend');
     }
 
     public function activateInstance(AdminContext $context)
     {
-        $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $job_tags = $entity->getService()->getStartTags();
-
-        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->awxHelper->updateDeployment($entity, $job_tags_);
-
         return $this->fireTransition($context, 'reactivate');
     }
 
     public function adminActivateInstance(AdminContext $context)
     {
-        $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $job_tags = $entity->getService()->getStartTags();
-
-        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->awxHelper->updateDeployment($entity, $job_tags_);
-
         return $this->fireTransition($context, 'admin_reactivate');
     }
 
@@ -322,23 +295,15 @@ class DeploymentsCrudController extends AbstractCrudController
 
     public function archiveInstance(AdminContext $context)
     {
-        $id = $context->getRequest()->query->get('entityId');
-        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $job_tags = $entity->getService()->getSuspendTags();
-
-        $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-        $this->awxHelper->updateDeployment($entity, $job_tags_);
-
-        $this->fireTransition($context, 'suspended_to_archive');
-
-        $this->fireTransition($context, 'suspended_by_admin_to_archive');
-
-        return $this->fireTransition($context, 'stopped_to_archive');
+        // TODO
+        return ;
     }
 
     /**
-     * Update the deployment entity in the database, but also checks whether there are deployment updates that need to be sent to 
-     * the configuraTion management system (AWX).
+     * Update the deployment entity in the database
+     * Ex: the domain name
+     * 
+     * TODO: Add possibility to update the size/dimension of the app
      */
     public function updateEntity(EntityManagerInterface $entityManager, $entity): void
     {
@@ -354,7 +319,9 @@ class DeploymentsCrudController extends AbstractCrudController
             $job_tags = $entity->getService()->getEditDomainNameTags();
 
             $job_tags_ = is_array($job_tags) ? implode(', ', $job_tags) : $job_tags;
-            $this->awxHelper->updateDeployment($entity, $job_tags_);
+
+            // Deprecated
+            // $this->awxHelper->updateDeployment($entity, $job_tags_);
         }
 
         $entityManager->persist($entity);
