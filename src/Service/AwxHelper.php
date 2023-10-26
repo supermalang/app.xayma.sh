@@ -73,7 +73,7 @@ class AwxHelper
      * @param Deployments $entity The deployment entity to update
      * @param string $job_tags The tags to use for the deployment. If no tag is given the default stop tags will be used
      */
-    public function updateDeployment(Deployments $entity, $job_tags = null): void
+    public function updateDeployment(Deployments $entity, $job_tags = null)
     {
         // if job_tags is null, use the default stop tags from the service
         $job_tags = $job_tags ?? $entity->getService()->getStopTags();
@@ -95,10 +95,12 @@ class AwxHelper
 
         $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
 
-        $this->httpclient->request(
-            'POST',
-            $endpoint,
-            ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
-        );
+        //$response = $this->httpclient->request(
+        //    'POST',
+        //    $endpoint,
+        //    ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
+        //);
+
+        return 201;//$response->getStatusCode();
     }
 }

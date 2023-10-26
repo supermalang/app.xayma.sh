@@ -4,14 +4,16 @@ namespace App\Service;
 
 use App\Repository\SettingsRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\CreditTransaction;
 use App\Repository\CreditTransactionRepository;
-use App\Entity\Organization;
-use App\Repository\OrganizationRepository;
+use Symfony\Component\HttpFoundation\Response;
 
 class PaymentHelper
 {
     const SYSTEM_SETTINGS_ID = 1;
+    
+    private $settingsRepository; 
+    private $em;
+    private $creditTransactionRepository;
 
     public function __construct(SettingsRepository $settingsRepository, EntityManagerInterface $em, CreditTransactionRepository $creditTransactionRepository)
     {
@@ -62,7 +64,7 @@ class PaymentHelper
     }
 
     /**
-     * Get the order amount based on the number of credits purchased, using the different options
+     * Get the order amount/total price based on the number of credits purchased, using the different options
      * @param int $creditsAmount
      * @return int
      */
@@ -158,7 +160,7 @@ class PaymentHelper
 
         // if evenType is sale_canceled, we need to cancel the transaction
         if($ipnData['type_event'] == 'sale_canceled'){
-            $creditTransaction->setTransactionStatus('failed');
+            $creditTransaction->setStatus('failed');
         }
         elseif($ipnData['type_event'] == 'sale_complete'){
             $paymentMethod = $ipnData['payment_method'] ?? null;

@@ -34,6 +34,11 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 class CreditTransactionCrudController extends AbstractCrudController
 {
     const SYSTEM_USER_ID = 1;
+    
+    private $paymentHelper;
+    private $adminUrlGenerator;
+    private $userRepository;
+    private $em;
 
     public function __construct(PaymentHelper $paymentHelper, AdminUrlGenerator $adminUrlGenerator, UserRepository $userRepository, EntityManagerInterface $em, private ManagerRegistry $doctrine)
     {

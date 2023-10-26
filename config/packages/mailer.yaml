@@ -1,3 +1,7 @@
 framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
+        envelope:
+            sender: '%env(EMAIL_FROM)%'
+        headers:
+            From: 'Xayma Labs <%env(EMAIL_FROM)%>'

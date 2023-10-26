@@ -10,6 +10,7 @@ final class UpdateDeploymentMessage
     public function __construct(int $deploymentId, string $deploymentOperation)
     {
         $this->deploymentId = $deploymentId;
+        $this->deploymentOperation = $deploymentOperation;
     }
 
     public function getDeploymentId(): int

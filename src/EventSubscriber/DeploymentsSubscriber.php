@@ -12,10 +12,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Event\AfterEntityPersistedEvent;
 use App\Entity\Deployments;
 use App\Entity\Service;
 use App\Message\LaunchDeploymentMessage;
+use App\Message\UpdateDeploymentMessage;
 
 use Symfony\Component\Workflow\Event\Event;
-use App\Service\AwxHelper;
-use App\Repository\DeploymentsRepository;
 use App\Repository\ServiceRepository;
 
 class DeploymentsSubscriber implements EventSubscriberInterface
@@ -42,9 +41,9 @@ class DeploymentsSubscriber implements EventSubscriberInterface
                 ['setDeploymentOrganizationAppAndPlan', 100],
             ],
             
-            AfterEntityPersistedEvent::class =>[
-                ['launchNewDeployment', 90],
-            ],
+            //AfterEntityPersistedEvent::class =>[
+            //    ['launchNewDeployment', 90],
+            //],
             'workflow.manage_app_deployments.entered.active' => 'start_app',
             'workflow.manage_app_deployments.entered.suspended' => 'stop_app',
             'workflow.manage_app_deployments.entered.suspended_by_admin' => 'stop_app',
@@ -111,7 +110,7 @@ class DeploymentsSubscriber implements EventSubscriberInterface
             $start_tags = $service->getStartTags();
             $job_tags = is_array($start_tags) ? implode(', ', $start_tags) : $start_tags;
 
-            $this->bus->dispatch(new LaunchDeploymentMessage($deployment->getId(), $job_tags));
+            $this->bus->dispatch(new UpdateDeploymentMessage($deployment->getId(), $job_tags));
         }
     }
 
@@ -125,7 +124,7 @@ class DeploymentsSubscriber implements EventSubscriberInterface
             $stop_tags = $service->getStopTags();
             $job_tags = is_array($stop_tags) ? implode(', ', $stop_tags) : $stop_tags;
 
-            $this->bus->dispatch(new LaunchDeploymentMessage($deployment->getId(), $job_tags));
+            $this->bus->dispatch(new UpdateDeploymentMessage($deployment->getId(), $job_tags));
         }
     }
 }

@@ -37,3 +37,6 @@ services:
     
     App\MessageHandler\LaunchDeploymentMessageHandler: 
         tags: [messenger.message_handler]
+    
+    App\MessageHandler\UpdateDeploymentMessageHandler: 
+        tags: [messenger.message_handler]

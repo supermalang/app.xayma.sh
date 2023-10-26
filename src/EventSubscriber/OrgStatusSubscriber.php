@@ -3,11 +3,14 @@
 namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Workflow\Event\Event;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Workflow\Registry;
+use App\Controller\Admin\CreditTransactionCrudController;
 use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
+use App\Service\PaymentHelper;
 use App\Service\Notifier;
 
 
@@ -20,14 +23,26 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     private $notifier;
     private $deploymentsRepository;
     private $settingsRepository;
+    private $adminUrlGenerator;
+    private $paymentHelper;
 
-    public function __construct(EntityManagerInterface $em, Registry $workflowRegistry, Notifier $notifier, DeploymentsRepository $deploymentsRepository, SettingsRepository $settingsRepository)
+    public function __construct(
+        AdminUrlGenerator $adminUrlGenerator, 
+        EntityManagerInterface $em, 
+        Registry $workflowRegistry, 
+        Notifier $notifier, 
+        DeploymentsRepository $deploymentsRepository, 
+        SettingsRepository $settingsRepository,
+        PaymentHelper $paymentHelper,
+        )
     {
         $this->workflowRegistry = $workflowRegistry;
         $this->em = $em;
         $this->notifier = $notifier;
         $this->deploymentsRepository = $deploymentsRepository;
         $this->settingsRepository = $settingsRepository;
+        $this->paymentHelper = $paymentHelper;
+        $this->adminUrlGenerator = $adminUrlGenerator;
     }
 
     public static function getSubscribedEvents(): array
@@ -113,7 +128,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $subject = "Your organization has been suspended";
         $content = "Your organization has been suspended because because you do not have any credit left. Please buy credits to enable.";
 
-        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        //$this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
     }
 
     public function notifyOnDebt(Event $event): void{
@@ -122,16 +137,30 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $subject = "Your organization is on negative balance";
         $content = "Your organization has a negative balance of credits. Please buy more credits to avoid suspension";
 
-        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        //$this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
     }
 
     public function notifyLowCredit(Event $event): void{
         $organization = $event->getSubject();
-        $to = $organization->getEmail();
-        $subject = "Your application has a low balance of credits";
-        $content = "Your organization has a low balance of credits. Please buy more credits to avoid suspension";
 
-        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        $option1 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION1'] ?? 10), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION1'] ?? 10];
+        $option2 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION2'] ?? 70), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION2'] ?? 70];
+        $option3 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION3'] ?? 150), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION3'] ?? 150];
+
+        $buyCreditsUrl = $this->adminUrlGenerator->setController(CreditTransactionCrudController::class)->setAction('priceoptions')->generateUrl();
+        
+        $to = $organization->getEmail();
+        $subject = "Your account has a low balance of credits";
+
+        $subject = "Application Deployment Status Update";
+        $content = [
+                    'title' => "Your credit balance is very low",
+                    'organization' => $organization,
+                    'buyCreditPageUrl' => $buyCreditsUrl,
+                    'creditOptions' => [$option1, $option2, $option3],
+        ];
+
+        $this->notifier->sendLowCreditsEmail($to, $subject, $content);
     }
 
     public function notifyReactivation(Event $event): void{
@@ -140,6 +169,6 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $subject = "Your application has been unsuspended";
         $content = "Your organization has just been unsuspended. You can now deploy and manage your apps again";
 
-        $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        //$this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
     }
 }
