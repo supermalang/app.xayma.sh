@@ -10,6 +10,8 @@ use App\Service\PaymentHelper;
 
 class CreditPurchaseCheckoutType extends AbstractType
 {
+    private $paymentHelper;
+    
     public function __construct(PaymentHelper $paymentHelper)
     {
         $this->paymentHelper = $paymentHelper;

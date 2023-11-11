@@ -15,6 +15,10 @@ use App\Repository\SettingsRepository;
 class CreditTransactionSubscriber implements EventSubscriberInterface
 {
     const SYSTEM_SETTINGS_ID = 1;
+
+    private $workflowRegistry;
+    private $em;
+    private $settingsRepository;
     
     public function __construct(EntityManagerInterface $entityManager, Registry $workflowRegistry, SettingsRepository $settingsRepository)
     {
@@ -27,13 +31,13 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
     {
         return [
             BeforeEntityPersistedEvent::class => [
-                ['newCreditTransaction', 10],
+                ['newAdminCreditTransaction', 10],
             ],
         ];
     }
     
     /** Add a credit transaction when an admin add a transaction for a customer **/
-    public function newCreditTransaction(BeforeEntityPersistedEvent $event)
+    public function newAdminCreditTransaction(BeforeEntityPersistedEvent $event)
     {
         $entity = $event->getEntityInstance();
         

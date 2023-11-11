@@ -34,7 +34,7 @@ class DeploymentsSubscriber implements EventSubscriberInterface
         $this->serviceRepository = $serviceRepository;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents():array
     {
         return [
             BeforeEntityPersistedEvent::class =>[

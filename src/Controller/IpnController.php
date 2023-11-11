@@ -8,7 +8,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\PaymentHelper;
 
 class IpnController extends AbstractController
-{   
+{  
+    private $paymentHelper;
+    
     public function __construct(PaymentHelper $paymentHelper)
     {
         $this->paymentHelper = $paymentHelper;

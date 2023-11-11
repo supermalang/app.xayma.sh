@@ -69,27 +69,22 @@ framework:
             initial_marking: active
             places:
                 - active
-                - suspended
                 - low_credit
                 - no_credit
                 - on_debt
-                - pending_credit_addition # Staging state to add/remove credit to an organization
+                - suspended
                 - archived
                 - pending_deletion
+                - staging # A temporary buffer state for when a state needs to go back to a previous state
             transitions:
                 suspend:
-                    guard: "is_granted('ROLE_SUPPORT')"
-                    from: active
+                    from: [active, on_debt, no_credit, staging]
                     to: suspended
-                activate:
-                    guard: "is_granted('ROLE_SUPPORT')"
-                    from: suspended
-                    to: active
                 archive:
-                    guard: "is_granted('ROLE_SUPPORT')"
                     from: suspended
                     to: archived
                 reactivate:
+                    guard: "is_granted('ROLE_SUPPORT')"
                     from: archived
                     to: active
                 delete:
@@ -105,21 +100,18 @@ framework:
                 allow_credit_debt:
                     from: no_credit
                     to: on_debt
-                suspend_from_debt:
-                    from: on_debt
-                    to: suspended
-                suspend_subscription:
-                    from: no_credit
-                    to: suspended
-                suspended_add_credit:
-                    from: suspended
-                    to: pending_credit_addition
-                ondebt_add_credit:
-                    from: on_debt
-                    to: pending_credit_addition
-                nocredit_add_credit:
-                    from: no_credit
-                    to: pending_credit_addition
-                lowcredit_add_credit:
-                    from: low_credit
-                    to: pending_credit_addition
+                add_transaction:
+                    from: [suspended, active, low_credit, no_credit, on_debt]
+                    to: staging
+                activate:
+                    from: staging
+                    to: active
+                go_to_lowcredit:
+                    from: staging
+                    to: low_credit
+                go_to_nocredit:
+                    from: staging
+                    to: no_credit
+                go_to_debt:
+                    from: staging
+                    to: on_debt

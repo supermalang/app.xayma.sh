@@ -6,12 +6,15 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Workflow\Event\Event;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Component\Workflow\Registry;
 use App\Controller\Admin\CreditTransactionCrudController;
 use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
 use App\Service\PaymentHelper;
 use App\Service\Notifier;
+use Symfony\Component\Workflow\Event\GuardEvent;
 
 
 class OrgStatusSubscriber implements EventSubscriberInterface
@@ -45,24 +48,41 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $this->adminUrlGenerator = $adminUrlGenerator;
     }
 
+
     public static function getSubscribedEvents(): array
     {
         return [
+            Events::preUpdate => 'preUpdate',
             'workflow.manage_organization_status.entered.suspended' => [
                 ['start_orgSuspension',10],
-                ['notifySuspension',9]
+                ['nothing',9]
+                //['notifySuspension',9]
             ],
             'workflow.manage_organization_status.entered.on_debt' => [
-                ['notifyOnDebt',9]
+                ['nothing',9]
+                //['notifyOnDebt',9]
             ],
             'workflow.manage_organization_status.entered.low_credit' => [
-                ['notifyLowCredit',9]
+                ['nothing',9]
+                //['notifyLowCredit',9]
             ],
             'workflow.manage_organization_status.entered.active' => [
-                ['notifyReactivation',9]
+                ['nothing',9]
+                //['notifyReactivation',9]
             ],
-            'workflow.manage_organization_status.entered.pending_credit_addition' => 'updateOrgStatusAfterTransaction',
+            'workflow.manage_organization_status.entered.staging' => 'updateOrgStatusAfterTransaction',
         ];
+    }
+
+    public function nothing(): void
+    {
+        // Do nothing
+        return ;
+    }
+
+    public function preUpdate(LifecycleEventArgs $args): void
+    {
+        $this->updateOrgStatusAfterTransaction($args);
     }
 
     public function start_orgSuspension(Event $event): void
@@ -85,38 +105,70 @@ class OrgStatusSubscriber implements EventSubscriberInterface
 
     /** 
      * Update the status of the organization after a credit transaction 
-     * Here we do not consider the current status of the org, we rather check the remaining credits
-     * So we are not using the workflow Registry
+     * Here we might not consider the current status of the org for some cases.
+     * Those situations happen when the org is on debt or suspended and the admin add a big amount of credit to the org.
+     * So the org should be reactivated or taken out of debt. And in such situations, we might need to skip states.
+     * Ex: instead of going back from on_debt to low_credit, we might need to go directly to active.
+     * and vice versa.
+     * Just to avoid having too much states and transitions
      */
-    public function updateOrgStatusAfterTransaction(Event $event): void
+    public function updateOrgStatusAfterTransaction($event): void
     {
-        $organization = $event->getSubject();
+        // If it is a workflow event
+        if ($event instanceof Event) {
+            $organization = $event->getSubject();
+        } 
+        // If it is a doctrine event
+        elseif ($event instanceof LifecycleEventArgs) {
+            $organization = $event->getObject();
+        }
+        else{
+            return ;
+        }
+
         $orgRemainingCredit = $organization->getRemainingCredits();
         $lowCreditThreshold = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getLowCreditThreshold();
         $MaxCreditsDebt = (-1 * $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getMaxCreditsDebt());
 
+        $workflow = $this->workflowRegistry->get($organization);
+
         // Org cannot run anymore cause its debt is too big
         if($orgRemainingCredit <= $MaxCreditsDebt) {
-            $this->em->persist($organization->setStatus('suspended'));
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
+            }
         } 
         // Org has no credit
         elseif ($orgRemainingCredit <= 0) {
-            if( $organization->isAllowCreditDebt()){
+            if($orgRemainingCredit == 0){
+                if ($workflow->can($organization, 'go_to_nocredit')) {
+                    $workflow->apply($organization, 'go_to_nocredit');
+                }
+            }
+            elseif( $organization->isAllowCreditDebt()){
                 // can have debt
-                $this->em->persist($organization->setStatus('on_debt'));
+                if ($workflow->can($organization, 'go_to_debt')) {
+                    $workflow->apply($organization, 'go_to_debt');
+                }
             }
             else{
                 // cannot have debt
-                $this->em->persist($organization->setStatus('suspended'));
+                if ($workflow->can($organization, 'suspend')) {
+                    $workflow->apply($organization, 'suspend');
+                }
             }
         } 
         // Org is on Low credit
-        elseif ($orgRemainingCredit <= $lowCreditThreshold && $orgRemainingCredit > 0) {
-            $this->em->persist($organization->setStatus('low_credit'));
-        } 
+        elseif ($orgRemainingCredit <= $lowCreditThreshold && $orgRemainingCredit > 0) {            
+            if ($workflow->can($organization, 'go_to_lowcredit')) {
+                $workflow->apply($organization, 'go_to_lowcredit');
+            }
+        }
         // Org has enough credit
         else{
-            $this->em->persist($organization->setStatus('active'));
+            if ($workflow->can($organization, 'activate')) {
+                $workflow->apply($organization, 'activate');
+            }
         }
         
         $this->em->persist($organization);
@@ -148,7 +200,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $option3 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION3'] ?? 150), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION3'] ?? 150];
 
         $buyCreditsUrl = $this->adminUrlGenerator->setController(CreditTransactionCrudController::class)->setAction('priceoptions')->generateUrl();
-        
+
         $to = $organization->getEmail();
         $subject = "Your account has a low balance of credits";
 
