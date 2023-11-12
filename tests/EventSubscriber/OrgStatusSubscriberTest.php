@@ -41,7 +41,7 @@ class OrgStatusSubscriberTest extends KernelTestCase
     /**
      * @dataProvider orgCreditStatusProvider
      */
-    public function testOrgHasRightStatus(int $remainingCredits, string $expectedStatus): void
+    public function testOrgStatusIsProperlyUpdatedAfterTransaction(int $remainingCredits, string $expectedStatus): void
     {
         $max_credit_debt = $_ENV['MAX_CREDITS_DEBT'] ?? 10;
         $low_credit_threshold = $_ENV['LOW_CREDIT_THRESHOLD'] ?? 5;

@@ -41,9 +41,9 @@ class DeploymentsSubscriber implements EventSubscriberInterface
                 ['setDeploymentOrganizationAppAndPlan', 100],
             ],
             
-            //AfterEntityPersistedEvent::class =>[
-            //    ['launchNewDeployment', 90],
-            //],
+            AfterEntityPersistedEvent::class =>[
+                ['launchNewDeployment', 90],
+            ],
             'workflow.manage_app_deployments.entered.active' => 'start_app',
             'workflow.manage_app_deployments.entered.suspended' => 'stop_app',
             'workflow.manage_app_deployments.entered.suspended_by_admin' => 'stop_app',

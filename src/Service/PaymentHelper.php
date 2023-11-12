@@ -178,6 +178,9 @@ class PaymentHelper
             // update the remaining credits of the organization
             $organization->setRemainingCredits($remainingCredits + $creditTransaction->getCreditsPurchased());
             $organization->setModified(new \DateTime());
+            
+            // update the org status to staging mode
+            $organization->setStatus('staging');
 
             $this->em->persist($organization);
             $this->em->persist($creditTransaction);

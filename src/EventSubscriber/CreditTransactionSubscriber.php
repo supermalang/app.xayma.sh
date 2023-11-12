@@ -47,7 +47,6 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
             $transactiontype = $entity->getTransactionType();
 
             $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status');
-            $workflow_add_credit_operations = ['suspended_add_credit', 'ondebt_add_credit', 'nocredit_add_credit', 'lowcredit_add_credit'];
 
             // If transaction type is debit, we need to substract the credits used to the credit of the organization
             if(strtolower($transactiontype) == 'debit'){
@@ -58,19 +57,15 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
             elseif(strtolower($transactiontype) == 'credit'){
                 $organization->setRemainingCredits($organization->getRemainingCredits() + $entity->getCreditsPurchased());
             }
-            
+
             if(strtolower($entity->getStatus()) == 'temporary'){
                 $entity->setStatus('completed');
             }
 
-            foreach($workflow_add_credit_operations as $operation){
-                if($workflow->can($organization, $operation)){
-                    $workflow->apply($organization, $operation);
-                    $this->em->persist($organization);
-                    break;
-                }
+            if($workflow->can($organization, 'add_transaction')){
+                $workflow->apply($organization, 'add_transaction');
             }
-            
+
             $this->em->persist($organization);
         }
     }

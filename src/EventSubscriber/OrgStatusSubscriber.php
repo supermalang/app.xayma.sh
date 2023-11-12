@@ -14,8 +14,7 @@ use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
 use App\Service\PaymentHelper;
 use App\Service\Notifier;
-use Symfony\Component\Workflow\Event\GuardEvent;
-
+use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 
 class OrgStatusSubscriber implements EventSubscriberInterface
 {
@@ -53,22 +52,23 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     {
         return [
             Events::preUpdate => 'preUpdate',
+            'BeforeEntityPersistedEvent' => 'preUpdate',
             'workflow.manage_organization_status.entered.suspended' => [
                 ['start_orgSuspension',10],
-                ['nothing',9]
-                //['notifySuspension',9]
+                ['notifySuspension',9]
+                //['nothing',9]
             ],
             'workflow.manage_organization_status.entered.on_debt' => [
-                ['nothing',9]
-                //['notifyOnDebt',9]
+                //['nothing',9]
+                ['notifyOnDebt',9]
             ],
             'workflow.manage_organization_status.entered.low_credit' => [
-                ['nothing',9]
-                //['notifyLowCredit',9]
+                //['nothing',9]
+                ['notifyLowCredit',9]
             ],
             'workflow.manage_organization_status.entered.active' => [
-                ['nothing',9]
-                //['notifyReactivation',9]
+                //['nothing',9]
+                ['notifyReactivation',9]
             ],
             'workflow.manage_organization_status.entered.staging' => 'updateOrgStatusAfterTransaction',
         ];
@@ -121,6 +121,10 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         // If it is a doctrine event
         elseif ($event instanceof LifecycleEventArgs) {
             $organization = $event->getObject();
+        }
+        // If it is an easyadmin
+        elseif ($event instanceof BeforeEntityPersistedEvent) {
+            $organization = $event->getEntityInstance();
         }
         else{
             return ;
