@@ -37,6 +37,7 @@ security:
     access_control:
         - { path: '^/login', roles: PUBLIC_ACCESS }
         - { path: '^/ipn', roles: PUBLIC_ACCESS }
+        - { path: '^/appcreationstatus', roles: PUBLIC_ACCESS }
         - { path: '^/', roles: [ROLE_USER] }
         # - { path: '^/admin', roles: [IS_AUTHENTICATED_FULLY, ROLE_ADMIN] }
         # - { path: ^/admin, roles: ROLE_ADMIN }

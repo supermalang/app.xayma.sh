@@ -91,7 +91,7 @@ class Service
     /**
      * @ORM\Column(type="string", length=40)
      */
-    private $suspendTags;
+    private $restartTags;
 
     /**
      * @ORM\Column(type="string", length=40)
@@ -340,18 +340,6 @@ class Service
         return $this;
     }
 
-    public function getSuspendTags(): ?string
-    {
-        return $this->suspendTags;
-    }
-
-    public function setSuspendTags(string $suspendTags): self
-    {
-        $this->suspendTags = $suspendTags;
-
-        return $this;
-    }
-
     public function getEditDomainNameTags(): ?string
     {
         return $this->editDomainNameTags;
@@ -462,6 +450,18 @@ class Service
     public function setThumbnail(?string $thumbnail): self
     {
         $this->thumbnail = $thumbnail;
+
+        return $this;
+    }
+
+    public function getRestartTags(): ?string
+    {
+        return $this->restartTags;
+    }
+
+    public function setRestartTags(string $restartTags): self
+    {
+        $this->restartTags = $restartTags;
 
         return $this;
     }

@@ -81,7 +81,7 @@ class ServiceCrudController extends AbstractCrudController
             TextField::new('deployTags')->hideOnIndex()->setDefaultColumns(6),
             TextField::new('stopTags')->hideOnIndex()->setDefaultColumns(6),
             TextField::new('startTags')->hideOnIndex()->setDefaultColumns(6),
-            TextField::new('suspendTags')->hideOnIndex()->setDefaultColumns(6),
+            TextField::new('restartTags')->hideOnIndex()->setDefaultColumns(6),
             TextField::new('editDomainNameTags')->hideOnIndex()->setDefaultColumns(6),
             AssociationField::new('deployments')->hideOnForm()->setDefaultColumns(6),
             FormField::addPanel('Timestamp')->hideOnForm()->setIcon('clock'),

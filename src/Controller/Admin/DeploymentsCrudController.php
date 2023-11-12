@@ -31,8 +31,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository as OrmEntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Workflow\Registry;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use App\Repository\ServiceRepository;
+use Symfony\Component\Messenger\MessageBusInterface;
+use App\Message\UpdateDeploymentMessage;
 
 
 class DeploymentsCrudController extends AbstractCrudController
@@ -43,10 +45,11 @@ class DeploymentsCrudController extends AbstractCrudController
     private $em;
     private $awxHelper;
     private $applabel;
-    private $serviceid;
+    private $serviceRepository;
+    private $bus;
 
 
-    public function __construct(Security $security, Registry $workflowRegistry, AdminUrlGenerator $crudUrlGenerator, EntityManagerInterface $em, HttpClientInterface $client, private ManagerRegistry $doctrine, private OrgHelper $orgHelper, AwxHelper $awxHelper, RequestStack $requestStack)
+    public function __construct(Security $security, Registry $workflowRegistry, EntityManagerInterface $em, private ManagerRegistry $doctrine, private OrgHelper $orgHelper, AwxHelper $awxHelper, RequestStack $requestStack, ServiceRepository $serviceRepository, MessageBusInterface $bus)
     {
         $this->security = $security;
         $this->workflowRegistry = $workflowRegistry;
@@ -54,9 +57,10 @@ class DeploymentsCrudController extends AbstractCrudController
         $this->orgHelper = $orgHelper;
         $this->awxHelper = $awxHelper;
         $this->requestStack = $requestStack;
+        $this->serviceRepository = $serviceRepository;
+        $this->bus = $bus;
         
         $this->applabel =  base64_decode($this->requestStack->getCurrentRequest()->query->get('app')) ?? null;
-        $this->serviceid =  base64_decode($this->requestStack->getCurrentRequest()->query->get('id')) ?? null;
     }
 
     public static function getEntityFqcn(): string
@@ -183,13 +187,13 @@ class DeploymentsCrudController extends AbstractCrudController
             ->linkToCrudAction('stopApp')
             ->setCssClass('text-danger btn btn-link')
         ;
-        $startApp = Action::new('startAppAction', 'Start', 'far fa-start-circle')
+        $startApp = Action::new('startAppAction', 'Start', 'fa fa-play-circle-o')
             ->displayIf(static function ($entity) { return 'stopped' == $entity->getStatus(); })
             ->linkToCrudAction('startApp')
             ->setCssClass('text-success btn btn-link')
         ;
 
-        $archiveApp = Action::new('archiveAppAction', 'Archive', 'far fa-pause-circle')
+        $archiveApp = Action::new('archiveAppAction', 'Archive', 'fa fa-archive')
             ->displayIf(static function ($entity) { return in_array($entity->getStatus(), ['suspended', 'stopped']); })
             ->linkToCrudAction('archiveApp')
             ->setCssClass('text-danger btn btn-link')
@@ -261,11 +265,17 @@ class DeploymentsCrudController extends AbstractCrudController
         return $this->fireTransition($context, 'start');
     }
 
-    public function restartApp(AdminContext $context)
+    /** We are not managing this through the workflow manager as for this specific use case we want to avoid having an extra status in the workflow */
+    public function restartApp(AdminContext $context): void
     {
-        // We need to run it directly from AWX
-        // TODO
-        return ;
+        $id = $context->getRequest()->query->get('entityId');
+        $deployment = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
+
+        $service = $this->serviceRepository->find($deployment->getService()->getId());
+        $restart_tags = $service->getRestartTags();
+        $job_tags = is_array($restart_tags) ? implode(', ', $restart_tags) : $restart_tags;
+
+        $this->bus->dispatch(new UpdateDeploymentMessage($deployment->getId(), $job_tags));
     }
 
     public function archiveApp(AdminContext $context)

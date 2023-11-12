@@ -13,7 +13,6 @@ use App\Entity\Deployments;
 use App\Entity\Service;
 use App\Message\LaunchDeploymentMessage;
 use App\Message\UpdateDeploymentMessage;
-
 use Symfony\Component\Workflow\Event\Event;
 use App\Repository\ServiceRepository;
 
@@ -40,15 +39,14 @@ class DeploymentsSubscriber implements EventSubscriberInterface
             BeforeEntityPersistedEvent::class =>[
                 ['setDeploymentOrganizationAppAndPlan', 100],
             ],
-            
             AfterEntityPersistedEvent::class =>[
                 ['launchNewDeployment', 90],
             ],
             'workflow.manage_app_deployments.entered.active' => 'start_app',
-            'workflow.manage_app_deployments.entered.suspended' => 'stop_app',
-            'workflow.manage_app_deployments.entered.suspended_by_admin' => 'stop_app',
             'workflow.manage_app_deployments.entered.stopped' => 'stop_app',
-            'workflow.manage_app_deployments.entered.stopped_by_creditworker' => 'stop_app',
+            'workflow.manage_app_deployments.entered.suspended' => 'stop_app',
+            'workflow.manage_app_deployments.entered.failed' => 'notify_failure',
+            'workflow.manage_app_deployments.entered.pending_deletion' => 'delete_app',
         ];
     }
 
@@ -72,7 +70,6 @@ class DeploymentsSubscriber implements EventSubscriberInterface
             if (null != $appid) {
                 $entity->setService($this->em->getRepository(Service::class)->find($appid));
             }
-
 
             // Set the deployment plan using the hashed plan parameter/option from the url
             $hashedoptions = [
@@ -126,5 +123,19 @@ class DeploymentsSubscriber implements EventSubscriberInterface
 
             $this->bus->dispatch(new UpdateDeploymentMessage($deployment->getId(), $job_tags));
         }
+    }
+    
+    /** Deletes the app */
+    public function delete_app(Event $event)
+    {
+        // TODO: Dispatch a message for the app to be automatically removed from the database after a certain amount of time
+        return ;
+    }
+
+    /** Notify the user that the deployment failed */
+    public function notify_failure(Event $event)
+    {
+        // TODO : Send an email to the user to notify him that the deployment failed
+        return ;
     }
 }

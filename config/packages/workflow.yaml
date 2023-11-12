@@ -12,26 +12,37 @@ framework:
             initial_marking: pending_deployment
             places:
                 - pending_deployment
+                - deploying
+                - failed
                 - active
                 - stopped
                 - suspended
                 - archived
                 - pending_deletion
             transitions:
+                deploy:
+                    from: pending_deployment
+                    to: deploying
+                fail:
+                    from: [deploying, pending_deployment]
+                    to: failed
+                succeed:
+                    from: deploying
+                    to: active
                 start:
-                    from: [pending_deployment, stopped, suspended]
+                    from: [stopped, suspended]
                     to: active
                 stop:
                     from: active
                     to: stopped
                 suspend:
-                    from: [active, pending_deployment]
+                    from: [active, pending_deployment, deploying]
                     to: suspended
                 archive:
                     from: [suspended, stopped]
                     to: archived
                 delete:
-                    from: archived
+                    from: [archived, failed]
                     to: pending_deletion
         manage_organization_status:
             type: 'state_machine'

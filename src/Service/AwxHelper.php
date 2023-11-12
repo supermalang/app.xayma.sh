@@ -62,7 +62,6 @@ class AwxHelper
             $endpoint,
             ['headers' => $headers, 'json' => $body]
         );
-
         return $response->getStatusCode();
     }
 
@@ -75,8 +74,8 @@ class AwxHelper
      */
     public function updateDeployment(Deployments $entity, $job_tags = null)
     {
-        // if job_tags is null, use the default stop tags from the service
-        $job_tags = $job_tags ?? $entity->getService()->getStopTags();
+        // if job_tags is null, use the default editdomainname tags from the service
+        $job_tags = $job_tags ?? $entity->getService()->getEditDomainNameTags();
 
         $jobTemplateId = $entity->getService()->getJobTemplateId();
         $controlNodeAddress = $entity->getService()->getControleNode()->getAddress();
@@ -95,12 +94,12 @@ class AwxHelper
 
         $extra_vars = ['organization' => $organization, 'instancename' => $instance_slug, 'domain' => $domain, 'version' => $version];
 
-        //$response = $this->httpclient->request(
-        //    'POST',
-        //    $endpoint,
-        //    ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
-        //);
+        $response = $this->httpclient->request(
+            'POST',
+            $endpoint,
+            ['headers' => $headers, 'json' => ['extra_vars' => $extra_vars, 'job_tags' => $job_tags]]
+        );
 
-        return 201;//$response->getStatusCode();
+        return $response->getStatusCode();
     }
 }

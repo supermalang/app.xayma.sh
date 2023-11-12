@@ -44,13 +44,14 @@ final class LaunchDeploymentMessageHandler implements MessageHandlerInterface
                         .".\n Status code: ".$statuscode
                         .".\n Please check the logs for more information.";
 
-            return $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+            //return $this->notifier->sendFailedDeploymentEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
         }
 
-        $to = $deployment->getOrganization()->getEmail();
-        $subject = "Your application has just been deployed";
-        $content = "Your new app deployment has been successfuly launched";
+        // $to = $deployment->getOrganization()->getEmail();
+        // $subject = "Your application has just been deployed";
+        // $content = "Your new app deployment has been successfuly launched";
 
-        return $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        //return $this->notifier->sendEmail($_ENV['EMAIL_FROM'], $to, $subject, $content);
+        return ;
     }
 }
