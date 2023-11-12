@@ -100,8 +100,8 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         foreach ($deployments as $deployment) {
             $workflow = $this->workflowRegistry->get($deployment);
 
-            if ($workflow->can($deployment, 'cw_stop')) {
-                $workflow->apply($deployment, 'cw_stop');
+            if ($workflow->can($deployment, 'suspend')) {
+                $workflow->apply($deployment, 'suspend');
             }
         }
     }
@@ -118,8 +118,9 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         foreach ($deployments as $deployment) {
             $workflow = $this->workflowRegistry->get($deployment);
 
-            if ($workflow->can($deployment, 'cw_start')) {
-                $workflow->apply($deployment, 'cw_start');
+            // We do not want to start deployments that were stopped by the user
+            if ($workflow->can($deployment, 'start') && $deployment->getStatus() == 'suspended') {
+                $workflow->apply($deployment, 'start');
             }
         }
     }

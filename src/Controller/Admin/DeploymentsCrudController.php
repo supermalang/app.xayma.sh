@@ -78,7 +78,6 @@ class DeploymentsCrudController extends AbstractCrudController
                 'Archived' => 'archived',
                 'Active' => 'active',
                 'Suspended' => 'suspended',
-                'Suspended by admin' => 'suspended_by_admin',
             ]))
         ;
     }
@@ -174,38 +173,25 @@ class DeploymentsCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        $restartInstance = Action::new('restartInstanceAction', 'Restart', 'fas fa-redo')
-            ->linkToCrudAction('restartInstance')
-            ->setCssClass('text-danger btn btn-link')
-        ;
-
-        $suspendInstance = Action::new('suspendInstance', 'Pause', 'far fa-pause-circle')
+        $restartApp = Action::new('restartAppAction', 'Restart', 'fas fa-redo')
             ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
-            ->linkToCrudAction('suspendInstance')
-            ->setCssClass('text-danger btn btn-link')
+            ->linkToCrudAction('restartApp')
+            ->setCssClass('text-warning btn btn-link')
         ;
-
-        $adminSuspendInstance = Action::new('adminSuspendInstance', 'Disable', 'far fa-pause-circle')
+        $stopApp = Action::new('stopAppAction', 'Stop', 'far fa-stop-circle')
             ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
-            ->linkToCrudAction('adminSuspendInstance')
+            ->linkToCrudAction('stopApp')
             ->setCssClass('text-danger btn btn-link')
         ;
-
-        $reactivateInstance = Action::new('reactivateInstance', 'Start', 'far fa-play-circle')
-            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })
-            ->linkToCrudAction('activateInstance')
-            ->setCssClass('text-danger btn btn-link')
+        $startApp = Action::new('startAppAction', 'Start', 'far fa-start-circle')
+            ->displayIf(static function ($entity) { return 'stopped' == $entity->getStatus(); })
+            ->linkToCrudAction('startApp')
+            ->setCssClass('text-success btn btn-link')
         ;
 
-        $adminReactivateInstance = Action::new('adminReactivateInstance', 'Enable', 'far fa-pause-circle')
-            ->displayIf(static function ($entity) { return 'suspended_by_admin' == $entity->getStatus(); })
-            ->linkToCrudAction('adminActivateInstance')
-            ->setCssClass('text-danger btn btn-link')
-        ;
-
-        $archiveInstance = Action::new('archiveInstance', 'Archive', 'far fa-pause-circle')
-            ->displayIf(static function ($entity) { return in_array($entity->getStatus(), ['suspended_by_admin', 'suspended', 'stopped']); })
-            ->linkToCrudAction('archiveInstance')
+        $archiveApp = Action::new('archiveAppAction', 'Archive', 'far fa-pause-circle')
+            ->displayIf(static function ($entity) { return in_array($entity->getStatus(), ['suspended', 'stopped']); })
+            ->linkToCrudAction('archiveApp')
             ->setCssClass('text-danger btn btn-link')
         ;
 
@@ -221,9 +207,10 @@ class DeploymentsCrudController extends AbstractCrudController
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
                 ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
                 ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
-                ->setPermission($archiveInstance, 'ROLE_SUPPORT')
-                ->setPermission($suspendInstance, 'ROLE_SUPPORT')
-                ->setPermission($reactivateInstance, 'ROLE_SUPPORT')
+                ->setPermission($archiveApp, 'ROLE_SUPPORT')
+                ->setPermission($startApp, 'ROLE_SUPPORT')
+                ->setPermission($stopApp, 'ROLE_SUPPORT')
+                ->setPermission($restartApp, 'ROLE_SUPPORT')
             ;
         }
 
@@ -235,13 +222,10 @@ class DeploymentsCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->remove(Crud::PAGE_NEW, Action::SAVE_AND_ADD_ANOTHER)
-            ->add(Crud::PAGE_DETAIL, $archiveInstance)
-            ->add(Crud::PAGE_DETAIL, $adminSuspendInstance)
-            ->add(Crud::PAGE_DETAIL, $adminReactivateInstance)
-            ->add(Crud::PAGE_DETAIL, $suspendInstance)
-            ->add(Crud::PAGE_DETAIL, $reactivateInstance)
-            ->setPermission($adminSuspendInstance, 'ROLE_SUPPORT')
-            ->setPermission($adminReactivateInstance, 'ROLE_SUPPORT')
+            ->add(Crud::PAGE_DETAIL, $archiveApp)
+            ->add(Crud::PAGE_DETAIL, $startApp)
+            ->add(Crud::PAGE_DETAIL, $stopApp)
+            ->add(Crud::PAGE_DETAIL, $restartApp)
         ;
     }
 
@@ -267,33 +251,24 @@ class DeploymentsCrudController extends AbstractCrudController
         }
     }
 
-    public function suspendInstance(AdminContext $context)
+    public function stopApp(AdminContext $context)
     {
-        return $this->fireTransition($context, 'suspend');
+        return $this->fireTransition($context, 'stop');
     }
 
-    public function adminSuspendInstance(AdminContext $context)
+    public function startApp(AdminContext $context)
     {
-        return $this->fireTransition($context, 'admin_suspend');
+        return $this->fireTransition($context, 'start');
     }
 
-    public function activateInstance(AdminContext $context)
+    public function restartApp(AdminContext $context)
     {
-        return $this->fireTransition($context, 'reactivate');
+        // We need to run it directly from AWX
+        // TODO
+        return ;
     }
 
-    public function adminActivateInstance(AdminContext $context)
-    {
-        return $this->fireTransition($context, 'admin_reactivate');
-    }
-
-    public function restartInstance(AdminContext $context)
-    {
-        $this->suspendInstance($context);
-        $this->activateInstance($context);
-    }
-
-    public function archiveInstance(AdminContext $context)
+    public function archiveApp(AdminContext $context)
     {
         // TODO
         return ;

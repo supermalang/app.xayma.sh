@@ -13,50 +13,26 @@ framework:
             places:
                 - pending_deployment
                 - active
-                - suspended
-                - suspended_by_admin
                 - stopped
-                - stopped_by_creditworker
+                - suspended
                 - archived
+                - pending_deletion
             transitions:
-                enable:
-                    from: pending_deployment
+                start:
+                    from: [pending_deployment, stopped, suspended]
                     to: active
                 stop:
                     from: active
                     to: stopped
-                start:
-                    from: stopped
-                    to: active
                 suspend:
-                    from: active
+                    from: [active, pending_deployment]
                     to: suspended
-                admin_suspend:
-                    guard: "is_granted('ROLE_SUPPORT')"
-                    from: active
-                    to: suspended_by_admin
-                reactivate:
-                    from: suspended
-                    to: active
-                admin_reactivate:
-                    guard: "is_granted('ROLE_SUPPORT')"
-                    from: suspended_by_admin
-                    to: active
-                suspended_to_archive:
-                    from: suspended
+                archive:
+                    from: [suspended, stopped]
                     to: archived
-                suspended_by_admin_to_archive:
-                    from: suspended_by_admin
-                    to: archived
-                stopped_to_archive:
-                    from: stopped
-                    to: archived
-                cw_stop:
-                    from: active
-                    to: stopped_by_creditworker
-                cw_start:
-                    from: stopped_by_creditworker
-                    to: active
+                delete:
+                    from: archived
+                    to: pending_deletion
         manage_organization_status:
             type: 'state_machine'
             audit_trail:
