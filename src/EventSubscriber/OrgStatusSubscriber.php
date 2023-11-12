@@ -55,20 +55,23 @@ class OrgStatusSubscriber implements EventSubscriberInterface
             'BeforeEntityPersistedEvent' => 'preUpdate',
             'workflow.manage_organization_status.entered.suspended' => [
                 ['start_orgSuspension',10],
-                ['notifySuspension',9]
-                //['nothing',9]
+                ['notifySuspension',9],
+                ['reactivate_deployments', 8],
             ],
             'workflow.manage_organization_status.entered.on_debt' => [
                 //['nothing',9]
-                ['notifyOnDebt',9]
+                ['notifyOnDebt',9],
+                ['reactivate_deployments', 8],
             ],
             'workflow.manage_organization_status.entered.low_credit' => [
                 //['nothing',9]
-                ['notifyLowCredit',9]
+                ['notifyLowCredit',9],
+                ['reactivate_deployments', 8],
             ],
             'workflow.manage_organization_status.entered.active' => [
                 //['nothing',9]
-                ['notifyReactivation',9]
+                ['notifyReactivation',9],
+                ['reactivate_deployments', 8],
             ],
             'workflow.manage_organization_status.entered.staging' => 'updateOrgStatusAfterTransaction',
         ];
@@ -99,6 +102,24 @@ class OrgStatusSubscriber implements EventSubscriberInterface
 
             if ($workflow->can($deployment, 'cw_stop')) {
                 $workflow->apply($deployment, 'cw_stop');
+            }
+        }
+    }
+    
+    public function reactivate_deployments(Event $event): void
+    {
+        $org = $event->getSubject();
+        $orgId = $org->getId();
+
+        // Get all deployments for this organization by using the deployment repository
+        $deployments = $this->deploymentsRepository->findBy(['organization' => $orgId]);
+
+        // Loop through all deployments and start them
+        foreach ($deployments as $deployment) {
+            $workflow = $this->workflowRegistry->get($deployment);
+
+            if ($workflow->can($deployment, 'cw_start')) {
+                $workflow->apply($deployment, 'cw_start');
             }
         }
     }
