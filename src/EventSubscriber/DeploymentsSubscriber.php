@@ -16,6 +16,8 @@ use App\Message\UpdateDeploymentMessage;
 use Symfony\Component\Workflow\Event\Event;
 use App\Repository\ServiceRepository;
 
+use function PHPUnit\Framework\arrayHasKey;
+
 class DeploymentsSubscriber implements EventSubscriberInterface
 {
     private $em;
@@ -54,8 +56,8 @@ class DeploymentsSubscriber implements EventSubscriberInterface
     public function setDeploymentOrganizationAppAndPlan(BeforeEntityPersistedEvent $event)
     {
         $entity = $event->getEntityInstance();
-
-        if ($entity instanceof Deployments) {
+        
+        if ($entity instanceof Deployments && null == $entity->getId()) {
             $request = $this->requestStack->getCurrentRequest();
             $deploymentplan = $request->query->get('plan') ?? null;
             $appid = $request->query->get('id') ?? null;
@@ -92,7 +94,7 @@ class DeploymentsSubscriber implements EventSubscriberInterface
     {
         $entity = $event->getEntityInstance();
 
-        if ($entity instanceof Deployments) {
+        if ($entity instanceof Deployments && "pending_deployment" == $entity->getStatus()) {
             $this->bus->dispatch(new LaunchDeploymentMessage($entity->getId()));
         }
     }
@@ -101,8 +103,9 @@ class DeploymentsSubscriber implements EventSubscriberInterface
     public function start_app(Event $event)
     {
         $deployment = $event->getSubject();
-        
-        if ($deployment instanceof Deployments) {
+
+        /** We don't want the deployment to launch for a second time if we just have deployed */        
+        if ($deployment instanceof Deployments && !in_array("deploying", $event->getTransition()->getFroms())) {
             $service = $this->serviceRepository->find($deployment->getService()->getId());
             $start_tags = $service->getStartTags();
             $job_tags = is_array($start_tags) ? implode(', ', $start_tags) : $start_tags;
@@ -115,7 +118,7 @@ class DeploymentsSubscriber implements EventSubscriberInterface
     public function stop_app(Event $event)
     {
         $deployment = $event->getSubject();
-        
+
         if ($deployment instanceof Deployments) {
             $service = $this->serviceRepository->find($deployment->getService()->getId());
             $stop_tags = $service->getStopTags();

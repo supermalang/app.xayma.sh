@@ -5,7 +5,6 @@ namespace App\EventSubscriber;
 use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Workflow\Event\Event;
 use Symfony\Component\Workflow\Registry;
 use App\Entity\CreditTransaction;
 use App\Entity\Organization;
