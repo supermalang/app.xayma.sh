@@ -44,7 +44,7 @@ framework:
                 delete:
                     from: [archived, failed]
                     to: pending_deletion
-        manage_organization_status:
+        manage_organization_status:  
             type: 'state_machine'
             audit_trail:
                 enabled: true
