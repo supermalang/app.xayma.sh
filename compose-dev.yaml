@@ -7,8 +7,8 @@ services:
     depends_on:
       - db
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    - xaymaapp:/var/www/app.xayma.sh
+      - /var/run/docker.sock:/var/run/docker.sock
+      - xaymaapp:/var/www/app.xayma.sh
   
   db:
     image: mariadb
@@ -16,9 +16,7 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: password
     volumes:
-    - xaymaapp-db:/var/lib/mysql
-    expose:
-      - 3306
+      - xaymaapp-db:/var/lib/mysql
 
   cron:
     image: supermalang/xaymaappcron:latest
