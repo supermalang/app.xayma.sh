@@ -1,0 +1,42 @@
+version: "3"
+services:
+  app:
+    build:
+      context: ./docker/development
+      target: development
+    depends_on:
+      - db
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - xaymaapp:/var/www/app.xayma.sh
+  
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+    volumes:
+    - xaymaapp-db:/var/lib/mysql
+    expose:
+      - 3306
+
+  cron:
+    image: supermalang/xaymaappcron:latest
+    depends_on:
+      - app
+    volumes:
+      - xaymaapp:/var/www/app.xayma.sh
+      - "F:/cron/xaymaappcron/taskstorun.sh:/etc/cron.d/taskstorun.fiveminutes.sh"
+      - "F:/cron/xaymaappcron/taskstorun.hourly.sh:/etc/cron.hourly/taskstorun.hourly.sh"
+
+  worker:
+    image: supermalang/xaymaappworker:latest
+    depends_on:
+      - app
+    restart: unless-stopped
+    volumes:
+      - xaymaapp:/var/www/app.xayma.sh
+
+volumes:
+  xaymaapp:
+  xaymaapp-db:
