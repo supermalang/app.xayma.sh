@@ -31,12 +31,12 @@ class Notifier
         }
     }
 
-    public function sendLowCreditsEmail($to, $subject, $content){
+    public function sendOrgStatusUpdateEmail($to, $subject, $content){
         $email = (new TemplatedEmail())
             ->to($to)
             ->subject($subject)
-            ->htmlTemplate('emails/organization-low-credit.html.twig')
-            ->textTemplate('emails/organization-low-credit.html.twig')
+            ->htmlTemplate('emails/organization-status-update.html.twig')
+            ->textTemplate('emails/organization-status-update.html.twig')
             ->context($content)
             ;
             

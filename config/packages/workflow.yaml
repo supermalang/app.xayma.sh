@@ -56,6 +56,7 @@ framework:
             initial_marking: active
             places:
                 - active
+                - disabled
                 - low_credit
                 - no_credit
                 - on_debt
@@ -65,15 +66,19 @@ framework:
                 - staging # A temporary buffer state for when a state needs to go back to a previous state
             transitions:
                 suspend:
-                    from: [active, on_debt, no_credit, staging]
+                    from: [on_debt, no_credit, staging]
                     to: suspended
                 archive:
-                    from: suspended
+                    from: [suspended, disabled]
                     to: archived
+                disable:
+                    guard: "is_granted('ROLE_SUPPORT')"
+                    from: active
+                    to: disabled
                 reactivate:
                     guard: "is_granted('ROLE_SUPPORT')"
-                    from: archived
-                    to: active
+                    from: [archived, disabled]
+                    to: staging
                 delete:
                     guard: "is_granted('ROLE_SUPPORT')"
                     from: archived

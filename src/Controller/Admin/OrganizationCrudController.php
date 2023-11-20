@@ -118,28 +118,22 @@ class OrganizationCrudController extends AbstractCrudController
             ->setCssClass('text-warning btn btn-link')
         ;
 
-        $suspendOrg = Action::new('suspendOrg', 'Suspend', 'far fa-pause-circle')
-            ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
+        $suspendOrg = Action::new('suspendOrg', 'Disable', 'far fa-pause-circle')
+            ->displayIf(static function ($entity) { return 'disabled' != $entity->getStatus() && 'suspended' != $entity->getStatus() && 'staging' != $entity->getStatus() && 'archived' != $entity->getStatus() && 'pending_deletion' != $entity->getStatus(); })
             ->linkToCrudAction('suspendOrg')
             ->setCssClass('text-warning btn btn-link')
         ;
 
-        $activateOrg = Action::new('activateOrg', 'Activate', 'far fa-play-circle')
-            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })
-            ->linkToCrudAction('activateOrg')
+        $reactivateOrg = Action::new('reactivateOrg', 'Re-activate', 'far fa-play-circle')
+            ->displayIf(static function ($entity) { return 'disabled' == $entity->getStatus() || 'archived' == $entity->getStatus(); })
+            ->linkToCrudAction('reactivateOrg')
             ->setCssClass('text-success btn btn-link')
         ;
 
         $archiveOrg = Action::new('archiveOrg', 'Archive', 'far fa-pause-circle')
-            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })
+            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus() || 'disabled' == $entity->getStatus(); })
             ->linkToCrudAction('archiveOrg')
             ->setCssClass('text-danger btn btn-link')
-        ;
-
-        $reactivateOrg = Action::new('reactivateOrg', 'Re-activate', 'far fa-play-circle')
-            ->displayIf(static function ($entity) { return 'archived' == $entity->getStatus(); })
-            ->linkToCrudAction('reactivateOrg')
-            ->setCssClass('text-success btn btn-link')
         ;
 
         $allowDebt = Action::new('allowDebtAction', 'Allow Debt', 'fas fa-thumbs-up')
@@ -158,10 +152,12 @@ class OrganizationCrudController extends AbstractCrudController
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser()) || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->add(Crud::PAGE_DETAIL, $suspendOrg)
                 ->setPermission(Action::NEW, 'ROLE_SUPPORT')
                 ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
                 ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
                 ->setPermission($editMembers, 'ROLE_SUPPORT')
+                ->setPermission($suspendOrg, 'ROLE_SUPPORT')
             ;
         }
 
@@ -169,7 +165,6 @@ class OrganizationCrudController extends AbstractCrudController
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_DETAIL, $editMembers)
             ->add(Crud::PAGE_DETAIL, $suspendOrg)
-            ->add(Crud::PAGE_DETAIL, $activateOrg)
             ->add(Crud::PAGE_DETAIL, $archiveOrg)
             ->add(Crud::PAGE_DETAIL, $reactivateOrg)
             ->add(Crud::PAGE_DETAIL, $allowDebt)
@@ -179,12 +174,10 @@ class OrganizationCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->setPermission(Action::NEW, 'ROLE_SUPPORT')
             ->setPermission($suspendOrg, 'ROLE_SUPPORT')
-            ->setPermission($activateOrg, 'ROLE_ADMIN')
             ->setPermission($archiveOrg, 'ROLE_ADMIN')
             ->setPermission($reactivateOrg, 'ROLE_ADMIN')
             ->setPermission($allowDebt, 'ROLE_SUPPORT')
             ->setPermission($disallowDebt, 'ROLE_SUPPORT')
-
         ;
     }
 
@@ -215,21 +208,18 @@ class OrganizationCrudController extends AbstractCrudController
             $entity->setModified(new \DateTime());
             $entity->setModifiedBy($this->security->getUser());
             $this->updateEntity($this->doctrine->getManager(), $entity);
-
-            $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::INDEX)->generateUrl();
-
-            return $this->redirect($indexUrl);
         }
+        else{
+            $this->addFlash('warning', "The requested operation `$transition` cannot be executed");
+        }
+
+        $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::INDEX)->generateUrl();
+        return $this->redirect($indexUrl);
     }
 
     public function suspendOrg(AdminContext $context)
     {
-        return $this->fireTransition($context, 'suspend');
-    }
-
-    public function activateOrg(AdminContext $context)
-    {
-        return $this->fireTransition($context, 'activate');
+        return $this->fireTransition($context, 'disable');
     }
 
     public function archiveOrg(AdminContext $context)
