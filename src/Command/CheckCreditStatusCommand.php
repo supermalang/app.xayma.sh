@@ -81,8 +81,8 @@ class CheckCreditStatusCommand extends Command
         * Orgs that have finished their credit and cannot have debt
         */
         foreach ($orgsWithoutCredit as $organization) {
-            if ($workflow->can($organization, 'suspend_subscription')) {
-                $workflow->apply($organization, 'suspend_subscription');
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
                 $this->entityManager->flush();
             }
         }
@@ -101,8 +101,8 @@ class CheckCreditStatusCommand extends Command
          * Orgs that have gone beyond authorized debt credits
          */
         foreach ($orgsBeyondMaxDebt as $organization) {
-            if ($workflow->can($organization, 'suspend_from_debt')) {
-                $workflow->apply($organization, 'suspend_from_debt');
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
                 $this->entityManager->flush();
             }
         }
