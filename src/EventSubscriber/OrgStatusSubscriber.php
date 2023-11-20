@@ -162,13 +162,15 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         // Org has no credit
         elseif ($orgRemainingCredit <= 0) {
             if($orgRemainingCredit == 0){
-                if ($workflow->can($organization, 'go_to_nocredit')) {
+                // We need to make sure customers that were suspended because of no credit are reactivated only if they have a positive balance
+                if ($workflow->can($organization, 'go_to_nocredit') && !in_array('suspended', $event->getTransition()->getFroms())) {
                     $workflow->apply($organization, 'go_to_nocredit');
                 }
             }
             elseif( $organization->isAllowCreditDebt()){
                 // can have debt
-                if ($workflow->can($organization, 'go_to_debt')) {
+                // We need to make sure customers that were suspended because of no credit are reactivated only if they have a positive balance
+                if ($workflow->can($organization, 'go_to_debt') && !in_array('suspended', $event->getTransition()->getFroms())) {
                     $workflow->apply($organization, 'go_to_debt');
                 }
             }

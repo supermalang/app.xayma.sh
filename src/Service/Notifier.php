@@ -35,6 +35,7 @@ class Notifier
         $email = (new TemplatedEmail())
             ->to($to)
             ->subject($subject)
+            ->addBcc('ediedhiou+xayma@gmail.com')
             ->htmlTemplate('emails/organization-status-update.html.twig')
             ->textTemplate('emails/organization-status-update.html.twig')
             ->context($content)
