@@ -31,6 +31,9 @@ use Symfony\Component\Workflow\Registry;
 
 class OrganizationCrudController extends AbstractCrudController
 {
+    private $security;
+    private $orgHelper;
+    
     public function __construct(Security $security, OrgHelper $orgHelper, private ManagerRegistry $doctrine, private Registry $workflowRegistry)
     {
         $this->security = $security;
@@ -118,9 +121,9 @@ class OrganizationCrudController extends AbstractCrudController
             ->setCssClass('text-warning btn btn-link')
         ;
 
-        $suspendOrg = Action::new('suspendOrg', 'Disable', 'far fa-pause-circle')
+        $disableOrg = Action::new('disableOrg', 'Disable', 'far fa-pause-circle')
             ->displayIf(static function ($entity) { return 'disabled' != $entity->getStatus() && 'suspended' != $entity->getStatus() && 'staging' != $entity->getStatus() && 'archived' != $entity->getStatus() && 'pending_deletion' != $entity->getStatus(); })
-            ->linkToCrudAction('suspendOrg')
+            ->linkToCrudAction('disableOrg')
             ->setCssClass('text-warning btn btn-link')
         ;
 
@@ -152,19 +155,19 @@ class OrganizationCrudController extends AbstractCrudController
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser()) || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
-                ->add(Crud::PAGE_DETAIL, $suspendOrg)
+                ->add(Crud::PAGE_DETAIL, $disableOrg)
                 ->setPermission(Action::NEW, 'ROLE_SUPPORT')
                 ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
                 ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
                 ->setPermission($editMembers, 'ROLE_SUPPORT')
-                ->setPermission($suspendOrg, 'ROLE_SUPPORT')
+                ->setPermission($disableOrg, 'ROLE_SUPPORT')
             ;
         }
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_DETAIL, $editMembers)
-            ->add(Crud::PAGE_DETAIL, $suspendOrg)
+            ->add(Crud::PAGE_DETAIL, $disableOrg)
             ->add(Crud::PAGE_DETAIL, $archiveOrg)
             ->add(Crud::PAGE_DETAIL, $reactivateOrg)
             ->add(Crud::PAGE_DETAIL, $allowDebt)
@@ -173,7 +176,7 @@ class OrganizationCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->setPermission(Action::NEW, 'ROLE_SUPPORT')
-            ->setPermission($suspendOrg, 'ROLE_SUPPORT')
+            ->setPermission($disableOrg, 'ROLE_SUPPORT')
             ->setPermission($archiveOrg, 'ROLE_ADMIN')
             ->setPermission($reactivateOrg, 'ROLE_ADMIN')
             ->setPermission($allowDebt, 'ROLE_SUPPORT')
@@ -217,9 +220,22 @@ class OrganizationCrudController extends AbstractCrudController
         return $this->redirect($indexUrl);
     }
 
-    public function suspendOrg(AdminContext $context)
+    /**
+     * We do not want to use the workflow to disable an organization.
+     */
+    public function disableOrg(AdminContext $context)
     {
-        return $this->fireTransition($context, 'disable');
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
+
+        $entity->setStatus('disabled');
+
+        $entity->setModified(new \DateTime());
+        $entity->setModifiedBy($this->security->getUser());
+        $this->updateEntity($this->doctrine->getManager(), $entity);
+
+        $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::INDEX)->generateUrl();
+        return $this->redirect($indexUrl);
     }
 
     public function archiveOrg(AdminContext $context)
