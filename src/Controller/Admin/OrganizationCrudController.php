@@ -204,7 +204,12 @@ class OrganizationCrudController extends AbstractCrudController
     {
         $id = $context->getRequest()->query->get('entityId');
         $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
+
         $workflow = $this->workflowRegistry->get($entity, 'manage_organization_status');
+        
+        if($transition=="reactivate"){
+            $workflow = $this->workflowRegistry->get($entity, 'manage_organization_status_via_staging');
+        }
 
         if ($workflow->can($entity, $transition)) {
             $workflow->apply($entity, $transition);

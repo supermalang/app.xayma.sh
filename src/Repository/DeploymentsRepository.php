@@ -90,8 +90,6 @@ class DeploymentsRepository extends ServiceEntityRepository
             ->setParameter('val', $statusValue)
             ->orderBy('d.id', 'ASC')
             //->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
         ;
 
         if ($organization) {
@@ -99,7 +97,7 @@ class DeploymentsRepository extends ServiceEntityRepository
             ->setParameter('organization', $organization);
         }
 
-        return $query;
+        return $query->getQuery()->getResult();
     }
 
     /*

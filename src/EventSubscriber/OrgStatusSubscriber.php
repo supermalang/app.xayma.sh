@@ -52,26 +52,45 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         return [
             Events::preUpdate => 'preUpdate',               // Doctrine event
             'BeforeEntityPersistedEvent' => 'preUpdate',    // EasyAdmin event
-            'workflow.manage_organization_status.entered.active' => [
+            'workflow.manage_organization_status.entered.active' => [ // active
                 ['unsuspendDeployments', 8],
                 //['notifyOrgStatus',9],
             ],
-            'workflow.manage_organization_status.entered.low_credit' => [
+            'workflow.manage_organization_status_via_staging.entered.active' => [
                 ['unsuspendDeployments', 8],
                 ['notifyOrgStatus',9],
             ],
-            'workflow.manage_organization_status.entered.no_credit' => [
+            'workflow.manage_organization_status.entered.low_credit' => [ // low credit
+                ['unsuspendDeployments', 8],
+                ['notifyOrgStatus',9],
+            ],
+            'workflow.manage_organization_status_via_staging.entered.low_credit' => [
+                ['unsuspendDeployments', 8],
+                ['notifyOrgStatus',9],
+            ],
+            'workflow.manage_organization_status.entered.no_credit' => [ // No credit
                 ['suspendOrAllowDebt', 8],                  // Quickly assess if we need to suspend or allow debt
                 ['notifyOrgStatus',9],
             ],
-            'workflow.manage_organization_status.entered.on_debt' => [
+            'workflow.manage_organization_status_via_staging.entered.no_credit' => [
+                ['suspendOrAllowDebt', 8],                  
+                //['notifyOrgStatus',9], We do not want to notify as it will happen when the account is suspended
+            ],
+            'workflow.manage_organization_status.entered.on_debt' => [ // On debt
                 ['notifyOrgStatus',9],
             ],
-            'workflow.manage_organization_status.entered.suspended' => [
+            'workflow.manage_organization_status_via_staging.entered.on_debt' => [
+                ['notifyOrgStatus',9],
+            ],
+            'workflow.manage_organization_status.entered.suspended' => [ // Suspended
                 ['suspendOrgActiveDeployments',10],
                 ['notifyOrgStatus',9],
             ],
-            'workflow.manage_organization_status.entered.staging' => 'updateOrgStatusAfterTransaction',
+            'workflow.manage_organization_status_via_staging.entered.suspended' => [
+                ['suspendOrgActiveDeployments',10],
+                ['notifyOrgStatus',9],
+            ],
+            'workflow.manage_organization_status_via_staging.entered.staging' => 'updateOrgStatusAfterTransaction',
         ];
     }
 
@@ -188,12 +207,15 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status');
 
         if($organization->isAllowCreditDebt()){
-            if ($workflow->can($organization, 'suspend')) {
-                $workflow->apply($organization, 'suspend');
+            if ($workflow->can($organization, 'allow_credit_debt')) {
+                $workflow->apply($organization, 'allow_credit_debt');
+            }
+            if ($workflow->can($organization, 'go_to_debt')) {
+                $workflow->apply($organization, 'go_to_debt');
             }
         }else{
-            if ($workflow->can($organization, 'allow_debt')) {
-                $workflow->apply($organization, 'allow_debt');
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
             }
         }
     }
@@ -204,8 +226,9 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $creditOption1 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION1'] ?? 10), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION1'] ?? 10];
         $creditOption2 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION2'] ?? 70), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION2'] ?? 70];
         $creditOption3 = ['price' => $this->paymentHelper->getOrderAmount($_ENV['CREDIT_AMOUNT_OPTION3'] ?? 150), 'creditsAmount' => $_ENV['CREDIT_AMOUNT_OPTION3'] ?? 150];
-
-        $buyCreditsUrl = $this->adminUrlGenerator->setController(CreditTransactionCrudController::class)->setAction('priceoptions')->generateUrl();
+        
+        $appUrl = $_ENV['APP_URL'] ?? 'http://localhost';
+        $buyCreditsUrl = $appUrl.$this->adminUrlGenerator->setController(CreditTransactionCrudController::class)->setAction('priceoptions')->generateUrl();
 
         $to = $organization->getEmail();
 
@@ -213,23 +236,26 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         
         $transition = $event->getTransition()->getTos();
 
-        if(in_array('suspended', $transition)){
-            $title = "Your account has been suspended 🛑";
-            $message = "Your account has been suspended because you have no credit left. Please buy more credits to reactivate your account.";
-        }
-        if(in_array('on_debt', $transition)){
-            $title = "Your account is on debt ⚠️";
-            $message = "Your account is on debt, you have no credit left. Please buy more credits to avoid suspension.";
-        }
-        if(in_array('low_credit', $transition)){
-            $title = "Your credit balance is very low ⚠️";
-            $message = "Your credit balance is very low. Please buy more credits to avoid suspension.";
-        }
         if(in_array('active', $transition)){
-            $title = "Your account has been reactivated 🟢";
+            $title = "🟢 Your account has been reactivated";
             $message = "Your account has been reactivated successfully. You can now deploy your applications.";
         }
-
+        if(in_array('low_credit', $transition)){
+            $title = "⚠️ Your credit balance is very low";
+            $message = "Your credit balance is very low. Please buy more credits to avoid suspension.";
+        }
+        if(in_array('no_credit', $transition)){
+            $title = "⚠️ Your credit balance is finished";
+            $message = "Your credit balance is finished. Please buy more credits to avoid suspension.";
+        }
+        if(in_array('on_debt', $transition)){
+            $title = "⚠️ Your account is on debt";
+            $message = "Your account is on debt, you have no credit left. Please buy more credits to avoid suspension.";
+        }
+        if(in_array('suspended', $transition)){
+            $title = "🛑 Your account has been suspended";
+            $message = "Your account has been suspended because you have no credit left. Please buy more credits to reactivate your account.";
+        }
 
         $content = [
             'title' => $title,
