@@ -204,7 +204,7 @@ class OrganizationCrudController extends AbstractCrudController
     {
         $id = $context->getRequest()->query->get('entityId');
         $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $workflow = $this->workflowRegistry->get($entity);
+        $workflow = $this->workflowRegistry->get($entity, 'manage_organization_status');
 
         if ($workflow->can($entity, $transition)) {
             $workflow->apply($entity, $transition);

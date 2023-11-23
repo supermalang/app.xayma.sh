@@ -24,6 +24,11 @@ use Symfony\Component\Workflow\Registry;
 class CheckCreditStatusCommand extends Command
 {
     const SYSTEM_SETTINGS_ID = 1;
+    private $workflowRegistry;
+    private $entityManager;
+    private $organizationRepository;
+    private $userRepository;
+    private $settingsRepository;
 
     public function __construct(EntityManagerInterface $entityManager, OrganizationRepository $organizationRepository, UserRepository $userRepository, SettingsRepository $settingsRepository, Registry $workflowRegistry)
     {

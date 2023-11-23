@@ -50,24 +50,26 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Events::preUpdate => 'preUpdate',
-            'BeforeEntityPersistedEvent' => 'preUpdate',
-            'workflow.manage_organization_status.entered.suspended' => [
-                ['start_orgSuspension',10],
-                ['notifyOrgStatus',9],
-                //['unsuspendDeployments', 8],
-            ],
-            'workflow.manage_organization_status.entered.on_debt' => [
+            Events::preUpdate => 'preUpdate',               // Doctrine event
+            'BeforeEntityPersistedEvent' => 'preUpdate',    // EasyAdmin event
+            'workflow.manage_organization_status.entered.active' => [
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatus',9],
+                //['notifyOrgStatus',9],
             ],
             'workflow.manage_organization_status.entered.low_credit' => [
                 ['unsuspendDeployments', 8],
                 ['notifyOrgStatus',9],
             ],
-            'workflow.manage_organization_status.entered.active' => [
-                ['unsuspendDeployments', 8],
-                //['notifyOrgStatus',9],
+            'workflow.manage_organization_status.entered.no_credit' => [
+                ['suspendOrAllowDebt', 8],                  // Quickly assess if we need to suspend or allow debt
+                ['notifyOrgStatus',9],
+            ],
+            'workflow.manage_organization_status.entered.on_debt' => [
+                ['notifyOrgStatus',9],
+            ],
+            'workflow.manage_organization_status.entered.suspended' => [
+                ['suspendOrgActiveDeployments',10],
+                ['notifyOrgStatus',9],
             ],
             'workflow.manage_organization_status.entered.staging' => 'updateOrgStatusAfterTransaction',
         ];
@@ -78,13 +80,13 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $this->updateOrgStatusAfterTransaction($args);
     }
 
-    public function start_orgSuspension(Event $event): void
+    /**
+     * Suspend all active deployments of an organization
+     */
+    public function suspendOrgActiveDeployments(Event $event): void
     {
-        $org = $event->getSubject();
-        $orgId = $org->getId();
-
-        $deployments = $this->deploymentsRepository->findBy(['organization' => $orgId]);
-
+        $organization = $event->getSubject();
+        $deployments = $this->deploymentsRepository->findByStatus($organization, 'active');
         $workflow = array_key_exists(0, $deployments) ? $this->workflowRegistry->get($deployments[0]) : null;
 
         // Loop through all deployments and stop them
@@ -96,38 +98,27 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     }
     
     /**
-     * Safely unsuspend all active deployments of an organization
+     * Safely unsuspend all suspended deployments of an organization
      */
     public function unsuspendDeployments(Event $event): void
     {
-        $org = $event->getSubject();
-        $orgId = $org->getId();
+        $organization = $event->getSubject();
 
-        // Get all deployments for this organization by using the deployment repository
-        $deployments = $this->deploymentsRepository->findBy(['organization' => $orgId]);
+        // Get deployments of this organization by using the deployment repository
+        // We do not want to start deployments that were stopped by the user
+        $deployments = $this->deploymentsRepository->findByStatus($organization, 'suspended');
 
-        // If the org status was `staging` we update its deployments deployment
-        if (in_array('staging', $event->getTransition()->getFroms())) {
-            
-            $workflow = array_key_exists(0, $deployments) ? $this->workflowRegistry->get($deployments[0]) : null;
+        $workflow = array_key_exists(0, $deployments) ? $this->workflowRegistry->get($deployments[0]) : null;
 
-            foreach ($deployments as $deployment) {
-                // We do not want to start deployments that were stopped by the user
-                if ($workflow->can($deployment, 'start') && $deployment->getStatus() == 'suspended') {
-                    $workflow->apply($deployment, 'start');
-                }
+        foreach ($deployments as $deployment) {
+            if ($workflow->can($deployment, 'start')) {
+                $workflow->apply($deployment, 'start');
             }
         }
     }
 
     /** 
      * Update the status of the organization after a credit transaction 
-     * Here we might not consider the current status of the org for some cases.
-     * Those situations happen when the org is on debt or suspended and the admin add a big amount of credit to the org.
-     * So the org should be reactivated or taken out of debt. And in such situations, we might need to skip states.
-     * Ex: instead of going back from on_debt to low_credit, we might need to go directly to active.
-     * and vice versa.
-     * Just to avoid having too much states and transitions
      */
     public function updateOrgStatusAfterTransaction($event): void
     {
@@ -139,11 +130,12 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         elseif ($event instanceof LifecycleEventArgs) {
             $organization = $event->getObject();
         }
-        // If it is an easyadmin
+        // If it is an easyadmin event
         elseif ($event instanceof BeforeEntityPersistedEvent) {
             $organization = $event->getEntityInstance();
         }
         else{
+            // TODO: Log error
             return ;
         }
 
@@ -151,7 +143,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $lowCreditThreshold = $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getLowCreditThreshold();
         $MaxCreditsDebt = (-1 * $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getMaxCreditsDebt());
 
-        $workflow = $this->workflowRegistry->get($organization);
+        $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status_via_staging');
 
         // Org cannot run anymore cause its debt is too big
         if($orgRemainingCredit <= $MaxCreditsDebt) {
@@ -161,24 +153,15 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         } 
         // Org has no credit
         elseif ($orgRemainingCredit <= 0) {
-            if($orgRemainingCredit == 0){
-                // We need to make sure customers that were suspended because of no credit are reactivated only if they have a positive balance
-                if ($workflow->can($organization, 'go_to_nocredit') && !in_array('suspended', $event->getTransition()->getFroms())) {
-                    $workflow->apply($organization, 'go_to_nocredit');
-                }
-            }
-            elseif( $organization->isAllowCreditDebt()){
-                // can have debt
-                // We need to make sure customers that were suspended because of no credit are reactivated only if they have a positive balance
-                if ($workflow->can($organization, 'go_to_debt') && !in_array('suspended', $event->getTransition()->getFroms())) {
-                    $workflow->apply($organization, 'go_to_debt');
-                }
-            }
-            else{
-                // cannot have debt
-                if ($workflow->can($organization, 'suspend')) {
+            // We want to make sure orgs that are suspended because of no credit 
+            // are not reactivated until they have a positive balance
+            if(in_array('suspended', $event->getTransition()->getFroms())){
+                if($workflow->can($organization, 'suspend')){
                     $workflow->apply($organization, 'suspend');
                 }
+            }
+            elseif($workflow->can($organization, 'go_to_nocredit')) {
+                $workflow->apply($organization, 'go_to_nocredit');
             }
         } 
         // Org is on Low credit
@@ -195,6 +178,24 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         }
         
         $this->em->persist($organization);
+    }
+
+    /**
+     * Suspend or allow debt for an organization as soon as it has no credit left
+     */
+    public function suspendOrAllowDebt(Event $event): void{
+        $organization = $event->getSubject();
+        $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status');
+
+        if($organization->isAllowCreditDebt()){
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
+            }
+        }else{
+            if ($workflow->can($organization, 'allow_debt')) {
+                $workflow->apply($organization, 'allow_debt');
+            }
+        }
     }
 
     public function notifyOrgStatus(Event $event): void{

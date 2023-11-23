@@ -44,7 +44,7 @@ framework:
                 delete:
                     from: [archived, failed]
                     to: pending_deletion
-        manage_organization_status_cron:  
+        manage_organization_status:  
             type: 'state_machine'
             audit_trail:
                 enabled: true
@@ -83,7 +83,7 @@ framework:
                 allow_credit_debt:
                     from: no_credit
                     to: on_debt
-        manage_organization_status_manual:  
+        manage_organization_status_via_staging:  
             type: 'state_machine'
             audit_trail:
                 enabled: true
