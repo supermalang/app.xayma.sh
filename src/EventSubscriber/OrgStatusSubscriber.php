@@ -56,7 +56,6 @@ class OrgStatusSubscriber implements EventSubscriberInterface
             'workflow.manage_organization_status.entered.suspended' => [
                 ['start_orgSuspension',10],
                 ['notifySuspension',9],
-                ['reactivate_deployments', 8],
             ],
             'workflow.manage_organization_status.entered.on_debt' => [
                 //['nothing',9]

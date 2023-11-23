@@ -26,10 +26,14 @@ final class UpdateDeploymentMessageHandler implements MessageHandlerInterface
         $job_tags = $message->getDeploymentOperation();
 
         // Launch the deployment
-        $statuscode = $this->orchestrator->updateDeployment($deployment, $job_tags);
+        $this->orchestrator->updateDeployment($deployment, $job_tags);
 
+        /**
+         * DEPRECATED :
+         * We don't send emails anymore from here, we integrated the AWX notifications instead
+         */
         // If status code is not 200, then the deployment failed, we send an email
-        if ($statuscode != 200 && $statuscode != 201) {
+        /*if ($statuscode != 200 && $statuscode != 201) {
             $to = $_ENV['ADMIN_EMAIL'] ?? 'admin@localhost';
             $subject = "Application Deployment Status Update Failed";
             $content = [
@@ -44,7 +48,7 @@ final class UpdateDeploymentMessageHandler implements MessageHandlerInterface
         }
 
         $to = $deployment->getOrganization()->getEmail();
-        $subject = "Application Deployment Status Update";
+        $subject = "Application Operation Update";
         $content = [
                     'title' => "Your application has just changed status",
                     'operations' => $job_tags,
@@ -53,6 +57,6 @@ final class UpdateDeploymentMessageHandler implements MessageHandlerInterface
                     'service' => $deployment->getService().' '.$deployment->getServiceVersion(),
         ];
 
-        return $this->notifier->sendDeploymentUpdateEmail($to, $subject, $content);
+        //return $this->notifier->sendDeploymentUpdateEmail($to, $subject, $content);*/
     }
 }
