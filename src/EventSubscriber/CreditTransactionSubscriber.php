@@ -45,7 +45,7 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
             $organization = $this->em->getRepository(Organization::class)->find($organizationId);
             $transactiontype = $entity->getTransactionType();
 
-            $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status');
+            $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status_via_staging');
 
             // If transaction type is debit, we need to substract the credits used to the credit of the organization
             if(strtolower($transactiontype) == 'debit'){

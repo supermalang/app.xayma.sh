@@ -56,24 +56,20 @@ framework:
             initial_marking: active
             places:
                 - active
+                - disabled # when the organization is disabled by the support or admin
                 - low_credit
                 - no_credit
                 - on_debt
-                - suspended
+                - suspended # when does not have credit
                 - archived
                 - pending_deletion
-                - staging # A temporary buffer state for when a state needs to go back to a previous state
             transitions:
                 suspend:
-                    from: [active, on_debt, no_credit, staging]
+                    from: [on_debt, no_credit]
                     to: suspended
                 archive:
-                    from: suspended
+                    from: [disabled, suspended]
                     to: archived
-                reactivate:
-                    guard: "is_granted('ROLE_SUPPORT')"
-                    from: archived
-                    to: active
                 delete:
                     guard: "is_granted('ROLE_SUPPORT')"
                     from: archived
@@ -87,6 +83,33 @@ framework:
                 allow_credit_debt:
                     from: no_credit
                     to: on_debt
+        manage_organization_status_via_staging:  
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'status'
+            supports:
+                - App\Entity\Organization
+            initial_marking: active
+            places:
+                - active
+                - disabled # when the organization is disabled by the support or admin
+                - low_credit
+                - no_credit
+                - on_debt
+                - suspended # when does not have credit
+                - archived
+                - staging # A temporary buffer state for when a state needs to go back to a previous state
+            transitions:
+                suspend:
+                    from: [staging]
+                    to: suspended
+                reactivate:
+                    guard: "is_granted('ROLE_SUPPORT')"
+                    from: [archived, disabled]
+                    to: staging
                 add_transaction:
                     from: [suspended, active, low_credit, no_credit, on_debt]
                     to: staging

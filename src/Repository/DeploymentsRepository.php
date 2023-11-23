@@ -80,22 +80,27 @@ class DeploymentsRepository extends ServiceEntityRepository
         return $query->getQuery()->getResult();
     }
 
-    // /**
-    //  * @return Deployments[] Returns an array of Deployments objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @return Deployments[] Returns an array of Deployments objects
+    */
+    public function findByStatus(Organization $organization=null, $statusValue)
     {
-        return $this->createQueryBuilder('d')
-            ->andWhere('d.exampleField = :val')
-            ->setParameter('val', $value)
+        $query = $this->createQueryBuilder('d')
+            ->andWhere('d.status = :val')
+            ->setParameter('val', $statusValue)
             ->orderBy('d.id', 'ASC')
-            ->setMaxResults(10)
+            //->setMaxResults(10)
             ->getQuery()
             ->getResult()
         ;
+
+        if ($organization) {
+            $query = $query->andWhere('d.organization = :organization')
+            ->setParameter('organization', $organization);
+        }
+
+        return $query;
     }
-    */
 
     /*
     public function findOneBySomeField($value): ?Deployments

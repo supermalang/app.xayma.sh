@@ -24,6 +24,11 @@ use Symfony\Component\Workflow\Registry;
 class CheckCreditStatusCommand extends Command
 {
     const SYSTEM_SETTINGS_ID = 1;
+    private $workflowRegistry;
+    private $entityManager;
+    private $organizationRepository;
+    private $userRepository;
+    private $settingsRepository;
 
     public function __construct(EntityManagerInterface $entityManager, OrganizationRepository $organizationRepository, UserRepository $userRepository, SettingsRepository $settingsRepository, Registry $workflowRegistry)
     {
@@ -81,8 +86,8 @@ class CheckCreditStatusCommand extends Command
         * Orgs that have finished their credit and cannot have debt
         */
         foreach ($orgsWithoutCredit as $organization) {
-            if ($workflow->can($organization, 'suspend_subscription')) {
-                $workflow->apply($organization, 'suspend_subscription');
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
                 $this->entityManager->flush();
             }
         }
@@ -101,8 +106,8 @@ class CheckCreditStatusCommand extends Command
          * Orgs that have gone beyond authorized debt credits
          */
         foreach ($orgsBeyondMaxDebt as $organization) {
-            if ($workflow->can($organization, 'suspend_from_debt')) {
-                $workflow->apply($organization, 'suspend_from_debt');
+            if ($workflow->can($organization, 'suspend')) {
+                $workflow->apply($organization, 'suspend');
                 $this->entityManager->flush();
             }
         }

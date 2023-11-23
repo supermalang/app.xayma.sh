@@ -6,7 +6,6 @@ ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0" \
     PHP_OPCACHE_MAX_WASTED_PERCENTAGE="10"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git \
         zlib1g-dev \
         libzip-dev \
         libxml2-dev \
@@ -43,12 +42,12 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && cd app.xayma.sh \
     && /usr/local/bin/composer install \
-    && php /var/www/app.xayma.sh/bin/console cache:clear \
     && npm install \
     && npm run build --if-present \
     && chmod +x /var/www/entrypoint.sh \
     && chown -R www-data:www-data /var/www/app.xayma.sh \
-    && chmod -R 777 /var/www/app.xayma.sh/var
+    && chmod -R 777 /var/www/app.xayma.sh/var \
+    && php /var/www/app.xayma.sh/bin/console cache:clear
 
 CMD /bin/bash /var/www/entrypoint.sh
 

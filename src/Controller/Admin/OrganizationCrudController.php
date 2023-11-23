@@ -31,6 +31,9 @@ use Symfony\Component\Workflow\Registry;
 
 class OrganizationCrudController extends AbstractCrudController
 {
+    private $security;
+    private $orgHelper;
+    
     public function __construct(Security $security, OrgHelper $orgHelper, private ManagerRegistry $doctrine, private Registry $workflowRegistry)
     {
         $this->security = $security;
@@ -118,28 +121,22 @@ class OrganizationCrudController extends AbstractCrudController
             ->setCssClass('text-warning btn btn-link')
         ;
 
-        $suspendOrg = Action::new('suspendOrg', 'Suspend', 'far fa-pause-circle')
-            ->displayIf(static function ($entity) { return 'active' == $entity->getStatus(); })
-            ->linkToCrudAction('suspendOrg')
+        $disableOrg = Action::new('disableOrg', 'Disable', 'far fa-pause-circle')
+            ->displayIf(static function ($entity) { return 'disabled' != $entity->getStatus() && 'suspended' != $entity->getStatus() && 'staging' != $entity->getStatus() && 'archived' != $entity->getStatus() && 'pending_deletion' != $entity->getStatus(); })
+            ->linkToCrudAction('disableOrg')
             ->setCssClass('text-warning btn btn-link')
         ;
 
-        $activateOrg = Action::new('activateOrg', 'Activate', 'far fa-play-circle')
-            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })
-            ->linkToCrudAction('activateOrg')
+        $reactivateOrg = Action::new('reactivateOrg', 'Re-activate', 'far fa-play-circle')
+            ->displayIf(static function ($entity) { return 'disabled' == $entity->getStatus() || 'archived' == $entity->getStatus(); })
+            ->linkToCrudAction('reactivateOrg')
             ->setCssClass('text-success btn btn-link')
         ;
 
         $archiveOrg = Action::new('archiveOrg', 'Archive', 'far fa-pause-circle')
-            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus(); })
+            ->displayIf(static function ($entity) { return 'suspended' == $entity->getStatus() || 'disabled' == $entity->getStatus(); })
             ->linkToCrudAction('archiveOrg')
             ->setCssClass('text-danger btn btn-link')
-        ;
-
-        $reactivateOrg = Action::new('reactivateOrg', 'Re-activate', 'far fa-play-circle')
-            ->displayIf(static function ($entity) { return 'archived' == $entity->getStatus(); })
-            ->linkToCrudAction('reactivateOrg')
-            ->setCssClass('text-success btn btn-link')
         ;
 
         $allowDebt = Action::new('allowDebtAction', 'Allow Debt', 'fas fa-thumbs-up')
@@ -158,18 +155,19 @@ class OrganizationCrudController extends AbstractCrudController
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser()) || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->add(Crud::PAGE_DETAIL, $disableOrg)
                 ->setPermission(Action::NEW, 'ROLE_SUPPORT')
                 ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
                 ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
                 ->setPermission($editMembers, 'ROLE_SUPPORT')
+                ->setPermission($disableOrg, 'ROLE_SUPPORT')
             ;
         }
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_DETAIL, $editMembers)
-            ->add(Crud::PAGE_DETAIL, $suspendOrg)
-            ->add(Crud::PAGE_DETAIL, $activateOrg)
+            ->add(Crud::PAGE_DETAIL, $disableOrg)
             ->add(Crud::PAGE_DETAIL, $archiveOrg)
             ->add(Crud::PAGE_DETAIL, $reactivateOrg)
             ->add(Crud::PAGE_DETAIL, $allowDebt)
@@ -178,13 +176,11 @@ class OrganizationCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->setPermission(Action::NEW, 'ROLE_SUPPORT')
-            ->setPermission($suspendOrg, 'ROLE_SUPPORT')
-            ->setPermission($activateOrg, 'ROLE_ADMIN')
+            ->setPermission($disableOrg, 'ROLE_SUPPORT')
             ->setPermission($archiveOrg, 'ROLE_ADMIN')
             ->setPermission($reactivateOrg, 'ROLE_ADMIN')
             ->setPermission($allowDebt, 'ROLE_SUPPORT')
             ->setPermission($disallowDebt, 'ROLE_SUPPORT')
-
         ;
     }
 
@@ -208,28 +204,38 @@ class OrganizationCrudController extends AbstractCrudController
     {
         $id = $context->getRequest()->query->get('entityId');
         $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
-        $workflow = $this->workflowRegistry->get($entity);
+        $workflow = $this->workflowRegistry->get($entity, 'manage_organization_status');
 
         if ($workflow->can($entity, $transition)) {
             $workflow->apply($entity, $transition);
             $entity->setModified(new \DateTime());
             $entity->setModifiedBy($this->security->getUser());
             $this->updateEntity($this->doctrine->getManager(), $entity);
-
-            $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::INDEX)->generateUrl();
-
-            return $this->redirect($indexUrl);
         }
+        else{
+            $this->addFlash('warning', "The requested operation `$transition` cannot be executed");
+        }
+
+        $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::INDEX)->generateUrl();
+        return $this->redirect($indexUrl);
     }
 
-    public function suspendOrg(AdminContext $context)
+    /**
+     * We do not want to use the workflow to disable an organization.
+     */
+    public function disableOrg(AdminContext $context)
     {
-        return $this->fireTransition($context, 'suspend');
-    }
+        $id = $context->getRequest()->query->get('entityId');
+        $entity = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
 
-    public function activateOrg(AdminContext $context)
-    {
-        return $this->fireTransition($context, 'activate');
+        $entity->setStatus('disabled');
+
+        $entity->setModified(new \DateTime());
+        $entity->setModifiedBy($this->security->getUser());
+        $this->updateEntity($this->doctrine->getManager(), $entity);
+
+        $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(OrganizationCrudController::class)->setAction(Action::INDEX)->generateUrl();
+        return $this->redirect($indexUrl);
     }
 
     public function archiveOrg(AdminContext $context)
