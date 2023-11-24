@@ -209,6 +209,8 @@ class DeploymentsCrudController extends AbstractCrudController
         if ($this->orgHelper->isCustomerOrgSuspended($this->getUser())  || $this->orgHelper->isCustomerOrgCreditsFinished($this->getUser())) {
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->add(Crud::PAGE_INDEX, $gotomarketplace)
+                ->remove(Crud::PAGE_INDEX, Action::NEW)
                 ->setPermission(Action::DELETE, 'ROLE_SUPPORT')
                 ->setPermission(Action::EDIT, 'ROLE_SUPPORT')
                 ->setPermission($archiveApp, 'ROLE_SUPPORT')

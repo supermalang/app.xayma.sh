@@ -100,7 +100,7 @@ class UserCrudController extends AbstractCrudController
         // We use this variable to check roles and permissions of the current logged in user
         $loggedInUser = $this->getUser();
 
-        $updatePasswordUrl = $this->get(AdminUrlGenerator::class)->setController(User2CrudController::class)->setAction('edit');
+        $updatePasswordUrl = $this->container->get(AdminUrlGenerator::class)->setController(User2CrudController::class)->setAction('edit');
 
         // An admin can update passwords of all users that are not admins
         if (fn ($loggedInUser) => (in_array('ROLE_ADMIN', $loggedInUser->getRoles()) && !in_array('ROLE_ADMIN', $userToUpdate->getRoles()))) {

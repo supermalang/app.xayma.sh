@@ -30,7 +30,11 @@
                         {{service.essentialPlanTag|split('#')|last}}
                     </p>
                     <div class="d-grid">
-                        <a href="{{depl_ess_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% if orgStatus == 'suspended' %}
+                            <a href="#" class="btn btn-info disabled"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% else %}
+                            <a href="{{depl_ess_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -45,7 +49,11 @@
                         {{service.businessPlanTag|split('#')|last}}
                     </p>
                     <div class="d-grid">
-                        <a href="{{depl_biz_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% if orgStatus == 'suspended' %}
+                            <a href="#" class="btn btn-info disabled"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% else %}
+                            <a href="{{depl_biz_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -60,7 +68,11 @@
                         {{service.highPerformancePlanTag|split('#')|last}}
                     </p>
                     <div class="d-grid">
-                        <a href="{{depl_hpe_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% if orgStatus == 'suspended' %}
+                            <a href="#" class="btn btn-info disabled"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% else %}
+                            <a href="{{depl_hpe_url}}" class="btn btn-info"><i class="fas fa-rocket"></i> Deploy</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

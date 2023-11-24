@@ -148,6 +148,8 @@ class ServiceCrudController extends AbstractCrudController
 
         $entityId = $request->get('id');
 
+        $orgStatus = $this->isGranted('ROLE_SUPPORT') ? 'active' : $this->getUser()->getOrganizations()[0]->getStatus();
+
         $serviceRepository = $this->em->getRepository($this->getEntityFqcn());
         $service = $serviceRepository->find($entityId);
 
@@ -156,6 +158,7 @@ class ServiceCrudController extends AbstractCrudController
             'servicelabelencoded' => base64_encode($service->getLabel()),
             'service' => $service,
             'options' => $hashedoptions,
+            'orgStatus' => $orgStatus,
         ]);
     }
 }
