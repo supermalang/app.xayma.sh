@@ -266,7 +266,7 @@ class DeploymentsCrudController extends AbstractCrudController
     }
 
     /** We are not managing this through the workflow manager as for this specific use case we want to avoid having an extra status in the workflow */
-    public function restartApp(AdminContext $context): void
+    public function restartApp(AdminContext $context)
     {
         $id = $context->getRequest()->query->get('entityId');
         $deployment = $this->doctrine->getRepository($this->getEntityFqcn())->find($id);
