@@ -276,12 +276,14 @@ class DeploymentsCrudController extends AbstractCrudController
         $job_tags = is_array($restart_tags) ? implode(', ', $restart_tags) : $restart_tags;
 
         $this->bus->dispatch(new UpdateDeploymentMessage($deployment->getId(), $job_tags));
+
+        $indexUrl = $this->container->get(AdminUrlGenerator::class)->setController(DeploymentsCrudController::class)->setAction(Action::INDEX)->generateUrl();
+        return $this->redirect($indexUrl);
     }
 
     public function archiveApp(AdminContext $context)
     {
-        // TODO
-        return ;
+        return $this->fireTransition($context, 'archive');
     }
 
     /**
