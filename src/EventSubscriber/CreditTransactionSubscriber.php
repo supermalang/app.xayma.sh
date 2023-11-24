@@ -9,7 +9,7 @@ use Symfony\Component\Workflow\Registry;
 use App\Entity\CreditTransaction;
 use App\Entity\Organization;
 use App\Repository\SettingsRepository;
-
+use Psr\Log\LoggerInterface;
 
 class CreditTransactionSubscriber implements EventSubscriberInterface
 {
@@ -17,13 +17,15 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
 
     private $workflowRegistry;
     private $em;
+    private $logger;
     private $settingsRepository;
     
-    public function __construct(EntityManagerInterface $entityManager, Registry $workflowRegistry, SettingsRepository $settingsRepository)
+    public function __construct(EntityManagerInterface $entityManager, Registry $workflowRegistry, SettingsRepository $settingsRepository, LoggerInterface $logger)
     {
         $this->workflowRegistry = $workflowRegistry;
         $this->em = $entityManager;
         $this->settingsRepository = $settingsRepository;
+        $this->logger = $logger;
     }
 
     public static function getSubscribedEvents(): array
@@ -34,10 +36,15 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
             ],
         ];
     }
-    
+
     /** Add a credit transaction when an admin add a transaction for a customer **/
-    public function newAdminCreditTransaction(BeforeEntityPersistedEvent $event)
+    public function newAdminCreditTransaction($event)
     {
+        // If it is an easyadmin event
+        if ($event instanceof BeforeEntityPersistedEvent) {
+            $organization = $event->getEntityInstance();
+        }
+
         $entity = $event->getEntityInstance();
         
         if ($entity instanceof CreditTransaction) {

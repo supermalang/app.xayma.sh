@@ -97,6 +97,7 @@ class CheckCreditStatusCommand extends Command
          */
         foreach ($orgsOnDebt as $organization) {
             if ($workflow->can($organization, 'allow_credit_debt')) {
+                dump("inside");
                 $workflow->apply($organization, 'allow_credit_debt');
                 $this->entityManager->flush();
             }

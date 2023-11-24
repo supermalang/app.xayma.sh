@@ -10,6 +10,7 @@ use Doctrine\ORM\Events;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Component\Workflow\Registry;
 use App\Controller\Admin\CreditTransactionCrudController;
+use App\Entity\Organization;
 use App\Repository\DeploymentsRepository;
 use App\Repository\SettingsRepository;
 use App\Service\PaymentHelper;
@@ -50,8 +51,8 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Events::preUpdate => 'preUpdate',               // Doctrine event
-            'BeforeEntityPersistedEvent' => 'preUpdate',    // EasyAdmin event
+            //Events::preUpdate => 'temp_preUpdate',                    // Doctrine event
+            BeforeEntityPersistedEvent::class => 'temp_preUpdate',    // EasyAdmin event
             'workflow.manage_organization_status.entered.active' => [ // active
                 ['unsuspendDeployments', 8],
                 //['notifyOrgStatus',9],
@@ -94,9 +95,11 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function preUpdate(LifecycleEventArgs $args): void
+    public function temp_preUpdate($args): void
     {
-        $this->updateOrgStatusAfterTransaction($args);
+        if($args instanceof Organization){
+            $this->updateOrgStatusAfterTransaction($args);
+        }
     }
 
     /**

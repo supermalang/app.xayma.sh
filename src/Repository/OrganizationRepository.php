@@ -81,7 +81,7 @@ class OrganizationRepository extends ServiceEntityRepository
     /** Get all organization that have credits below the MaxCreditsDebt */
     public function findAllBeyondMaxDebt($MaxCreditsDebt){
         return $this->createQueryBuilder('o')
-            ->andWhere('o.remainingCredits < :MaxCreditsDebt')
+            ->andWhere('o.remainingCredits <= :MaxCreditsDebt')
             ->setParameter('MaxCreditsDebt', (-1 * $MaxCreditsDebt))
             ->getQuery()
             ->getResult()

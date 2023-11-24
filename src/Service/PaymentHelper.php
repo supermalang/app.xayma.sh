@@ -6,6 +6,8 @@ use App\Repository\SettingsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CreditTransactionRepository;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Workflow\Registry;
+
 
 class PaymentHelper
 {
@@ -14,12 +16,15 @@ class PaymentHelper
     private $settingsRepository; 
     private $em;
     private $creditTransactionRepository;
+    private $workflowRegistry;
 
-    public function __construct(SettingsRepository $settingsRepository, EntityManagerInterface $em, CreditTransactionRepository $creditTransactionRepository)
+
+    public function __construct(SettingsRepository $settingsRepository, EntityManagerInterface $em, CreditTransactionRepository $creditTransactionRepository, Registry $workflowRegistry)
     {
         $this->settingsRepository = $settingsRepository; 
         $this->em = $em;
         $this->creditTransactionRepository = $creditTransactionRepository;
+        $this->workflowRegistry = $workflowRegistry;
     }
 
     /**
@@ -179,8 +184,11 @@ class PaymentHelper
             $organization->setRemainingCredits($remainingCredits + $creditTransaction->getCreditsPurchased());
             $organization->setModified(new \DateTime());
             
-            // update the org status to staging mode
-            $organization->setStatus('staging');
+            $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status_via_staging');
+
+            if($workflow->can($organization, 'add_transaction')){
+                $workflow->apply($organization, 'add_transaction');
+            }
 
             $this->em->persist($organization);
             $this->em->persist($creditTransaction);

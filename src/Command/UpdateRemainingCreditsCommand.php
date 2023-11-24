@@ -4,7 +4,6 @@ namespace App\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,7 +13,8 @@ use App\Repository\OrganizationRepository;
 use App\Repository\DeploymentsRepository;
 use App\Repository\UserRepository;
 use App\Entity\CreditTransaction;
-use App\Entity\User;
+use Symfony\Component\Workflow\Registry;
+use Psr\Log\LoggerInterface;
 
 
 #[AsCommand(
@@ -24,13 +24,23 @@ use App\Entity\User;
 class UpdateRemainingCreditsCommand extends Command
 {
     const SYSTEM_USER_ID = 1;
+    private $entityManager;
+    private $organizationRepository;
+    private $deploymentRepository;
+    private $userRepository;
+    private $logger;
+    private $workflowRegistry;
 
-    public function __construct(EntityManagerInterface $entityManager, OrganizationRepository $organizationRepository, DeploymentsRepository $deploymentRepository, UserRepository $userRepository)
+
+    public function __construct(EntityManagerInterface $entityManager, OrganizationRepository $organizationRepository, DeploymentsRepository $deploymentRepository, UserRepository $userRepository, LoggerInterface $logger, Registry $workflowRegistry)
     {
         $this->entityManager = $entityManager;
         $this->organizationRepository = $organizationRepository;
         $this->deploymentRepository = $deploymentRepository;
         $this->userRepository = $userRepository;
+        $this->logger = $logger;
+        $this->workflowRegistry = $workflowRegistry;
+
         parent::__construct();
     }
 
@@ -52,9 +62,6 @@ class UpdateRemainingCreditsCommand extends Command
          * For each organization, get the sum of credits consumed by each service of the organization during the period of time
          */
         foreach ($organizations as $organization) {
-            $organizationId = $organization->getId();
-            $queryBuilder = $this->entityManager->createQueryBuilder();
-
             $monthlyCreditConsumption = $this->deploymentRepository->getCurrentMonthlyConsumption($organization);
             
             // By default the periodicity calculated is one hour
@@ -74,7 +81,7 @@ class UpdateRemainingCreditsCommand extends Command
 
             // create a new credit transaction for orgs that are not suspended
             // suspended orgs are not supposed to be running
-            if($organization->getStatus() != 'suspended' && $organization->getStatus() != 'archived' && $organization->getStatus() != 'pending_deletion'){
+            if(!in_array($organization->getStatus(), ['suspended', 'disabled', 'archived', 'pending_deletion'])){
                 $creditTransaction = new CreditTransaction();
                 $creditTransaction->setOrganization($organization);
                 $creditTransaction->setCreditsUsed($periodicityCreditConsumption);
@@ -85,24 +92,28 @@ class UpdateRemainingCreditsCommand extends Command
                 $creditTransaction->setStatus('completed');
 
                 if (!$input->getOption('dry-run')) {
+                    $now = new \DateTime();
+                    $nowFormatted = $now->format('Y-m-d H:i:s');
+
+                    $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status_via_staging');
+
+                    if($workflow->can($organization, 'add_transaction')){
+                        $workflow->apply($organization, 'add_transaction');
+                    }
+
                     $this->entityManager->persist($creditTransaction);
+                    $this->entityManager->persist($organization);
                 }
             }
-
-            // persist if option dry-run is not set
-            if (!$input->getOption('dry-run')) {
-                $this->entityManager->persist($organization);
-                $this->entityManager->flush();
-            }
-            else{
-                // Just display the SQL commands that would be run
-                // TODO
-            }
         }
+        $this->entityManager->flush();
+
         // creates a variable that contains the current date and time
         $now = new \DateTime();
         $nowFormatted = $now->format('Y-m-d H:i:s');
         $io->success("$nowFormatted : The credit balance of the organizations have been successfully updated");
+
+        $this->logger->info("$nowFormatted : The credit balance of the organizations have been successfully updated");
 
         return Command::SUCCESS;
     }
