@@ -12,6 +12,7 @@ use Symfony\Component\Workflow\Registry;
 use App\Controller\Admin\CreditTransactionCrudController;
 use App\Entity\Organization;
 use App\Repository\DeploymentsRepository;
+use App\Repository\CreditTransactionRepository;
 use App\Repository\SettingsRepository;
 use App\Service\PaymentHelper;
 use App\Service\Notifier;
@@ -28,6 +29,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     private $settingsRepository;
     private $adminUrlGenerator;
     private $paymentHelper;
+    private $creditTransactionRepository;
 
     public function __construct(
         AdminUrlGenerator $adminUrlGenerator, 
@@ -37,6 +39,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         DeploymentsRepository $deploymentsRepository, 
         SettingsRepository $settingsRepository,
         PaymentHelper $paymentHelper,
+        CreditTransactionRepository $creditTransactionRepository
         )
     {
         $this->workflowRegistry = $workflowRegistry;
@@ -46,6 +49,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         $this->settingsRepository = $settingsRepository;
         $this->paymentHelper = $paymentHelper;
         $this->adminUrlGenerator = $adminUrlGenerator;
+        $this->creditTransactionRepository = $creditTransactionRepository;
     }
 
     public static function getSubscribedEvents(): array
@@ -55,27 +59,25 @@ class OrgStatusSubscriber implements EventSubscriberInterface
             BeforeEntityPersistedEvent::class => 'temp_preUpdate',    // EasyAdmin event
             'workflow.manage_organization_status.entered.active' => [ // active
                 ['unsuspendDeployments', 8],
-                //['notifyOrgStatus',9],
             ],
             'workflow.manage_organization_status_via_staging.entered.active' => [
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatus',9],
+                ['notifyOrgStatusIfReactivation',7],
             ],
             'workflow.manage_organization_status.entered.low_credit' => [ // low credit
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatus',9],
+                ['notifyOrgStatus',7],
             ],
             'workflow.manage_organization_status_via_staging.entered.low_credit' => [
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatus',9],
+                ['notifyOrgStatus',7],
             ],
             'workflow.manage_organization_status.entered.no_credit' => [ // No credit
                 ['suspendOrAllowDebt', 8],                  // Quickly assess if we need to suspend or allow debt
-                ['notifyOrgStatus',9],
+                ['notifyOrgStatus',7],
             ],
             'workflow.manage_organization_status_via_staging.entered.no_credit' => [
                 ['suspendOrAllowDebt', 8],                  
-                //['notifyOrgStatus',9], We do not want to notify as it will happen when the account is suspended
             ],
             'workflow.manage_organization_status.entered.on_debt' => [ // On debt
                 ['notifyOrgStatus',9],
@@ -220,6 +222,45 @@ class OrgStatusSubscriber implements EventSubscriberInterface
             if ($workflow->can($organization, 'suspend')) {
                 $workflow->apply($organization, 'suspend');
             }
+        }
+    }
+
+    /**
+     * This function is used to make sure users get notified only when their account is reactivated after a credit transaction
+     * Reactivation means that the org went from a suspended state to an active state (transiting through a staging state)
+     * We do not want to notify users when the status was not suspended (ex: A active state can buy more credit and still be in active state. We do not want to bother those users.)
+     */
+    public function notifyOrgStatusIfReactivation(Event $event): void
+    {
+        $organization = $event->getSubject();
+        $isReactivation =  false;
+
+        // Get the last credit transaction for this organization using the credit transaction repository
+        $lastCreditTransaction = $this->creditTransactionRepository->findOneBy(['organization' => $organization], ['created' => 'DESC']);
+
+        // If the last transaction was a credit (opposit to debit), we check what was the org remaining credits before
+        // and after the transaction. If it was beyond debt limit (or negative) before and positive after, we notify the org that it has been reactivated
+        if($lastCreditTransaction && $lastCreditTransaction->getTransactionType() == "credit" && $lastCreditTransaction->getCreditsPurchased() > 0){
+            $orgRemainingCreditBeforeTransaction = $organization->getRemainingCredits() - $lastCreditTransaction->getCreditsPurchased();
+
+            $MaxCreditsDebt = (-1 * $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getMaxCreditsDebt());
+
+            if($organization->isAllowCreditDebt()){
+                if($orgRemainingCreditBeforeTransaction <= $MaxCreditsDebt){
+                    $isReactivation = true;
+                }
+            }
+            else{
+                if($orgRemainingCreditBeforeTransaction <= 0){
+                    $isReactivation = true;
+                }
+            }
+
+            if($isReactivation){
+                $this->notifyOrgStatus($event);
+            }
+
+            return ;
         }
     }
 
