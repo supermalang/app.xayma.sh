@@ -46,8 +46,8 @@ RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
     && npm run build --if-present \
     && chmod +x /var/www/entrypoint.sh \
     && chown -R www-data:www-data /var/www/app.xayma.sh \
-    && chmod -R 777 /var/www/app.xayma.sh/var \
-    && php /var/www/app.xayma.sh/bin/console cache:clear
+    && php /var/www/app.xayma.sh/bin/console cache:clear \
+    && chmod -R 777 /var/www/app.xayma.sh/var
 
 CMD /bin/bash /var/www/entrypoint.sh
 
