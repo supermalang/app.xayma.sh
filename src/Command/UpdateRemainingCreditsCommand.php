@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 
 #[AsCommand(
     name: 'app:update-remaining-credits',
-    description: 'Periodically update the credits remaining for each organization',
+    description: 'Periodically deduct the credits being used for each organization',
 )]
 class UpdateRemainingCreditsCommand extends Command
 {
@@ -56,8 +56,11 @@ class UpdateRemainingCreditsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $organizations = $this->organizationRepository->findAll();
-
+        /**
+         * We only get organizations that are running
+         */
+        $organizations = $this->organizationRepository->findBy(['status' => ['active', 'low_credit', 'no_credit', 'on_debt']]) ?? [];
+        
         /**
          * For each organization, get the sum of credits consumed by each service of the organization during the period of time
          */
@@ -79,31 +82,28 @@ class UpdateRemainingCreditsCommand extends Command
             $organization->setRemainingCredits((float)($remainingCredits - $periodicityCreditConsumption));
             $organization->setModified(new \DateTime());
 
-            // create a new credit transaction for orgs that are not suspended
-            // suspended orgs are not supposed to be running
-            if(!in_array($organization->getStatus(), ['suspended', 'disabled', 'archived', 'pending_deletion'])){
-                $creditTransaction = new CreditTransaction();
-                $creditTransaction->setOrganization($organization);
-                $creditTransaction->setCreditsUsed($periodicityCreditConsumption);
-                $creditTransaction->setCreditsRemaining((float)($remainingCredits - $periodicityCreditConsumption));
-                $creditTransaction->setTransactionType('debit');
-                $creditTransaction->setCreated(new \DateTime());
-                $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));
-                $creditTransaction->setStatus('completed');
+            $creditTransaction = new CreditTransaction();
+            $creditTransaction->setOrganization($organization);
+            $creditTransaction->setCreditsUsed($periodicityCreditConsumption);
+            $creditTransaction->setCreditsRemaining((float)($remainingCredits - $periodicityCreditConsumption));
+            $creditTransaction->setTransactionType('debit');
+            $creditTransaction->setCreated(new \DateTime());
+            $creditTransaction->setCreatedBy($this->userRepository->find(self::SYSTEM_USER_ID));
+            $creditTransaction->setStatus('completed');
+            $creditTransaction->setOrgCurrentStatus($organization->getStatus());
 
-                if (!$input->getOption('dry-run')) {
-                    $now = new \DateTime();
-                    $nowFormatted = $now->format('Y-m-d H:i:s');
+            if (!$input->getOption('dry-run')) {
+                $now = new \DateTime();
+                $nowFormatted = $now->format('Y-m-d H:i:s');
 
-                    $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status_via_staging');
+                $workflow = $this->workflowRegistry->get($organization, 'manage_organization_status_via_staging');
 
-                    if($workflow->can($organization, 'add_transaction')){
-                        $workflow->apply($organization, 'add_transaction');
-                    }
-
-                    $this->entityManager->persist($creditTransaction);
-                    $this->entityManager->persist($organization);
+                if($workflow->can($organization, 'add_transaction')){
+                    $workflow->apply($organization, 'add_transaction');
                 }
+
+                $this->entityManager->persist($creditTransaction);
+                $this->entityManager->persist($organization);
             }
         }
         $this->entityManager->flush();

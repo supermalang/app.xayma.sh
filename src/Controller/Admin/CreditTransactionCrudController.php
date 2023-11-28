@@ -84,6 +84,7 @@ class CreditTransactionCrudController extends AbstractCrudController
             TextField::new('paymentMethod')->onlyOnDetail(),
             TelephoneField::new('customerPhone')->hideOnIndex()->hideOnForm(),
             TextField::new('status')->onlyOnDetail(),
+            TextField::new('orgCurrentStatus')->onlyOnDetail(),
             DateTimeField::new('created')->onlyOnDetail()->hideOnForm(),
             AssociationField::new('createdBy')->onlyOnDetail()->hideOnForm(),
             DateTimeField::new('modified')->onlyOnDetail()->hideOnForm(),

@@ -62,36 +62,37 @@ class OrgStatusSubscriber implements EventSubscriberInterface
             ],
             'workflow.manage_organization_status_via_staging.entered.active' => [
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatusIfReactivation',7],
+                ['notifyIfNeeded',7],
             ],
             'workflow.manage_organization_status.entered.low_credit' => [ // low credit
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatus',7],
+                ['notifyIfNeeded',7],
             ],
             'workflow.manage_organization_status_via_staging.entered.low_credit' => [
                 ['unsuspendDeployments', 8],
-                ['notifyOrgStatus',7],
+                ['notifyIfNeeded',7],
             ],
             'workflow.manage_organization_status.entered.no_credit' => [ // No credit
                 ['suspendOrAllowDebt', 8],                  // Quickly assess if we need to suspend or allow debt
-                ['notifyOrgStatus',7],
+                //['notifyIfNeeded',7],
             ],
             'workflow.manage_organization_status_via_staging.entered.no_credit' => [
-                ['suspendOrAllowDebt', 8],                  
+                ['suspendOrAllowDebt', 8],                  // Quickly assess if we need to suspend or allow debt
+                ['notifyIfNeeded', 8],                  
             ],
             'workflow.manage_organization_status.entered.on_debt' => [ // On debt
-                ['notifyOrgStatus',9],
+                ['notifyIfNeeded',9],
             ],
             'workflow.manage_organization_status_via_staging.entered.on_debt' => [
-                ['notifyOrgStatus',9],
+                ['notifyIfNeeded',9],
             ],
             'workflow.manage_organization_status.entered.suspended' => [ // Suspended
                 ['suspendOrgActiveDeployments',10],
-                ['notifyOrgStatus',9],
+                ['notifyIfNeeded',9],
             ],
             'workflow.manage_organization_status_via_staging.entered.suspended' => [
                 ['suspendOrgActiveDeployments',10],
-                ['notifyOrgStatus',9],
+                ['notifyIfNeeded',9],
             ],
             'workflow.manage_organization_status_via_staging.entered.staging' => 'updateOrgStatusAfterTransaction',
         ];
@@ -117,6 +118,9 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         foreach ($deployments as $deployment) {
             if ($workflow->can($deployment, 'suspend')) {
                 $workflow->apply($deployment, 'suspend');
+            }
+            elseif ($workflow->can($deployment, 'add_transaction')) {
+                $workflow->apply($deployment, 'add_transaction');
             }
         }
     }
@@ -226,42 +230,23 @@ class OrgStatusSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * This function is used to make sure users get notified only when their account is reactivated after a credit transaction
-     * Reactivation means that the org went from a suspended state to an active state (transiting through a staging state)
-     * We do not want to notify users when the status was not suspended (ex: A active state can buy more credit and still be in active state. We do not want to bother those users.)
+     * This function is used to make sure users get notified only when their account status has changed since the last credit transaction
      */
-    public function notifyOrgStatusIfReactivation(Event $event): void
+    public function notifyIfNeeded(Event $event): void
     {
         $organization = $event->getSubject();
-        $isReactivation =  false;
 
         // Get the last credit transaction for this organization using the credit transaction repository
         $lastCreditTransaction = $this->creditTransactionRepository->findOneBy(['organization' => $organization], ['created' => 'DESC']);
+        //dd($lastCreditTransaction && $lastCreditTransaction->getOrgCurrentStatus() != $organization->getStatus());
 
         // If the last transaction was a credit (opposit to debit), we check what was the org remaining credits before
         // and after the transaction. If it was beyond debt limit (or negative) before and positive after, we notify the org that it has been reactivated
-        if($lastCreditTransaction && $lastCreditTransaction->getTransactionType() == "credit" && $lastCreditTransaction->getCreditsPurchased() > 0){
-            $orgRemainingCreditBeforeTransaction = $organization->getRemainingCredits() - $lastCreditTransaction->getCreditsPurchased();
-
-            $MaxCreditsDebt = (-1 * $this->settingsRepository->find(self::SYSTEM_SETTINGS_ID)->getMaxCreditsDebt());
-
-            if($organization->isAllowCreditDebt()){
-                if($orgRemainingCreditBeforeTransaction <= $MaxCreditsDebt){
-                    $isReactivation = true;
-                }
-            }
-            else{
-                if($orgRemainingCreditBeforeTransaction <= 0){
-                    $isReactivation = true;
-                }
-            }
-
-            if($isReactivation){
-                $this->notifyOrgStatus($event);
-            }
-
-            return ;
+        if($lastCreditTransaction && $lastCreditTransaction->getOrgCurrentStatus() != $organization->getStatus()){
+            $this->notifyOrgStatus($event);
         }
+
+        return ;
     }
 
     public function notifyOrgStatus(Event $event): void{
@@ -286,7 +271,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         }
         if(in_array('low_credit', $transition)){
             $title = "⚠️ Your credit balance is very low";
-            $message = "Your credit balance is very low. Please buy more credits to avoid suspension.";
+            $message = "Your credit balance is very low. You only have ".$organization->getRemainingCredits()." credits left. Please buy more credits to avoid suspension.";
         }
         if(in_array('no_credit', $transition)){
             $title = "⚠️ Your credit balance is finished";
@@ -294,7 +279,7 @@ class OrgStatusSubscriber implements EventSubscriberInterface
         }
         if(in_array('on_debt', $transition)){
             $title = "⚠️ Your account is on debt";
-            $message = "Your account is on debt, you have no credit left. Please buy more credits to avoid suspension.";
+            $message = "Your account is on debt, you have a negative balance ( ".$organization->getRemainingCredits()." credits). Please buy more credits to avoid suspension.";
         }
         if(in_array('suspended', $transition)){
             $title = "🛑 Your account has been suspended";

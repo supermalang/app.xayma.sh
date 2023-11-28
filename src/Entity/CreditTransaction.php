@@ -94,6 +94,11 @@ class CreditTransaction
      */
     private $paymentMethod;
 
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $orgCurrentStatus;
+
     public function __construct()
     {
         // Can be 'debit' or 'credit'
@@ -103,6 +108,7 @@ class CreditTransaction
         $this->creditsPurchased = 0;
         $this->amountPaid = 0;
         $this->status = 'temporary';
+        $this->orgCurrentStatus = 'n/a';
     }
 
     public function getId(): ?int
@@ -263,6 +269,18 @@ class CreditTransaction
     public function setCreditsUsed(float $creditsUsed): self
     {
         $this->creditsUsed = $creditsUsed;
+
+        return $this;
+    }
+
+    public function getOrgCurrentStatus(): ?string
+    {
+        return $this->orgCurrentStatus;
+    }
+
+    public function setOrgCurrentStatus(string $orgCurrentStatus): self
+    {
+        $this->orgCurrentStatus = $orgCurrentStatus;
 
         return $this;
     }

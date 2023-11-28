@@ -66,6 +66,7 @@ class CreditTransactionSubscriber implements EventSubscriberInterface
 
             if(strtolower($entity->getStatus()) == 'temporary'){
                 $entity->setStatus('completed');
+                $entity->setOrgCurrentStatus($organization->getStatus());
             }
 
             if($workflow->can($organization, 'add_transaction')){
