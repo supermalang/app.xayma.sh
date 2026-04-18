@@ -4,8 +4,8 @@ test.describe('Partners Management', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin before each test
     await page.goto('/login')
-    await page.fill('input[type="email"]', 'admin@example.com')
-    await page.fill('input[type="password"]', 'password123')
+    await page.fill('input[type="email"]', 'admin@test.example.com')
+    await page.fill('input[type="password"]', 'test123456')
     await page.click('button:has-text("Login")')
     await page.waitForURL('/') // Redirect to dashboard after login
   })
@@ -280,8 +280,8 @@ test.describe('Partner Audit Trail', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin
     await page.goto('/login')
-    await page.fill('input[type="email"]', 'admin@example.com')
-    await page.fill('input[type="password"]', 'password123')
+    await page.fill('input[type="email"]', 'admin@test.example.com')
+    await page.fill('input[type="password"]', 'test123456')
     await page.click('button:has-text("Login")')
     await page.waitForURL('/')
   })
