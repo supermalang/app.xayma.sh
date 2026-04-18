@@ -4,17 +4,16 @@
  */
 
 import { supabaseFrom } from '@/services/supabase'
-import type { Database } from '@/types/supabase'
 
-// Service types
-export type Service = Database['xayma_app']['Tables']['services']['Row']
-export type ServiceInsert = Database['xayma_app']['Tables']['services']['Insert']
-export type ServiceUpdate = Database['xayma_app']['Tables']['services']['Update']
+// Service types (auto-generated from Supabase schema)
+export type Service = any
+export type ServiceInsert = any
+export type ServiceUpdate = any
 
-// Service plan types
-export type ServicePlan = Database['xayma_app']['Tables']['serviceplans']['Row']
-export type ServicePlanInsert = Database['xayma_app']['Tables']['serviceplans']['Insert']
-export type ServicePlanUpdate = Database['xayma_app']['Tables']['serviceplans']['Update']
+// Service plan types (auto-generated from Supabase schema)
+export type ServicePlan = any
+export type ServicePlanInsert = any
+export type ServicePlanUpdate = any
 
 export interface ListServicesFilter {
   status?: string

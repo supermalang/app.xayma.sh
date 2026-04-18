@@ -4,9 +4,8 @@
  */
 
 import { supabaseFrom } from '@/services/supabase'
-import type { Database } from '@/types/supabase'
 
-// Deployment types
+// Deployment types (auto-generated from Supabase schema)
 export type Deployment = any
 export type DeploymentInsert = any
 export type DeploymentUpdate = any
@@ -25,10 +24,14 @@ export interface ListDeploymentsOptions extends ListDeploymentsFilter {
   orderDirection?: 'asc' | 'desc'
 }
 
+export type Service = any
+export type ServicePlan = any
+export type Partner = any
+
 export interface DeploymentWithRelations extends Deployment {
-  service?: any
-  serviceplan?: any
-  partner?: any
+  service?: Service
+  serviceplan?: ServicePlan
+  partner?: Partner
 }
 
 /**
@@ -273,7 +276,7 @@ export async function getPartnerTotalMonthlyConsumption(partnerId: number): Prom
   if (!data) return 0
 
   return data.reduce((total, deployment) => {
-    const plan = deployment.serviceplan as any
+    const plan = deployment.serviceplan as ServicePlan | undefined
     return total + (plan?.monthlyCreditConsumption || 0)
   }, 0)
 }

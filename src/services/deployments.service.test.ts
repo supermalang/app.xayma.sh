@@ -290,11 +290,10 @@ describe('Deployments Service', () => {
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        then: vi.fn((resolve) => resolve({ count: 5, error: null })),
       }
 
       ;(supabaseFrom as any).mockReturnValue(mockQuery)
-      ;(mockQuery.select().eq as any).mockReturnValue(mockQuery)
-      ;(mockQuery as any).mockResolvedValue({ count: 5, error: null })
 
       const count = await deploymentService.getDeploymentCountByStatus(1, 'active')
 
