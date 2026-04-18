@@ -1,0 +1,192 @@
+{
+  "name": "Xayma Dev",
+
+  // Base image: Node.js 20 LTS on Debian Bookworm
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+
+  // Official Anthropic Claude Code feature + useful extras
+  "features": {
+    // Claude Code — official Anthropic devcontainer feature
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+
+    // GitHub CLI — for PR creation and repo management
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+
+    // ZSH + Oh My Zsh — better terminal experience
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "configureZshAsDefaultShell": true,
+      "username": "node"
+    }
+  },
+
+  // Post-create: install deps + Playwright browsers + vibe-annotations
+  "postCreateCommand": "sudo chown -R node:node /workspaces && rm -rf node_modules package-lock.json && npm install && npx playwright install chromium --with-deps && npm install -g vibe-annotations-server",
+
+  // Post-start: auto-start vibe-annotations, remind developer of commands
+  "postStartCommand": "vibe-annotations-server start &>/dev/null & echo '\\n🚀 Xayma Dev Container ready\\n   npm run dev                   → start Vite dev server (port 5173)\\n   claude                        → start Claude Code\\n   (vibe-annotations running on :3846)\\n'",
+
+  // Persist Claude credentials, npm globals, and ZSH history across rebuilds
+  "mounts": [
+    // Bind-mount Claude credentials from Windows host (login via `claude` on host first)
+    "source=${localEnv:APPDATA}/Claude,target=/home/node/.claude,type=bind,consistency=cached",
+    "source=xayma-npm-global,target=/home/node/.npm-global,type=volume",
+    "source=xayma-zsh-history,target=/home/node/.zsh_history,type=volume"
+  ],
+
+  // Forward ports: Vite dev server + Vibe Annotations MCP server
+  "forwardPorts": [5173, 3846],
+  "portsAttributes": {
+    "5173": { "label": "Vite Dev Server", "onAutoForward": "notify" },
+    "3846": { "label": "Vibe Annotations Server", "onAutoForward": "silent" }
+  },
+
+  // Environment variables inside the container
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "NODE_ENV": "development",
+    // Claude Code runs without permission prompts — safe inside sandboxed container
+    "CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS": "true"
+  },
+
+  // Run as the non-root node user
+  "remoteUser": "node",
+
+  "customizations": {
+    "vscode": {
+      // -------------------------------------------------------------------
+      // VS Code settings applied inside the container
+      // -------------------------------------------------------------------
+      "settings": {
+        // Editor
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.rulers": [100],
+        "editor.bracketPairColorization.enabled": true,
+        "editor.inlineSuggest.enabled": true,
+        "editor.guides.bracketPairs": true,
+
+        // Terminal — use ZSH
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.fontSize": 13,
+
+        // TypeScript
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "typescript.preferences.importModuleSpecifier": "relative",
+
+        // Vue / Volar
+        "vue.inlayHints.missingProps": true,
+        "[vue]": {
+          "editor.defaultFormatter": "Vue.volar"
+        },
+
+        // ESLint
+        "eslint.validate": ["javascript", "typescript", "vue"],
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+
+        // Tailwind CSS
+        "tailwindCSS.includeLanguages": {
+          "vue": "html"
+        },
+        "tailwindCSS.experimental.classRegex": [
+          ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+        ],
+
+        // i18n Ally
+        "i18n-ally.localesPaths": ["src/i18n"],
+        "i18n-ally.keystyle": "nested",
+        "i18n-ally.sourceLanguage": "en",
+        "i18n-ally.displayLanguage": "en",
+
+        // Git
+        "git.autofetch": true,
+        "git.confirmSync": false,
+
+        // File associations
+        "files.associations": {
+          "*.css": "tailwindcss"
+        },
+
+        // Exclude noise
+        "files.exclude": {
+          "**/node_modules": true,
+          "**/.git": true,
+          "**/dist": true,
+          "**/.supabase": true
+        }
+      },
+
+      // -------------------------------------------------------------------
+      // Extensions installed automatically in the container
+      // -------------------------------------------------------------------
+      "extensions": [
+        // ── Claude Code ──────────────────────────────────────────────────
+        "anthropic.claude-code",
+
+        // ── Vue / Frontend ───────────────────────────────────────────────
+        "Vue.volar",
+        "Vue.vscode-typescript-vue-plugin",
+
+        // ── TypeScript / JavaScript ──────────────────────────────────────
+        "ms-vscode.vscode-typescript-next",
+
+        // ── Linting & Formatting ─────────────────────────────────────────
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+
+        // ── Tailwind CSS ─────────────────────────────────────────────────
+        "bradlc.vscode-tailwindcss",
+
+        // ── i18n ─────────────────────────────────────────────────────────
+        "lokalise.i18n-ally",
+
+        // ── Git ──────────────────────────────────────────────────────────
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+
+        // ── Supabase ─────────────────────────────────────────────────────
+        "Supabase.supabase-vscode",
+
+        // ── Database / SQL ───────────────────────────────────────────────
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+
+        // ── Testing ──────────────────────────────────────────────────────
+        "vitest.explorer",
+        "ms-playwright.playwright",
+
+        // ── REST / API ───────────────────────────────────────────────────
+        "humao.rest-client",
+
+        // ── Environment ──────────────────────────────────────────────────
+        "mikestead.dotenv",
+        "IronGeek.vscode-env",
+
+        // ── Markdown / Docs ──────────────────────────────────────────────
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-mermaid",
+
+        // ── JSON ─────────────────────────────────────────────────────────
+        "ZainChen.one-json",
+
+        // ── Productivity ─────────────────────────────────────────────────
+        "christian-kohler.path-intellisense",
+        "streetsidesoftware.code-spell-checker",
+        "usernamehw.errorlens",
+        "vscode-icons-team.vscode-icons",
+
+        // ── GitHub ───────────────────────────────────────────────────────
+        "GitHub.vscode-pull-request-github"
+      ]
+    }
+  }
+}

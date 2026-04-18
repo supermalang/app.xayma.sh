@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deployments | Xayma.sh</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "secondary": "#9d4300",
+                "outline-variant": "#c4c5d5",
+                "primary-container": "#1e40af",
+                "surface-container-low": "#eff4ff",
+                "primary": "#00288e",
+                "on-primary-container": "#a8b8ff",
+                "on-secondary": "#ffffff",
+                "on-tertiary": "#ffffff",
+                "secondary-fixed": "#ffdbca",
+                "background": "#f8f9ff",
+                "surface-container": "#e5eeff",
+                "error": "#ba1a1a",
+                "on-secondary-fixed": "#341100",
+                "secondary-fixed-dim": "#ffb690",
+                "surface-dim": "#cbdbf5",
+                "on-background": "#0b1c30",
+                "on-surface-variant": "#444653",
+                "surface": "#f8f9ff",
+                "on-primary": "#ffffff",
+                "error-container": "#ffdad6",
+                "surface-tint": "#3755c3",
+                "inverse-primary": "#b8c4ff",
+                "surface-container-highest": "#d3e4fe",
+                "secondary-container": "#fd761a",
+                "inverse-surface": "#213145",
+                "surface-variant": "#d3e4fe",
+                "surface-container-high": "#dce9ff",
+                "outline": "#757684",
+                "on-secondary-container": "#5c2400",
+                "tertiary-fixed": "#85f8c4",
+                "inverse-on-surface": "#eaf1ff",
+                "on-tertiary-fixed-variant": "#005137",
+                "on-error": "#ffffff",
+                "on-tertiary-fixed": "#002114",
+                "on-surface": "#0b1c30",
+                "tertiary-container": "#00563a",
+                "on-secondary-fixed-variant": "#783200",
+                "surface-bright": "#f8f9ff",
+                "primary-fixed": "#dde1ff",
+                "tertiary-fixed-dim": "#68dba9",
+                "on-error-container": "#93000a",
+                "on-primary-fixed": "#001453",
+                "surface-container-lowest": "#ffffff",
+                "on-primary-fixed-variant": "#173bab",
+                "tertiary": "#003d28",
+                "on-tertiary-container": "#5bcf9e",
+                "primary-fixed-dim": "#b8c4ff"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"],
+                "mono": ["IBM Plex Mono"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 20px;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .mono-data { font-family: 'IBM Plex Mono', monospace; }
+      </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-8 h-16 w-full bg-white dark:bg-slate-950 border-b border-outline-variant/20 shadow-none">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-100">Xayma.sh</span>
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary-container" placeholder="Search deployments..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-high rounded text-sm font-mono text-primary font-medium">
+                5,000 FCFA
+            </div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-full">
+<span class="material-symbols-outlined text-blue-800 dark:text-blue-400">account_balance_wallet</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-full">
+<span class="material-symbols-outlined text-blue-800 dark:text-blue-400">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white overflow-hidden">
+<img alt="Bakary's Wholesale" data-alt="minimalist professional avatar for a wholesale business owner with clean typography on a blue background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-1sAj6mpbRpnp72Ou6xRpjnWx1Da-hMcS4kT9QOv5ciQ0ZinBvXewKqInGqcg949Gmp6GLNkQRrcVpmL_RUNFoHNlA2irM-bArBDGKs_uZlxaq73KyOg4N4H2U8IxNV7rrFwFyiVFdhN4XmjikoT8sC2Kvyr7HSIbPNpfH6PpkM0Dv2MrH-W79yPv6YzxNfaIPc-TbVlVDHb2bWlZ1BD18jUPdlwXuG8xopuFmKow26GfnHIcz0j_06vDzYAGPakAUOk0MAn-04hx"/>
+</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-8 px-4 h-screen w-64 border-r border-outline-variant/20 bg-slate-50 dark:bg-slate-900 z-40">
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white rounded flex items-center justify-center shadow-sm border border-outline-variant/10">
+<img alt="Dakar Distribution" data-alt="clean geometric logo for a logistics company featuring blue and white tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLwa-HvJsYV2Wbbm3qoIG5l3m9IuC-v_SSkQXZ0mRtLOjsYdeQUlGpp7aP3oHGOi5PqcDZhmSeZyDwcL82xd-86Nlxi5gsBy7jdYDZ25F0z_M6wgq8UwDWj6MKH38VZEMJOTxDKVhGQ9o0jGfRh02_HUtSlza2IIjgQO4g2OXoIdVXK6M6uWeGLCVPjDCeYgiaY9ZDxHF-VY8W94Riew66kTy7sYEJwDM8633RhnvEoLm3pXMsMwD8mANVXBkIFKqFUGRXjnJ-7HaQ"/>
+</div>
+<div>
+<h3 class="text-sm font-bold text-on-surface leading-tight">Dakar Distribution</h3>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Enterprise Tier</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-700 transition-all duration-200 rounded-l-lg" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="text-sm font-bold">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium">Billing</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Reseller</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-4 border-t border-outline-variant/10">
+<button class="w-full bg-primary-container text-white py-2.5 rounded-lg text-sm font-bold mb-4 shadow-sm hover:brightness-110 transition-all active:scale-95">
+                    New Deployment
+                </button>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-primary text-sm transition-colors" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-primary text-sm transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+                    Documentation
+                </a>
+<div class="mt-4 px-3">
+<span class="font-mono text-[10px] text-slate-500 uppercase tracking-tighter">v2.4.1-stable</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 flex-1 p-8 pt-12">
+<!-- Header Section -->
+<div class="flex items-end justify-between mb-12">
+<div>
+<h1 class="text-[32px] font-semibold tracking-tight text-on-surface mb-2">Deployments</h1>
+<p class="text-on-surface-variant text-sm max-w-lg">Manage your Odoo instances across distributed regions. Monitor status, domains, and billing cycles.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/40 text-primary font-medium text-sm rounded-lg hover:bg-surface-container transition-colors">
+                        Export CSV
+                    </button>
+<button class="px-5 py-2 bg-primary-container text-on-primary font-bold text-sm rounded-lg flex items-center gap-2 shadow-sm hover:brightness-110 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        New Deployment
+                    </button>
+</div>
+</div>
+<!-- Dashboard Stats (Bento Style Lite) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-5 border border-outline-variant/20 rounded-xl">
+<p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Total Active</p>
+<p class="text-3xl font-bold text-primary">08</p>
+</div>
+<div class="bg-surface-container-lowest p-5 border border-outline-variant/20 rounded-xl">
+<p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Monthly Cost</p>
+<p class="text-3xl font-bold text-on-surface mono-data">145,000 <span class="text-sm">FCFA</span></p>
+</div>
+<div class="bg-surface-container-lowest p-5 border border-outline-variant/20 rounded-xl">
+<p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Avg Uptime</p>
+<p class="text-3xl font-bold text-tertiary-container">99.98%</p>
+</div>
+<div class="bg-primary-container p-5 rounded-xl flex flex-col justify-between">
+<p class="text-[10px] font-mono text-on-primary-container uppercase tracking-widest mb-1">Credit Remaining</p>
+<div class="flex items-end justify-between">
+<p class="text-2xl font-bold text-white mono-data">5,000 <span class="text-xs">FCFA</span></p>
+<span class="material-symbols-outlined text-white/50">trending_down</span>
+</div>
+</div>
+</div>
+<!-- Deployments Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant/10 bg-slate-50/50 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="text-sm font-semibold text-slate-700">All Instances</span>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-tertiary-container/10 text-tertiary-container text-[10px] font-bold rounded">Active: 2</span>
+<span class="px-2 py-0.5 bg-error-container/10 text-error text-[10px] font-bold rounded">Suspended: 1</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-1.5 hover:bg-slate-200 rounded"><span class="material-symbols-outlined text-slate-500">filter_list</span></button>
+<button class="p-1.5 hover:bg-slate-200 rounded"><span class="material-symbols-outlined text-slate-500">more_vert</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-[11px] uppercase tracking-widest text-slate-400 font-mono border-b border-outline-variant/10">
+<th class="px-6 py-4 font-medium">Name</th>
+<th class="px-6 py-4 font-medium">Domain</th>
+<th class="px-6 py-4 font-medium">Status</th>
+<th class="px-6 py-4 font-medium">Created</th>
+<th class="px-6 py-4 font-medium text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-slate-400 text-sm">business</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Koumba Services</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary">koumba.xayma.sh</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-tertiary-fixed text-on-tertiary-fixed-variant">
+<span class="w-1 h-1 rounded-full bg-on-tertiary-fixed-variant"></span>
+                                        Active
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-on-surface-variant mono-data">2023-11-20 14:30</span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1 text-xs font-bold text-primary hover:bg-primary/5 rounded">View</button>
+<button class="px-3 py-1 text-xs font-bold text-on-surface-variant hover:bg-slate-100 rounded">Manage</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-slate-50/50 hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-slate-400 text-sm">local_shipping</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Dakar Distro</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary">dakar-dist.xayma.sh</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-error-container text-on-error-container">
+<span class="w-1 h-1 rounded-full bg-on-error-container"></span>
+                                        Suspended
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-on-surface-variant mono-data">2023-11-18 09:15</span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1 text-xs font-bold text-primary hover:bg-primary/5 rounded">View</button>
+<button class="px-3 py-1 text-xs font-bold text-on-surface-variant hover:bg-slate-100 rounded">Manage</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-slate-400 text-sm">inventory_2</span>
+</div>
+<span class="text-sm font-semibold text-on-surface">Bamako Logistics</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary">bamako-log.xayma.sh</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-tertiary-fixed text-on-tertiary-fixed-variant">
+<span class="w-1 h-1 rounded-full bg-on-tertiary-fixed-variant"></span>
+                                        Active
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm text-on-surface-variant mono-data">2023-11-15 11:45</span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1 text-xs font-bold text-primary hover:bg-primary/5 rounded">View</button>
+<button class="px-3 py-1 text-xs font-bold text-on-surface-variant hover:bg-slate-100 rounded">Manage</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 bg-slate-50/30 border-t border-outline-variant/10 flex items-center justify-between">
+<p class="text-[11px] text-slate-500 font-mono">SHOWING 3 OF 3 DEPLOYMENTS</p>
+<div class="flex gap-1">
+<button class="p-1 border border-outline-variant/20 rounded disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="p-1 border border-outline-variant/20 rounded hover:bg-slate-200">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Contextual Documentation Banner -->
+<div class="mt-12 p-8 bg-surface-container-low rounded-xl flex items-start justify-between">
+<div class="max-w-xl">
+<h4 class="text-lg font-bold text-primary mb-2">Need help with high availability?</h4>
+<p class="text-on-surface-variant text-sm mb-4">Learn how to configure database replication and load balancing for your Enterprise Odoo instances to ensure maximum uptime during peak hours.</p>
+<a class="text-primary font-bold text-sm inline-flex items-center gap-2 group" href="#">
+                        Read Cluster Documentation
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+</div>
+<div class="hidden lg:block">
+<img alt="Documentation Icon" class="opacity-20 grayscale" data-alt="minimalist architectural isometric illustration of servers and network nodes in blue and grey tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBY2x_nDDCWVqPGR1G1-9Tsd8pPlc7dyKe0FOJT9aSaKKbV68U5NoDmDFWpMkqKBJAoDFOXoHOKxlI2eHjaLLvT6JXyeI1BpA9voLaRqryHfqHWfHNtl4CZ5Xut9ojZm_ggBR8p35RXD_0jR5iJu3j69NYv5KqU4pXyXxBSpjCJm-nnw1o7hJ4DRPP7_iPh0cg8XfOgWd9N98_rzsZvv5Dtceu6WR_f0lUwIehIazDM1Nez-tmWF9dJV4N5bIiYnDKPuVnXt7DKyrwF"/>
+</div>
+</div>
+</main>
+</div>
+</body></html>

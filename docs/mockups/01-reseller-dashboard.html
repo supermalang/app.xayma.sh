@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Xayma.sh - Reseller Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary": "#9d4300",
+                        "outline-variant": "#c4c5d5",
+                        "primary-container": "#1e40af",
+                        "surface-container-low": "#eff4ff",
+                        "primary": "#00288e",
+                        "on-primary-container": "#a8b8ff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ffdbca",
+                        "background": "#f8f9ff",
+                        "surface-container": "#e5eeff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#341100",
+                        "secondary-fixed-dim": "#ffb690",
+                        "surface-dim": "#cbdbf5",
+                        "on-background": "#0b1c30",
+                        "on-surface-variant": "#444653",
+                        "surface": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#3755c3",
+                        "inverse-primary": "#b8c4ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-container": "#fd761a",
+                        "inverse-surface": "#213145",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container-high": "#dce9ff",
+                        "outline": "#757684",
+                        "on-secondary-container": "#5c2400",
+                        "tertiary-fixed": "#85f8c4",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#002114",
+                        "on-surface": "#0b1c30",
+                        "tertiary-container": "#00563a",
+                        "on-secondary-fixed-variant": "#783200",
+                        "surface-bright": "#f8f9ff",
+                        "primary-fixed": "#dde1ff",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#001453",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#173bab",
+                        "tertiary": "#003d28",
+                        "on-tertiary-container": "#5bcf9e",
+                        "primary-fixed-dim": "#b8c4ff"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .mono-data { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-8 h-16 w-full bg-white dark:bg-slate-950 border-b border-outline-variant/20">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-100">Xayma.sh</span>
+<div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+<span class="text-slate-500 dark:text-slate-400">Dashboard</span>
+<span class="text-slate-500 dark:text-slate-400">Deployments</span>
+<span class="text-slate-500 dark:text-slate-400">Billing</span>
+<span class="text-blue-700 dark:text-blue-300 font-bold">Reseller</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-surface-container-low px-3 py-1.5 rounded text-sm font-medium text-primary">
+<span class="material-symbols-outlined mr-2 text-lg">account_balance_wallet</span>
+<span class="mono-data">5,000 FCFA</span>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold" title="Bakary's Wholesale">
+                BW
+            </div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-8 px-4 h-screen w-64 border-r border-outline-variant/20 bg-slate-50 dark:bg-slate-900 z-40 hidden md:flex">
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 bg-blue-100 dark:bg-blue-900/40 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">hub</span>
+</div>
+<div>
+<div class="text-sm font-bold text-on-surface leading-tight">Dakar Distribution</div>
+<div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Enterprise Tier</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="text-sm font-medium">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium">Billing</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-700 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="text-sm font-bold">Reseller</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4">
+<button class="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+                    New Deployment
+                </button>
+<div class="pt-4 border-t border-outline-variant/20">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 text-sm hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">help_outline</span>
+                        Support
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 text-sm hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">description</span>
+                        Documentation
+                    </a>
+</div>
+<div class="font-mono text-[10px] text-slate-400 px-3 uppercase tracking-tighter">XAYMA_v2.4.0</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 md:ml-64 p-8 min-h-screen">
+<header class="mb-12">
+<h1 class="text-[32px] font-semibold tracking-tight text-on-surface mb-2">Reseller Hub</h1>
+<p class="text-on-surface-variant max-w-2xl">Manage your partner network, allocate cloud credits, and monitor customer instance health across West Africa.</p>
+</header>
+<!-- Multi-column Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Partner Summary Card (Bento Style) -->
+<div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 bg-surface-container-lowest border border-outline-variant/30 p-6 rounded-xl">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Reseller Level</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="text-xl font-bold">Platinum</span>
+</div>
+<div class="mt-4 h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4"></div>
+</div>
+<span class="text-[10px] mt-2 text-on-surface-variant uppercase">Next Level: Diamond (75% Progress)</span>
+</div>
+<div class="flex flex-col border-l border-outline-variant/20 pl-6">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Managed Instances</span>
+<div class="text-3xl font-bold mono-data">45</div>
+<span class="text-[10px] mt-auto text-tertiary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                            +12% vs last month
+                        </span>
+</div>
+<div class="flex flex-col border-l border-outline-variant/20 pl-6">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Commission Earned</span>
+<div class="text-xl font-bold mono-data text-primary">150,000 FCFA</div>
+<span class="text-[10px] mt-auto text-on-surface-variant">Payout date: 2024-06-01</span>
+</div>
+</div>
+<!-- Credit Allocation Form -->
+<div class="bg-surface-container-high p-6 border border-outline-variant/30 rounded-xl">
+<h3 class="font-bold text-sm uppercase tracking-widest mb-6 flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary text-lg">account_balance</span>
+                        Credit Allocation
+                    </h3>
+<form class="space-y-4">
+<div>
+<label class="block text-xs font-bold text-on-surface-variant mb-1.5">Select Customer</label>
+<select class="w-full bg-white border border-outline-variant/40 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none">
+<option>Aminata's Boutique</option>
+<option>Lamine Logistics</option>
+<option>Senegal Tech Hub</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold text-on-surface-variant mb-1.5">Amount to Allocate (FCFA)</label>
+<input class="w-full bg-white border border-outline-variant/40 rounded-lg px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="0" type="number"/>
+</div>
+<button class="w-full bg-primary text-white py-3 rounded-lg font-bold text-sm uppercase tracking-tight hover:brightness-110 transition-all flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-lg">send</span>
+                            Allocate Credits
+                        </button>
+</form>
+</div>
+<!-- Customer List Table Section -->
+<div class="lg:col-span-3 mt-4">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold text-on-surface">Client Portfolio</h2>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/40 rounded text-xs font-bold text-on-surface-variant hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                                Filter
+                            </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant/40 rounded text-xs font-bold text-on-surface-variant hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                                Export CSV
+                            </button>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container-lowest">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/10">
+<th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider">Customer Name</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider">Email</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider text-right">Credits</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider text-center">Managed Instances</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-bold text-xs">AB</div>
+<span class="text-sm font-semibold text-on-surface">Aminata's Boutique</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">ami@boutique.sn</td>
+<td class="px-6 py-5 text-sm text-right font-mono text-primary">12,000 FCFA</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-container-high text-on-primary-fixed-variant">
+                                            3 Nodes
+                                        </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary-container text-xs font-bold uppercase tracking-tighter flex items-center gap-1 justify-end ml-auto">
+                                            Manage <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-bold text-xs">LL</div>
+<span class="text-sm font-semibold text-on-surface">Lamine Logistics</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">lamine@log.ml</td>
+<td class="px-6 py-5 text-sm text-right font-mono text-primary">4,500 FCFA</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-container-high text-on-primary-fixed-variant">
+                                            8 Nodes
+                                        </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary-container text-xs font-bold uppercase tracking-tighter flex items-center gap-1 justify-end ml-auto">
+                                            Manage <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 bg-surface-container-highest rounded-lg flex items-center justify-center text-primary font-bold text-xs">ST</div>
+<span class="text-sm font-semibold text-on-surface">Senegal Tech Hub</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">info@stech.sn</td>
+<td class="px-6 py-5 text-sm text-right font-mono text-primary">25,000 FCFA</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-container-high text-on-primary-fixed-variant">
+                                            12 Nodes
+                                        </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary-container text-xs font-bold uppercase tracking-tighter flex items-center gap-1 justify-end ml-auto">
+                                            Manage <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Placeholder -->
+<div class="mt-6 flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+<div>Showing 3 of 45 managed partners</div>
+<div class="flex gap-4">
+<button class="hover:text-primary transition-colors disabled:opacity-30" disabled="">Previous</button>
+<button class="hover:text-primary transition-colors">Next</button>
+</div>
+</div>
+</div>
+<!-- Featured Promotion Section (Glassmorphism card) -->
+<div class="lg:col-span-3 mt-8 relative overflow-hidden rounded-2xl p-8 bg-primary-container text-white">
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="abstract technological digital matrix background with blue glowing lines and circuit patterns for high-end software deployment theme" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoQm6-LJ1mWi29n4NAy2w8G_4gr4EOp8XKV7ENmgcNuMDHmJ2y-Nx_0bgknBDvZmlqKBwZDcH_7wKSdjsdB7a5OpDuYdkqNUN2u0gk5E0m0S_qj35PrXHJtjib65Johuq2Y5BuSNwOWESlAvsEE_dpAPm1G2Q1kOGH9UktBkVesDAOGimF4IOjlmVch4tqsAU9OoClPQY2BiuExIaMaw4qZGmJ3wg2akPuRhdPQEJnbeDDw48YlxWO8KLTkvTrzfhgwDFR_c97OHpD"/>
+</div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+<div class="max-w-xl">
+<span class="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded text-[10px] font-extrabold uppercase tracking-[0.2em] mb-4">Partner Incentive</span>
+<h2 class="text-3xl font-bold mb-3 tracking-tight">Refer 5 Enterprise Clients</h2>
+<p class="text-on-primary-container text-lg">Reach the Diamond level by onboarding five premium instances this month and unlock a 25% recurring commission tier.</p>
+</div>
+<div class="shrink-0">
+<button class="px-8 py-4 bg-white text-primary font-bold rounded-lg shadow-xl shadow-blue-900/40 hover:-translate-y-0.5 transition-all">
+                                View Rewards Program
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

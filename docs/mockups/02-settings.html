@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#9d4300",
+              "outline-variant": "#c4c5d5",
+              "primary-container": "#1e40af",
+              "surface-container-low": "#eff4ff",
+              "primary": "#00288e",
+              "on-primary-container": "#a8b8ff",
+              "on-secondary": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed": "#ffdbca",
+              "background": "#f8f9ff",
+              "surface-container": "#e5eeff",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#341100",
+              "secondary-fixed-dim": "#ffb690",
+              "surface-dim": "#cbdbf5",
+              "on-background": "#0b1c30",
+              "on-surface-variant": "#444653",
+              "surface": "#f8f9ff",
+              "on-primary": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface-tint": "#3755c3",
+              "inverse-primary": "#b8c4ff",
+              "surface-container-highest": "#d3e4fe",
+              "secondary-container": "#fd761a",
+              "inverse-surface": "#213145",
+              "surface-variant": "#d3e4fe",
+              "surface-container-high": "#dce9ff",
+              "outline": "#757684",
+              "on-secondary-container": "#5c2400",
+              "tertiary-fixed": "#85f8c4",
+              "inverse-on-surface": "#eaf1ff",
+              "on-tertiary-fixed-variant": "#005137",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#002114",
+              "on-surface": "#0b1c30",
+              "tertiary-container": "#00563a",
+              "on-secondary-fixed-variant": "#783200",
+              "surface-bright": "#f8f9ff",
+              "primary-fixed": "#dde1ff",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-error-container": "#93000a",
+              "on-primary-fixed": "#001453",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#173bab",
+              "tertiary": "#003d28",
+              "on-tertiary-container": "#5bcf9e",
+              "primary-fixed-dim": "#b8c4ff"
+            },
+            fontFamily: {
+              "headline": ["Inter", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"],
+              "mono": ["IBM Plex Mono", "monospace"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9ff; }
+        .mono-data { font-family: 'IBM Plex Mono', monospace; }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-8 h-16 w-full bg-white border-b border-outline-variant/20">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-900">Xayma.sh</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-sm" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="mono-data text-sm font-medium">5,000 FCFA</span>
+</div>
+<button class="hover:bg-slate-100 p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold text-on-surface">Bakary's Wholesale</p>
+<p class="text-[10px] text-outline uppercase tracking-wider">Enterprise Tier</p>
+</div>
+<img alt="Bakary's Wholesale" class="w-8 h-8 rounded-lg object-cover" data-alt="professional corporate profile avatar for a wholesale business owner, clean studio lighting, minimalist style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdOwDU54am90xiNNrSGPXkEntwjcXQwqDzOrTBMld79WzdKmKALO0SbnUoOapZ-ot9tXkvPGXncLn98zZVi4mupFi71vGdsKPE_3pHHz5bnS1nufPbY1jmEQff1dJuD0DGXPbcoWMpk17SNGq9i2cF9TQbZKhCYx5hNlZl6oSWduU-qRaUKEw_eKNWqaTUVHPu22H1E2pcaf6HdJcDpAOBFLgTX4-RoYtQ8oTuXT8JosebVFyPUWad7pjNtajCL-WGvQq90LTlo6rX"/>
+</div>
+</div>
+</header>
+<div class="flex min-h-[calc(100vh-64px)]">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-slate-50 border-r border-outline-variant/20 flex flex-col py-8 px-4">
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-medium">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-medium">Billing</span>
+</a>
+<!-- Active Tab: Settings -->
+<a class="flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 border-r-4 border-blue-700 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-bold">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-medium">Reseller</span>
+</a>
+</nav>
+<div class="mt-auto pt-8 border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="text-sm font-medium">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-sm font-medium">Documentation</span>
+</a>
+<div class="mt-6 px-4">
+<span class="font-mono text-[10px] text-slate-500 uppercase tracking-widest">Dakar Distribution</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 p-12 max-w-5xl">
+<!-- Header -->
+<header class="mb-12">
+<h1 class="text-[32px] font-semibold tracking-tight text-on-surface leading-tight">Account Settings</h1>
+<p class="text-on-surface-variant mt-2 max-w-2xl">Manage your deployment credentials, personal information, and platform notification triggers.</p>
+</header>
+<div class="space-y-8">
+<!-- Account Info Section -->
+<section class="bg-white border border-outline-variant/30 p-8 shadow-sm rounded-lg">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="badge">badge</span>
+<h2 class="text-lg font-semibold tracking-tight">Account Information</h2>
+</div>
+<div class="grid grid-cols-1 gap-6 max-w-2xl">
+<div class="space-y-2">
+<label class="text-sm font-medium text-on-surface-variant">Full Name</label>
+<input class="w-full h-12 px-4 border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" type="text" value="Bakary Keïta"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium text-on-surface-variant">Email</label>
+<input class="w-full h-12 px-4 border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" type="email" value="bakary@wholesale.sn"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium text-on-surface-variant">Company Name</label>
+<input class="w-full h-12 px-4 border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" type="text" value="Bakary's Wholesale Distribution"/>
+</div>
+</div>
+</section>
+<!-- Password Change Section -->
+<section class="bg-white border border-outline-variant/30 p-8 shadow-sm rounded-lg">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="lock_reset">lock_reset</span>
+<h2 class="text-lg font-semibold tracking-tight">Password Security</h2>
+</div>
+<div class="grid grid-cols-1 gap-6 max-w-2xl">
+<div class="space-y-2">
+<label class="text-sm font-medium text-on-surface-variant">Current Password</label>
+<input class="w-full h-12 px-4 border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" placeholder="••••••••••••" type="password"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="text-sm font-medium text-on-surface-variant">New Password</label>
+<input class="w-full h-12 px-4 border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium text-on-surface-variant">Confirm Password</label>
+<input class="w-full h-12 px-4 border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" type="password"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Notification Preferences -->
+<section class="bg-white border border-outline-variant/30 p-8 shadow-sm rounded-lg">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="notifications_active">notifications_active</span>
+<h2 class="text-lg font-semibold tracking-tight">Notification Preferences</h2>
+</div>
+<div class="space-y-6 max-w-2xl">
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-medium text-on-surface">Email Notifications</p>
+<p class="text-sm text-on-surface-variant">Receive weekly summaries and platform announcements.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-2 border-t border-outline-variant/10">
+<div>
+<p class="font-medium text-on-surface">Low Credit Alerts</p>
+<p class="text-sm text-on-surface-variant">Notify me when account balance falls below 1,000 FCFA.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-2 border-t border-outline-variant/10">
+<div>
+<p class="font-medium text-on-surface">Deployment Status Updates</p>
+<p class="text-sm text-on-surface-variant">Real-time alerts for database state changes and backups.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Action Footer -->
+<div class="flex items-center justify-end gap-4 pt-8 border-t border-outline-variant/20">
+<button class="px-6 py-3 text-sm font-semibold text-primary hover:bg-surface-container-low transition-colors rounded-lg">
+                        Discard Changes
+                    </button>
+<button class="px-8 py-3 bg-primary-container text-white text-sm font-semibold hover:brightness-110 transition-all rounded-lg shadow-lg shadow-blue-900/10">
+                        Save Changes
+                    </button>
+</div>
+</div>
+<!-- Meta Information -->
+<footer class="mt-24 mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-outline-variant/10 pt-8">
+<div class="space-y-1">
+<p class="text-[10px] mono-data text-outline uppercase tracking-widest">System Architecture</p>
+<p class="text-xs text-on-surface-variant">Last account update: <span class="mono-data">2023-10-27 14:42</span></p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 text-xs text-outline bg-surface-container-low px-3 py-1 rounded">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="mono-data">XAY-992-BKR</span>
+</div>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

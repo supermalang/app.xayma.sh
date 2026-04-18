@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9ff;
+        }
+        .mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#9d4300",
+              "outline-variant": "#c4c5d5",
+              "primary-container": "#1e40af",
+              "surface-container-low": "#eff4ff",
+              "primary": "#00288e",
+              "on-primary-container": "#a8b8ff",
+              "on-secondary": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed": "#ffdbca",
+              "background": "#f8f9ff",
+              "surface-container": "#e5eeff",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#341100",
+              "secondary-fixed-dim": "#ffb690",
+              "surface-dim": "#cbdbf5",
+              "on-background": "#0b1c30",
+              "on-surface-variant": "#444653",
+              "surface": "#f8f9ff",
+              "on-primary": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface-tint": "#3755c3",
+              "inverse-primary": "#b8c4ff",
+              "surface-container-highest": "#d3e4fe",
+              "secondary-container": "#fd761a",
+              "inverse-surface": "#213145",
+              "surface-variant": "#d3e4fe",
+              "surface-container-high": "#dce9ff",
+              "outline": "#757684",
+              "on-secondary-container": "#5c2400",
+              "tertiary-fixed": "#85f8c4",
+              "inverse-on-surface": "#eaf1ff",
+              "on-tertiary-fixed-variant": "#005137",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#002114",
+              "on-surface": "#0b1c30",
+              "tertiary-container": "#00563a",
+              "on-secondary-fixed-variant": "#783200",
+              "surface-bright": "#f8f9ff",
+              "primary-fixed": "#dde1ff",
+              "tertiary-fixed-dim": "#68dba9",
+              "on-error-container": "#93000a",
+              "on-primary-fixed": "#001453",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#173bab",
+              "tertiary": "#003d28",
+              "on-tertiary-container": "#5bcf9e",
+              "primary-fixed-dim": "#b8c4ff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="text-on-background">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-8 h-16 w-full bg-white dark:bg-slate-950 border-b border-outline-variant/20">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-100">Xayma.sh</span>
+<div class="hidden md:flex items-center gap-6">
+<nav class="flex items-center gap-6 text-sm font-medium Inter tracking-tight">
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-2 py-1" href="#">Dashboard</a>
+<a class="text-blue-700 dark:text-blue-300 font-bold px-2 py-1" href="#">Deployments</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-2 py-1" href="#">Billing</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-2 py-1" href="#">Settings</a>
+</nav>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="mono text-xs font-medium text-primary">5,000 FCFA</span>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-600" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img class="h-full w-full object-cover" data-alt="professional portrait of a business owner in a modern office setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJGxBthOcXoF7vwVy8lG_HpzSBJKhn52qzJvYUL4bXNq-szUQn5GJl8fxaUfUwG4f3kySAGQAhVY2zjXgm94oEeaWtyR9s9U6iFgbsBkFRoFWI6Bm7wD65BndOcR6nEQzHPO2rsedZNG9sderEYZifvlOUXqMVW2rbAjATqI0VbmK-j4Q68EvK5AD2__MVZexPP4s4CJ088GioNcSnQHQ_Mhhgmgce8CJe-Wivf7f0w0GPtAm0SfvpKu514SI9hNzF9s1OmYIWq1gk"/>
+</div>
+</div>
+</header>
+<div class="flex min-h-[calc(100vh-64px)]">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-slate-50 dark:bg-slate-900 border-r border-outline-variant/20 hidden lg:flex flex-col pt-8 pb-8 px-4">
+<div class="mb-8 px-4">
+<p class="font-mono text-xs text-slate-500 uppercase tracking-widest mb-1">Organization</p>
+<h3 class="font-bold text-on-surface">Dakar Distribution</h3>
+<p class="text-xs text-slate-500">Enterprise Tier</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-700 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-medium">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-medium">Billing</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-medium">Reseller</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-8 border-t border-outline-variant/10">
+<button class="w-full mb-4 bg-primary-container text-white py-2.5 rounded-md font-semibold text-sm hover:bg-primary transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                    New Deployment
+                </button>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="text-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-sm">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 lg:ml-64 p-8">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<h1 class="text-3xl font-extrabold tracking-tighter text-on-background">Koumba Services</h1>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+                            Active
+                        </span>
+</div>
+<p class="text-on-surface-variant flex items-center gap-2">
+<span class="mono text-xs bg-surface-container px-2 py-0.5 rounded">ID: DEPLOY-KS-0892</span>
+<span class="text-outline-variant text-xs">•</span>
+<span class="text-sm">Last deployed: 2023-11-20 12:00</span>
+</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-5 py-2.5 text-sm font-semibold border border-outline-variant/40 text-primary hover:bg-surface-container-low transition-colors rounded-md">
+                        Stop Instance
+                    </button>
+<button class="px-5 py-2.5 bg-primary-container text-white text-sm font-semibold rounded-md hover:bg-primary transition-all shadow-sm">
+                        Manage Instance
+                    </button>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Specs & Uptime -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Specs Card -->
+<section class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md">
+<h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Instance Specifications</h2>
+<div class="space-y-6">
+<div class="flex items-start gap-4">
+<div class="p-2 bg-surface-container-low rounded">
+<span class="material-symbols-outlined text-primary" data-icon="layers">layers</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-medium mb-0.5">Image</p>
+<p class="text-sm font-bold text-on-surface">Odoo 16.0 Community</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="p-2 bg-surface-container-low rounded">
+<span class="material-symbols-outlined text-primary" data-icon="memory">memory</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-medium mb-0.5">RAM Allocation</p>
+<p class="text-sm font-bold text-on-surface">4GB ECC LPDDR4</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="p-2 bg-surface-container-low rounded">
+<span class="material-symbols-outlined text-primary" data-icon="storage">storage</span>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-medium mb-0.5">Storage</p>
+<p class="text-sm font-bold text-on-surface">40GB NVMe SSD</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Uptime Graph Card -->
+<section class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xs font-bold uppercase tracking-widest text-slate-400">System Availability</h2>
+<span class="mono text-sm font-bold text-emerald-600">99.9%</span>
+</div>
+<div class="space-y-4">
+<div class="h-4 w-full bg-slate-100 rounded-sm overflow-hidden flex gap-0.5">
+<!-- Continuous Uptime Segments -->
+<div class="h-full bg-emerald-500 w-[15%]"></div>
+<div class="h-full bg-emerald-500 w-[20%]"></div>
+<div class="h-full bg-emerald-500 w-[5%]"></div>
+<div class="h-full bg-emerald-500 w-[30%]"></div>
+<div class="h-full bg-emerald-500 w-[29.9%]"></div>
+<div class="h-full bg-slate-200 w-[0.1%]"></div>
+</div>
+<div class="flex justify-between text-[10px] mono text-slate-400 uppercase">
+<span>30 days ago</span>
+<span>Today</span>
+</div>
+</div>
+<div class="mt-6 pt-6 border-t border-slate-50">
+<div class="flex items-center justify-between">
+<span class="text-xs text-on-surface-variant">Last incident</span>
+<span class="mono text-xs text-on-surface">2023-10-12 04:12</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Recent Logs -->
+<div class="lg:col-span-8">
+<section class="bg-slate-900 rounded-md border border-slate-800 h-full flex flex-col overflow-hidden">
+<div class="px-6 py-4 bg-slate-800/50 border-b border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-400 text-sm" data-icon="terminal">terminal</span>
+<h2 class="text-xs font-bold uppercase tracking-widest text-slate-300">Live Console Logs</h2>
+</div>
+<div class="flex gap-1.5">
+<div class="w-2 h-2 rounded-full bg-slate-600"></div>
+<div class="w-2 h-2 rounded-full bg-slate-600"></div>
+<div class="w-2 h-2 rounded-full bg-slate-600"></div>
+</div>
+</div>
+<div class="p-6 flex-1 mono text-[13px] leading-relaxed text-slate-300 overflow-y-auto">
+<div class="space-y-2">
+<p><span class="text-slate-500">2023-11-20 14:30:15 -</span> <span class="text-blue-400">[INFO]</span> Starting Odoo service...</p>
+<p><span class="text-slate-500">2023-11-20 14:30:18 -</span> <span class="text-blue-400">[INFO]</span> Loading configuration from /etc/odoo/odoo.conf</p>
+<p><span class="text-slate-500">2023-11-20 14:30:22 -</span> <span class="text-blue-400">[INFO]</span> Database connection established.</p>
+<p><span class="text-slate-500">2023-11-20 14:30:23 -</span> <span class="text-emerald-400">[SUCCESS]</span> Modules integrity check passed.</p>
+<p><span class="text-slate-500">2023-11-20 14:30:25 -</span> <span class="text-blue-400">[INFO]</span> Listening on port 8069.</p>
+<p><span class="text-slate-500">2023-11-20 14:31:02 -</span> <span class="text-slate-400">[DEBUG]</span> Inbound request: GET /web/login</p>
+<p><span class="text-slate-500">2023-11-20 14:31:05 -</span> <span class="text-blue-400">[INFO]</span> Session started for user admin_koumba</p>
+<p class="animate-pulse"><span class="text-slate-500">2023-11-20 14:32:40 -</span> <span class="text-blue-400">[INFO]</span> Cron job triggered: vacuum_sessions_expired_task</p>
+<span class="inline-block w-2 h-4 bg-slate-500 ml-1 align-middle"></span>
+</div>
+</div>
+<div class="p-4 bg-slate-950 border-t border-slate-800 text-[10px] mono text-slate-500 flex justify-between uppercase">
+<span>Connection: Secure (TLS 1.3)</span>
+<span>Region: Dakar-East-1</span>
+</div>
+</section>
+</div>
+</div>
+<!-- Database & Connectivity Section -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md group hover:bg-white transition-colors">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="database">database</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1">PostgreSQL DB</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">Dedicated instance with automated daily backups and point-in-time recovery.</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md group hover:bg-white transition-colors">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="public">public</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1">Domain &amp; SSL</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">koumba.xayma.sh pointing to load-balancer endpoint with Let's Encrypt.</p>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md group hover:bg-white transition-colors">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="security">security</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1">Firewall Rules</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">3 active rules: Port 80, 443, and SSH (Restricted to internal IP).</p>
+</div>
+</div>
+</main>
+</div>
+<!-- Bottom Navigation for Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-outline-variant/20 flex justify-around py-3 px-2 z-50">
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-blue-700 font-bold" href="#">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="text-[10px]">Deployments</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="text-[10px] font-medium">Billing</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

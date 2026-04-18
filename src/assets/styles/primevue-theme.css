@@ -1,0 +1,47 @@
+/**
+ * PrimeVue theme configuration
+ * Map PrimeVue CSS variables (--p-*) to design system tokens
+ */
+
+:root {
+  /* Primary color mapping */
+  --p-primary-color:          var(--primary);
+  --p-primary-contrast-color: var(--on-primary);
+
+  /* Surface mapping */
+  --p-surface-card:     var(--surface-container-lowest);
+  --p-surface-ground:   var(--surface);
+  --p-surface-overlay:  var(--surface-container-lowest);
+  --p-surface-border:   var(--outline-variant);
+  --p-surface-section:  var(--surface-container-low);
+
+  /* Text color mapping */
+  --p-text-color:           var(--on-surface);
+  --p-text-color-secondary: var(--on-surface-variant);
+
+  /* Status colors */
+  --p-success-color: var(--tertiary);
+  --p-warn-color:    var(--secondary-container);
+  --p-error-color:   var(--error);
+  --p-info-color:    var(--primary-container);
+
+  /* Spacing */
+  --p-spacing-0: 0;
+  --p-spacing-1: 0.25rem;
+  --p-spacing-2: 0.5rem;
+  --p-spacing-3: 0.75rem;
+  --p-spacing-4: 1rem;
+  --p-spacing-5: 1.25rem;
+  --p-spacing-6: 1.5rem;
+
+  /* Radius */
+  --p-border-radius-small: var(--radius-sm);
+  --p-border-radius:       var(--radius-md);
+  --p-border-radius-large: var(--radius-lg);
+
+  /* Shadows — disabled per design system (no shadows) */
+  --p-shadow-1: none;
+  --p-shadow-2: none;
+  --p-shadow-3: none;
+  --p-shadow-4: none;
+}

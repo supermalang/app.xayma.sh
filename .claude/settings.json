@@ -1,0 +1,36 @@
+{
+  "agents": {
+    "enabled": true,
+    "team": [
+      "css-design",
+      "vue-specialist",
+      "n8n-specialist",
+      "test-writer",
+      "pr-reviewer",
+      "lead"
+    ]
+  },
+  "commands": {
+    "available": [
+      "new-feature",
+      "new-page",
+      "verify-task",
+      "test-sprint",
+      "status",
+      "visual-check",
+      "n8n-workflow",
+      "db-migration"
+    ]
+  },
+  "testing": {
+    "unit": "vitest",
+    "e2e": "playwright",
+    "coverage": "v8"
+  },
+  "build": {
+    "tool": "vite",
+    "framework": "vue3",
+    "language": "typescript"
+  },
+  "enabledMcpjsonServers": ["stitch"]
+}
