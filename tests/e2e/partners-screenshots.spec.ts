@@ -1,7 +1,6 @@
 /**
  * Partner Pages — Screenshot Capture (Sprint 2.T7)
- * Captures page structure at desktop (1280px) and mobile (375px).
- * Routes redirect to /login when unauthenticated — that state is captured too.
+ * Captures page structure at desktop (1280px) and mobile (375px) after admin authentication.
  */
 
 import { test } from '@playwright/test'
@@ -13,10 +12,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SCREENSHOTS_DIR = path.join(__dirname, '../screenshots/partners')
 
 const PAGES = [
-  { name: '01-partners-list', url: 'http://localhost:5173/partners' },
-  { name: '02-partner-detail-tabview', url: 'http://localhost:5173/partners/1' },
-  { name: '03-audit-log', url: 'http://localhost:5173/audit' },
-  { name: '04-credit-purchase-options', url: 'http://localhost:5173/credits/purchase-options' },
+  { name: '01-partners-list', url: '/partners' },
+  { name: '02-partner-detail-tabview', url: '/partners/1' },
+  { name: '03-audit-log', url: '/audit' },
+  { name: '04-credit-purchase-options', url: '/credits/purchase-options' },
 ]
 
 const VIEWPORTS = [
@@ -32,6 +31,13 @@ for (const viewport of VIEWPORTS) {
   test.describe(`Partner Pages — ${viewport.label} (${viewport.width}px)`, () => {
     test.beforeEach(async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height })
+
+      // Login as admin before each test
+      await page.goto('/login')
+      await page.fill('input[type="email"]', 'admin@test.example.com')
+      await page.fill('input[type="password"]', 'test123456')
+      await page.click('button:has-text("Login")')
+      await page.waitForURL('/')
     })
 
     for (const p of PAGES) {

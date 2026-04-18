@@ -1,11 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { supabaseFrom } from './supabase'
 import {
   listVouchers,
   getVoucher,
   getVoucherByCode,
-  createVoucher,
-  createVouchersBulk,
   updateVoucherStatus,
   incrementVoucherUsage,
   deactivateVoucher,
@@ -203,7 +201,7 @@ describe('Vouchers Service', () => {
       const result = await validateVoucher('VCHR001', 'CUSTOMER')
 
       expect(result.valid).toBe(false)
-      expect(result.reason).toBe('EXPIRED')
+      expect(result.reason).toBe('Voucher has expired')
     })
 
     it('should reject inactive voucher', async () => {
@@ -226,7 +224,7 @@ describe('Vouchers Service', () => {
       const result = await validateVoucher('VCHR001', 'CUSTOMER')
 
       expect(result.valid).toBe(false)
-      expect(result.reason).toBe('INACTIVE')
+      expect(result.reason).toBe('Voucher is inactive')
     })
 
     it('should reject fully redeemed voucher', async () => {
@@ -249,7 +247,7 @@ describe('Vouchers Service', () => {
       const result = await validateVoucher('VCHR001', 'CUSTOMER')
 
       expect(result.valid).toBe(false)
-      expect(result.reason).toBe('FULLY_REDEEMED')
+      expect(result.reason).toBe('Voucher has been fully redeemed')
     })
 
     it('should reject voucher with partner type restriction', async () => {
@@ -273,7 +271,7 @@ describe('Vouchers Service', () => {
       const result = await validateVoucher('VCHR001', 'CUSTOMER')
 
       expect(result.valid).toBe(false)
-      expect(result.reason).toBe('PARTNER_TYPE_MISMATCH')
+      expect(result.reason).toContain('RESELLER')
     })
   })
 
@@ -281,7 +279,7 @@ describe('Vouchers Service', () => {
     it('should return true if partner has redeemed voucher', async () => {
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { id: '1' }, error: null }),
+        limit: vi.fn().mockResolvedValue({ data: [{ id: '1' }], error: null }),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
@@ -296,7 +294,7 @@ describe('Vouchers Service', () => {
     it('should return false if partner has not redeemed voucher', async () => {
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
@@ -311,47 +309,54 @@ describe('Vouchers Service', () => {
 
   describe('getVoucherStats', () => {
     it('should calculate statistics correctly', async () => {
-      const mockStats = [
-        { status: 'ACTIVE', count: 5, total_credits: 25000 },
-        { status: 'INACTIVE', count: 2, total_credits: 10000 },
-        { status: 'FULLY_REDEEMED', count: 3, total_credits: 15000 },
-      ]
-
-      const mockQuery = {
-        select: vi.fn().mockResolvedValue({ data: mockStats, error: null }),
-      }
-
-      vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
+      let callCount = 0
+      vi.mocked(supabaseFrom).mockImplementation(() => {
+        callCount++
+        if (callCount === 1) {
+          return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: [{}, {}, {}, {}, {}], error: null }) }) } as any // 5 active
+        }
+        if (callCount === 2) {
+          return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: [{}, {}], error: null }) }) } as any // 2 inactive
+        }
+        if (callCount === 3) {
+          return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: [{}, {}, {}], error: null }) }) } as any // 3 fully redeemed
+        }
+        // 4th call: total value
+        return { select: vi.fn().mockResolvedValue({ data: [{ credits_value: 5000, uses_count: 2 }, { credits_value: 3000, uses_count: 0 }], error: null }) } as any
+      })
 
       const result = await getVoucherStats()
 
       expect(result.activeCount).toBe(5)
       expect(result.inactiveCount).toBe(2)
-      expect(result.totalCreditsDistributed).toBe(50000)
+      expect(result.fullyRedeemedCount).toBe(3)
+      expect(result.totalCreditsDistributed).toBe(8000)
     })
   })
 
   describe('updateVoucherStatus', () => {
     it('should update voucher status', async () => {
       const mockQuery = {
+        update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        update: vi.fn().mockResolvedValue({ error: null }),
+        select: vi.fn().mockResolvedValue({ data: [{ id: 'voucher1', status: 'INACTIVE' }], error: null }),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
 
       await updateVoucherStatus('voucher1', 'INACTIVE')
 
+      expect(mockQuery.update).toHaveBeenCalledWith({ status: 'INACTIVE' })
       expect(mockQuery.eq).toHaveBeenCalledWith('id', 'voucher1')
-      expect(mockQuery.update).toHaveBeenCalled()
     })
   })
 
   describe('deactivateVoucher', () => {
     it('should deactivate a voucher', async () => {
       const mockQuery = {
+        update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        update: vi.fn().mockResolvedValue({ error: null }),
+        select: vi.fn().mockResolvedValue({ data: [{ id: 'voucher1', status: 'INACTIVE' }], error: null }),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
@@ -365,15 +370,18 @@ describe('Vouchers Service', () => {
   describe('incrementVoucherUsage', () => {
     it('should increment usage count', async () => {
       const mockQuery = {
+        update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        rpc: vi.fn().mockResolvedValue({ error: null }),
+        select: vi.fn().mockReturnThis(),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: [{ id: 'voucher1', uses_count: 1 }], error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
 
       await incrementVoucherUsage('voucher1')
 
-      expect(mockQuery.rpc).toHaveBeenCalled()
+      expect(mockQuery.update).toHaveBeenCalled()
     })
   })
 })

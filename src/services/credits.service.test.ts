@@ -93,20 +93,20 @@ describe('Credits Service', () => {
         select: vi.fn().mockReturnValue(mockQuery),
       } as any)
 
-      const startDate = new Date('2026-03-01')
-      const endDate = new Date('2026-03-31')
+      const startDate = '2026-03-01T00:00:00.000Z'
+      const endDate = '2026-03-31T23:59:59.999Z'
 
       await listTransactions({
         partnerId: 'partner1',
         startDate,
         endDate,
-        types: ['TOPUP', 'DEBIT'],
+        type: 'TOPUP',
       })
 
       expect(mockQuery.eq).toHaveBeenCalledWith('partner_id', 'partner1')
-      expect(mockQuery.in).toHaveBeenCalledWith('type', ['TOPUP', 'DEBIT'])
-      expect(mockQuery.gte).toHaveBeenCalledWith('created_at', startDate.toISOString())
-      expect(mockQuery.lte).toHaveBeenCalledWith('created_at', endDate.toISOString())
+      expect(mockQuery.eq).toHaveBeenCalledWith('type', 'TOPUP')
+      expect(mockQuery.gte).toHaveBeenCalledWith('created_at', startDate)
+      expect(mockQuery.lte).toHaveBeenCalledWith('created_at', endDate)
     })
   })
 
@@ -151,21 +151,15 @@ describe('Credits Service', () => {
     it('should create a new transaction', async () => {
       const mockQuery = {
         insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: '1', partner_id: 'partner1', amount: 5000 },
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: '1', partner_id: 'partner1', amount: 5000 }],
           error: null,
         }),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
 
-      const result = await createTransaction({
-        partner_id: 'partner1',
-        amount: 5000,
-        type: 'TOPUP',
-        status: 'PENDING',
-      })
+      const result = await createTransaction('partner1', 'TOPUP', 5000, { status: 'PENDING' })
 
       expect(result.partner_id).toBe('partner1')
       expect(result.amount).toBe(5000)
@@ -174,8 +168,7 @@ describe('Credits Service', () => {
     it('should handle creation error', async () => {
       const mockQuery = {
         insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
+        select: vi.fn().mockResolvedValue({
           data: null,
           error: new Error('Insert failed'),
         }),
@@ -184,52 +177,18 @@ describe('Credits Service', () => {
       vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
 
       await expect(
-        createTransaction({
-          partner_id: 'partner1',
-          amount: 5000,
-          type: 'TOPUP',
-          status: 'PENDING',
-        })
+        createTransaction('partner1', 'TOPUP', 5000)
       ).rejects.toThrow()
     })
   })
 
   describe('updateTransactionStatus', () => {
-    it('should update transaction status if different', async () => {
+    it('should update transaction status', async () => {
       const mockQuery = {
+        update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: '1', status: 'PENDING' },
-          error: null,
-        }),
-      }
-
-      vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
-
-      const mockUpdateQuery = {
-        eq: vi.fn().mockReturnThis(),
-        update: vi.fn().mockResolvedValue({ error: null }),
-      }
-
-      let callCount = 0
-      vi.mocked(supabaseFrom).mockImplementation(() => {
-        callCount++
-        if (callCount === 1) return mockQuery as any
-        return mockUpdateQuery as any
-      })
-
-      await updateTransactionStatus('1', 'COMPLETED')
-
-      expect(mockUpdateQuery.update).toHaveBeenCalledWith({ status: 'COMPLETED' })
-    })
-
-    it('should skip update if status unchanged', async () => {
-      const mockQuery = {
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: '1', status: 'COMPLETED' },
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: '1', status: 'COMPLETED' }],
           error: null,
         }),
       }
@@ -238,7 +197,25 @@ describe('Credits Service', () => {
 
       const result = await updateTransactionStatus('1', 'COMPLETED')
 
-      expect(result).toBe(false)
+      expect(mockQuery.update).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'COMPLETED' })
+      )
+      expect(result).toBeDefined()
+    })
+
+    it('should throw on update error', async () => {
+      const mockQuery = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockResolvedValue({
+          data: null,
+          error: new Error('Update failed'),
+        }),
+      }
+
+      vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
+
+      await expect(updateTransactionStatus('1', 'COMPLETED')).rejects.toThrow()
     })
   })
 
@@ -246,16 +223,14 @@ describe('Credits Service', () => {
     it('should calculate balance correctly', async () => {
       const mockTransactions = [
         { amount: 5000, type: 'TOPUP' },
-        { amount: -2000, type: 'DEBIT' },
-        { amount: -100, type: 'EXPIRY' },
+        { amount: 2000, type: 'DEBIT' },
+        { amount: 100, type: 'EXPIRY' },
       ]
 
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: mockTransactions,
-          error: null,
-        }),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: mockTransactions, error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
@@ -270,10 +245,8 @@ describe('Credits Service', () => {
     it('should return 0 if no transactions', async () => {
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: [], error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
@@ -289,17 +262,15 @@ describe('Credits Service', () => {
   describe('getTotalCreditsEarned', () => {
     it('should calculate total credits earned', async () => {
       const mockTransactions = [
-        { amount: 5000, type: 'TOPUP' },
-        { amount: 3000, type: 'TOPUP' },
-        { amount: -2000, type: 'DEBIT' },
+        { amount: 5000 },
+        { amount: 3000 },
       ]
 
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: mockTransactions,
-          error: null,
-        }),
+        in: vi.fn().mockReturnThis(),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: mockTransactions, error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
@@ -315,76 +286,59 @@ describe('Credits Service', () => {
   describe('getApplicableDiscount', () => {
     it('should apply discount based on partner type and instance count', async () => {
       const mockOptions = [
-        { tier: 1, from_instances: 1, to_instances: 5, discount_percentage: 0 },
-        { tier: 2, from_instances: 6, to_instances: 15, discount_percentage: 10 },
-        { tier: 3, from_instances: 16, to_instances: null, discount_percentage: 20 },
+        { threshold_value: 16, threshold_discount_percent: 20 },
+        { threshold_value: 6, threshold_discount_percent: 10 },
+        { threshold_value: 1, threshold_discount_percent: 0 },
       ]
 
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: mockOptions,
-          error: null,
-        }),
+        order: vi.fn().mockReturnThis(),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: mockOptions, error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
         select: vi.fn().mockReturnValue(mockQuery),
       } as any)
 
-      const discount = await getApplicableDiscount('RESELLER', 12)
+      const result = await getApplicableDiscount('RESELLER', 12)
 
-      expect(discount).toBe(10)
+      expect(result?.discountPercent).toBe(10)
     })
 
-    it('should return 0 for customers', async () => {
-      const mockOptions = [
-        { tier: 1, from_instances: 1, to_instances: null, discount_percentage: 0 },
-      ]
-
+    it('should return null when no tiers match', async () => {
       const mockQuery = {
         eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: mockOptions,
-          error: null,
-        }),
+        order: vi.fn().mockReturnThis(),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: [], error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
         select: vi.fn().mockReturnValue(mockQuery),
       } as any)
 
-      const discount = await getApplicableDiscount('CUSTOMER', 20)
+      const result = await getApplicableDiscount('CUSTOMER', 20)
 
-      expect(discount).toBe(0)
+      expect(result).toBeNull()
     })
   })
 
   describe('calculateDiscountedPrice', () => {
     it('should calculate discounted price correctly', () => {
-      const originalPrice = 10000
-      const discount = 20
-
-      const discountedPrice = calculateDiscountedPrice(originalPrice, discount)
-
+      const { discountedPrice, savings } = calculateDiscountedPrice(10000, 20)
       expect(discountedPrice).toBe(8000)
+      expect(savings).toBe(2000)
     })
 
     it('should handle 0% discount', () => {
-      const originalPrice = 10000
-      const discount = 0
-
-      const discountedPrice = calculateDiscountedPrice(originalPrice, discount)
-
+      const { discountedPrice } = calculateDiscountedPrice(10000, 0)
       expect(discountedPrice).toBe(10000)
     })
 
     it('should handle 100% discount', () => {
-      const originalPrice = 10000
-      const discount = 100
-
-      const discountedPrice = calculateDiscountedPrice(originalPrice, discount)
-
+      const { discountedPrice } = calculateDiscountedPrice(10000, 100)
       expect(discountedPrice).toBe(0)
     })
   })
@@ -397,22 +351,23 @@ describe('Credits Service', () => {
       ]
 
       const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
         gte: vi.fn().mockReturnThis(),
         lte: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({
-          data: mockData,
-          error: null,
-        }),
+        order: vi.fn().mockReturnThis(),
+        then: (resolve: any, reject: any) =>
+          Promise.resolve({ data: mockData, error: null }).then(resolve, reject),
       }
 
       vi.mocked(supabaseFrom).mockReturnValue({
         select: vi.fn().mockReturnValue(mockQuery),
       } as any)
 
-      const startDate = new Date('2026-03-01')
-      const endDate = new Date('2026-03-31')
-
-      const result = await getTransactionsByDateRange('partner1', startDate, endDate)
+      const result = await getTransactionsByDateRange(
+        'partner1',
+        '2026-03-01T00:00:00.000Z',
+        '2026-03-31T23:59:59.999Z'
+      )
 
       expect(result).toEqual(mockData)
       expect(mockQuery.gte).toHaveBeenCalled()

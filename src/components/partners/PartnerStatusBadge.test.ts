@@ -28,7 +28,7 @@ describe('PartnerStatusBadge.vue', () => {
     })
 
     expect(wrapper.text()).toContain('Active')
-    expect(wrapper.vm.severity).toBe('success')
+    expect((wrapper.vm as any).severity).toBe('success')
   })
 
   it('renders Suspended status with warning severity', () => {
@@ -38,7 +38,7 @@ describe('PartnerStatusBadge.vue', () => {
     })
 
     expect(wrapper.text()).toContain('Suspended')
-    expect(wrapper.vm.severity).toBe('warning')
+    expect((wrapper.vm as any).severity).toBe('warning')
   })
 
   it('renders Inactive status with info severity', () => {
@@ -48,7 +48,7 @@ describe('PartnerStatusBadge.vue', () => {
     })
 
     expect(wrapper.text()).toContain('Inactive')
-    expect(wrapper.vm.severity).toBe('info')
+    expect((wrapper.vm as any).severity).toBe('info')
   })
 
   it('updates when status prop changes', async () => {
@@ -62,7 +62,7 @@ describe('PartnerStatusBadge.vue', () => {
     await wrapper.setProps({ status: 'suspended' })
 
     expect(wrapper.text()).toContain('Suspended')
-    expect(wrapper.vm.severity).toBe('warning')
+    expect((wrapper.vm as any).severity).toBe('warning')
   })
 
   it('handles invalid status gracefully', () => {
@@ -71,6 +71,6 @@ describe('PartnerStatusBadge.vue', () => {
       global: { plugins: [i18n] },
     })
 
-    expect(wrapper.vm.severity).toBe('secondary')
+    expect((wrapper.vm as any).severity).toBe('secondary')
   })
 })

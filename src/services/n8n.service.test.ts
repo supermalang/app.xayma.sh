@@ -13,6 +13,7 @@ describe('n8n Service', () => {
 
   afterEach(() => {
     vi.clearAllTimers()
+    vi.useRealTimers()
   })
 
   describe('callN8nWebhook', () => {
@@ -56,10 +57,6 @@ describe('n8n Service', () => {
     it('should retry on 5xx error (server error)', async () => {
       vi.useFakeTimers()
 
-      // First call: 500 error
-      // Second call: 500 error
-      // Third call: 500 error
-      // Fourth call: success
       ;(global.fetch as any)
         .mockResolvedValueOnce({
           ok: false,
@@ -83,12 +80,12 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await n8nService.callN8nWebhook('/webhook/test', payload)
+      const successPromise = n8nService.callN8nWebhook('/webhook/test', payload)
+      await vi.runAllTimersAsync()
+      await successPromise
 
       // Should have been called 4 times (1 initial + 3 retries)
       expect(global.fetch).toHaveBeenCalledTimes(4)
-
-      vi.useRealTimers()
     })
 
     it('should throw N8nError after max retries exceeded', async () => {
@@ -102,14 +99,15 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        n8nService.N8nError
-      )
+      // Attach rejection handler immediately to prevent unhandled rejection during timer advancement
+      const rejectAssertion = expect(
+        n8nService.callN8nWebhook('/webhook/test', payload)
+      ).rejects.toThrow(n8nService.N8nError)
+      await vi.runAllTimersAsync()
+      await rejectAssertion
 
       // Should have been called MAX_RETRIES + 1 times
       expect(global.fetch).toHaveBeenCalledTimes(4) // 1 initial + 3 retries
-
-      vi.useRealTimers()
     })
 
     it('should not retry on 404 (client error)', async () => {
@@ -277,15 +275,15 @@ describe('n8n Service', () => {
     it('should preserve error details in N8nError', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
-        status: 502,
-        text: async () => 'Bad gateway error details',
+        status: 422,
+        text: async () => 'Unprocessable entity details',
       })
 
       try {
         await n8nService.callN8nWebhook('/webhook/test', {})
       } catch (error) {
         expect(error).toBeInstanceOf(n8nService.N8nError)
-        expect((error as n8nService.N8nError).statusCode).toBe(502)
+        expect((error as n8nService.N8nError).statusCode).toBe(422)
       }
     })
   })

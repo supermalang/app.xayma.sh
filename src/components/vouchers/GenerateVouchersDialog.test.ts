@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import GenerateVouchersDialog from './GenerateVouchersDialog.vue'
-import * as vouchersService from '@/services/vouchers.service'
-
 vi.mock('@/services/vouchers.service')
 vi.mock('@/services/n8n')
-vi.mock('vue-i18n')
+vi.mock('@/services/supabase', () => ({
+  supabaseFrom: vi.fn().mockReturnValue({
+    select: vi.fn().mockResolvedValue({ data: [], error: null }),
+  }),
+}))
 
 const i18n = createI18n({
   legacy: false,
@@ -48,35 +50,38 @@ const i18n = createI18n({
   },
 })
 
+// Stub Dialog to render content inline so we can query the DOM
+const DialogStub = {
+  props: ['visible', 'header', 'modal', 'closable'],
+  template: '<div v-if="visible" class="p-dialog"><slot /></div>',
+}
+
+const mountDialog = (props = { visible: true }) =>
+  mount(GenerateVouchersDialog, {
+    props,
+    global: {
+      plugins: [i18n],
+      stubs: { Dialog: DialogStub },
+    },
+  })
+
 describe('GenerateVouchersDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('should render dialog when visible', () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
+    const wrapper = mountDialog({ visible: true })
     expect(wrapper.find('.p-dialog').exists()).toBe(true)
   })
 
   it('should not render dialog when not visible', () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: false },
-      global: { plugins: [i18n] },
-    })
-
+    const wrapper = mountDialog({ visible: false })
     expect(wrapper.find('.p-dialog').exists()).toBe(false)
   })
 
   it('should emit update:visible when close button clicked', async () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
+    const wrapper = mountDialog()
     const closeButton = wrapper.find('[class*="p-dialog-close"]')
     if (closeButton.exists()) {
       await closeButton.trigger('click')
@@ -85,78 +90,49 @@ describe('GenerateVouchersDialog', () => {
   })
 
   it('should show validation error for insufficient credits', async () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    // Set form values
-    const vm = wrapper.vm as any
-    vm.form.creditsAmount = 50 // Less than 100
+    const wrapper = mountDialog()
+    const vm = wrapper.vm as Record<string, any>
+    vm.form.creditsAmount = 50
     vm.form.quantity = 10
     vm.form.expiryDate = new Date('2026-12-31')
-
-    // Trigger form submit
     await wrapper.find('form').trigger('submit')
-
-    expect(wrapper.vm.$data.error).toBeTruthy()
-    expect(wrapper.vm.$data.error).toContain('100 FCFA')
+    expect(vm.error).toBeTruthy()
+    expect(vm.error).toContain('100 FCFA')
   })
 
   it('should show validation error for invalid quantity', async () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const vm = wrapper.vm as any
+    const wrapper = mountDialog()
+    const vm = wrapper.vm as Record<string, any>
     vm.form.creditsAmount = 1000
-    vm.form.quantity = 150 // Greater than 100
+    vm.form.quantity = 150
     vm.form.expiryDate = new Date('2026-12-31')
-
     await wrapper.find('form').trigger('submit')
-
-    expect(wrapper.vm.$data.error).toBeTruthy()
-    expect(wrapper.vm.$data.error).toContain('between 1 and 100')
+    expect(vm.error).toBeTruthy()
+    expect(vm.error).toContain('between 1 and 100')
   })
 
   it('should show validation error when expiry date is missing', async () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const vm = wrapper.vm as any
+    const wrapper = mountDialog()
+    const vm = wrapper.vm as Record<string, any>
     vm.form.creditsAmount = 1000
     vm.form.quantity = 10
     vm.form.expiryDate = null
-
     await wrapper.find('form').trigger('submit')
-
-    expect(wrapper.vm.$data.error).toBeTruthy()
-    expect(wrapper.vm.$data.error).toContain('expiry date')
+    expect(vm.error).toBeTruthy()
+    expect(vm.error).toContain('expiry date')
   })
 
   it('should have tomorrow as minimum date', () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const minDate = wrapper.vm.$data.minDate
+    const wrapper = mountDialog()
+    const minDate = (wrapper.vm as Record<string, any>).minDate
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
-
     expect(minDate.toDateString()).toBe(tomorrow.toDateString())
   })
 
   it('should show partner type options', () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const options = wrapper.vm.$data.partnerTypeOptions
+    const wrapper = mountDialog()
+    const options = (wrapper.vm as Record<string, any>).partnerTypeOptions
     expect(options).toEqual([
       { label: 'Customer', value: 'CUSTOMER' },
       { label: 'Reseller', value: 'RESELLER' },
@@ -164,12 +140,8 @@ describe('GenerateVouchersDialog', () => {
   })
 
   it('should have default form values', () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const form = wrapper.vm.$data.form
+    const wrapper = mountDialog()
+    const form = (wrapper.vm as Record<string, any>).form
     expect(form.creditsAmount).toBe(1000)
     expect(form.quantity).toBe(10)
     expect(form.expiryDate).toBeNull()
@@ -178,31 +150,18 @@ describe('GenerateVouchersDialog', () => {
   })
 
   it('should display summary with correct values', async () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const vm = wrapper.vm as any
+    const wrapper = mountDialog()
+    const vm = wrapper.vm as Record<string, any>
     vm.form.creditsAmount = 5000
     vm.form.quantity = 20
-
     await wrapper.vm.$nextTick()
-
     const message = wrapper.find('[class*="p-message"]')
     expect(message.text()).toContain('20')
     expect(message.text()).toContain('5000')
   })
 
   it('should reset form after successful generation', async () => {
-    // This test would require mocking the n8n webhook call
-    // Since it's async and involves external calls, we skip detailed testing
-    // In a real scenario, you'd mock callN8nWebhook
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
+    const wrapper = mountDialog()
     const initialForm = {
       creditsAmount: 1000,
       quantity: 10,
@@ -210,53 +169,26 @@ describe('GenerateVouchersDialog', () => {
       partnerTypeRestriction: null,
       targetPartnerId: null,
     }
-
-    expect(wrapper.vm.$data.form).toEqual(initialForm)
+    expect((wrapper.vm as Record<string, any>).form).toEqual(initialForm)
   })
 
   it('should have cancel and generate buttons', () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
+    const wrapper = mountDialog()
     const buttons = wrapper.findAll('button')
-    expect(buttons.length).toBeGreaterThanOrEqual(2) // At least cancel and generate
+    expect(buttons.length).toBeGreaterThanOrEqual(2)
   })
 
   it('should disable form during loading', async () => {
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
-    const vm = wrapper.vm as any
+    const wrapper = mountDialog()
+    const vm = wrapper.vm as Record<string, any>
     vm.loading = true
-
     await wrapper.vm.$nextTick()
-
     expect(vm.loading).toBe(true)
   })
 
   it('should load partners on mount', async () => {
-    const mockPartners = [
-      { id: '1', name: 'Partner A' },
-      { id: '2', name: 'Partner B' },
-    ]
-
-    vi.mocked(vouchersService.listVouchers).mockResolvedValueOnce({
-      data: mockPartners as any,
-      count: 2,
-    })
-
-    const wrapper = mount(GenerateVouchersDialog, {
-      props: { visible: true },
-      global: { plugins: [i18n] },
-    })
-
+    const wrapper = mountDialog()
     await wrapper.vm.$nextTick()
-
-    // Partners should be loaded (from supabaseFrom mock)
-    expect(wrapper.vm.$data.partners).toBeDefined()
+    expect((wrapper.vm as Record<string, any>).partners).toBeDefined()
   })
 })

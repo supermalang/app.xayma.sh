@@ -36,15 +36,15 @@
       responsive-layout="scroll"
       class="p-datatable-striped"
     >
-      <Column field="created" :header="$t('audit.created')">
+      <Column field="created_at" :header="$t('audit.created')">
         <template #body="{ data }">
-          {{ formatDate(data.created) }}
+          {{ formatDate(data.created_at) }}
         </template>
       </Column>
       <Column field="table_name" :header="$t('audit.table_name')" />
-      <Column field="action" :header="$t('audit.action')">
+      <Column field="operation" :header="$t('audit.action')">
         <template #body="{ data }">
-          <Tag :value="data.action" :severity="getActionSeverity(data.action)" />
+          <Tag :value="data.operation" :severity="getActionSeverity(data.operation)" />
         </template>
       </Column>
       <Column field="email" :header="$t('audit.user')" />
@@ -69,8 +69,11 @@ import Calendar from 'primevue/calendar'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import { supabaseFrom } from '@/services/supabase'
+import { useNotificationStore } from '@/stores/notifications.store'
 
 const { t } = useI18n()
+const notificationStore = useNotificationStore()
 
 // State
 const isLoading = ref(false)
@@ -103,14 +106,45 @@ const getActionSeverity = (action: string) => {
   return severityMap[action] || 'secondary'
 }
 
-// Load audit entries (placeholder - will be implemented with actual API)
+// Load audit entries from Supabase
 const loadAuditEntries = async () => {
   try {
     isLoading.value = true
-    // TODO: Implement actual audit log loading from Supabase
-    auditEntries.value = []
+
+    let query = supabaseFrom('xayma_app.general_audit').select('*')
+
+    // Apply table_name filter
+    if (filters.value.table_name) {
+      query = query.eq('table_name', filters.value.table_name)
+    }
+
+    // Apply action filter
+    if (filters.value.action) {
+      query = query.eq('operation', filters.value.action)
+    }
+
+    // Apply date range filter
+    if (filters.value.dateRange && Array.isArray(filters.value.dateRange) && filters.value.dateRange.length === 2) {
+      const [startDate, endDate] = filters.value.dateRange
+      query = query.gte('created_at', startDate.toISOString()).lte('created_at', endDate.toISOString())
+    }
+
+    // Order by creation date (newest first)
+    query = query.order('created_at', { ascending: false })
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error loading audit entries:', error)
+      notificationStore.addError(t('errors.fetch_failed'))
+      auditEntries.value = []
+      return
+    }
+
+    auditEntries.value = data || []
   } catch (error) {
     console.error('Failed to load audit entries:', error)
+    notificationStore.addError(t('errors.fetch_failed'))
   } finally {
     isLoading.value = false
   }

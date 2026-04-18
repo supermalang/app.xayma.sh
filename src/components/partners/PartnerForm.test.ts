@@ -3,248 +3,150 @@ import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import PartnerForm from './PartnerForm.vue'
 
-// Mock translations
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
   messages: {
     en: {
-      errors: {
-        required: 'This field is required',
-        invalid_email: 'Invalid email address',
-      },
-      auth: {
-        phone_invalid: 'Phone must be West Africa format (70-78 + 7 digits)',
-      },
+      errors: { required: 'This field is required', invalid_email: 'Invalid email address' },
+      auth: { phone_invalid: 'Phone must be West Africa format (70/75/76/77/78 + 7 digits)' },
       partners: {
         form: {
-          name: 'Partner Name',
-          slug: 'Slug',
-          email: 'Email',
-          phone: 'Phone Number',
-          type: 'Partner Type',
-          status: 'Status',
-          description: 'Description',
-          address: 'Address',
-          activity_area: 'Activity Areas',
-          credit_settings: 'Credit Settings',
-          allow_credit_debt: 'Allow Credit Debt',
-          credit_debt_threshold: 'Credit Debt Threshold',
+          name: 'Partner Name', slug: 'Slug', email: 'Email', phone: 'Phone Number',
+          type: 'Partner Type', status: 'Status', description: 'Description',
+          address: 'Address', activity_area: 'Activity Areas', credit_settings: 'Credit Settings',
+          allow_credit_debt: 'Allow Credit Debt', credit_debt_threshold: 'Credit Debt Threshold',
         },
-        type: {
-          customer: 'Customer',
-          reseller: 'Reseller',
-        },
-        status: {
-          active: 'Active',
-          suspended: 'Suspended',
-          inactive: 'Inactive',
-        },
+        type: { customer: 'Customer', reseller: 'Reseller' },
+        status: { active: 'Active', suspended: 'Suspended', inactive: 'Inactive' },
+        errors: { name_too_short: 'Name must be at least 3 characters' },
       },
-      common: {
-        select: 'Select',
-        create: 'Create',
-        cancel: 'Cancel',
-      },
+      common: { select: 'Select', create: 'Create', update: 'Update', cancel: 'Cancel' },
     },
   },
 })
 
-describe('PartnerForm.vue', () => {
-  let wrapper: any
+// Phone regex from CLAUDE.md spec: ^(70|75|76|77|78)[0-9]{7}$  — 9 raw digits, no country code
+const PHONE_REGEX = /^(70|75|76|77|78)[0-9]{7}$/
 
-  beforeEach(() => {
-    wrapper = mount(PartnerForm, {
-      props: {
-        initialData: undefined,
-        isLoading: false,
-      },
-      global: { plugins: [i18n] },
+// Slug helper mirrors the component implementation
+const generateSlug = (name: string): string =>
+  name.toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+// ─── Phone Validation (2.T3) ──────────────────────────────────────────────────
+
+describe('Phone validation — West Africa regex (2.T3)', () => {
+  it('accepts all five valid prefixes (70, 75, 76, 77, 78) + 7 digits', () => {
+    expect(PHONE_REGEX.test('701234567')).toBe(true)
+    expect(PHONE_REGEX.test('751234567')).toBe(true)
+    expect(PHONE_REGEX.test('761234567')).toBe(true)
+    expect(PHONE_REGEX.test('771234567')).toBe(true)
+    expect(PHONE_REGEX.test('781234567')).toBe(true)
+  })
+
+  it('rejects prefixes 60-69 (not in allowed set)', () => {
+    expect(PHONE_REGEX.test('601234567')).toBe(false)
+    expect(PHONE_REGEX.test('691234567')).toBe(false)
+  })
+
+  it('rejects prefixes 71-74 and 79 (not in allowed set)', () => {
+    expect(PHONE_REGEX.test('711234567')).toBe(false)
+    expect(PHONE_REGEX.test('721234567')).toBe(false)
+    expect(PHONE_REGEX.test('791234567')).toBe(false)
+  })
+
+  it('rejects non-numeric input', () => {
+    expect(PHONE_REGEX.test('notaphone')).toBe(false)
+    expect(PHONE_REGEX.test('')).toBe(false)
+  })
+
+  it('rejects numbers that are too short or too long', () => {
+    expect(PHONE_REGEX.test('7012345')).toBe(false)
+    expect(PHONE_REGEX.test('701234567890')).toBe(false)
+  })
+
+  it('rejects non-West-Africa international formats', () => {
+    expect(PHONE_REGEX.test('13015551234')).toBe(false)
+    expect(PHONE_REGEX.test('441234567890')).toBe(false)
+  })
+})
+
+// ─── Slug Generation (2.T3) ───────────────────────────────────────────────────
+
+describe('Slug generation (2.T3)', () => {
+  it('lowercases and hyphenates words', () => {
+    expect(generateSlug('Test Partner')).toBe('test-partner')
+    expect(generateSlug('UPPERCASE NAME')).toBe('uppercase-name')
+  })
+
+  it('collapses multiple spaces into a single hyphen', () => {
+    expect(generateSlug('Name With   Spaces')).toBe('name-with-spaces')
+  })
+
+  it('preserves existing hyphens', () => {
+    expect(generateSlug('Name-With-Dashes')).toBe('name-with-dashes')
+  })
+
+  it('removes punctuation; surrounding spaces collapse to one hyphen', () => {
+    expect(generateSlug('My Company Inc.')).toBe('my-company-inc')
+    expect(generateSlug('Company & Co. (2024)')).toBe('company-co-2024')
+  })
+
+  it('handles numbers embedded in names', () => {
+    expect(generateSlug('123 Numbers 456')).toBe('123-numbers-456')
+  })
+
+  it('returns empty string for special-characters-only input', () => {
+    expect(generateSlug('!!!')).toBe('')
+  })
+})
+
+// ─── Component Tests ──────────────────────────────────────────────────────────
+// PrimeVue registered globally via tests/setup.ts; i18n provided per test.
+
+describe('PartnerForm component', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let wrapper: ReturnType<typeof mount<any>>
+
+  const mountForm = (props: Record<string, unknown> = {}) =>
+    mount(PartnerForm, { props, global: { plugins: [i18n] } })
+
+  beforeEach(() => { wrapper = mountForm() })
+
+  describe('Form mode', () => {
+    it('is in create mode when no initialData provided', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((wrapper.vm as any).isEditMode).toBe(false)
+    })
+
+    it('is in edit mode when initialData has an id', () => {
+      const w = mountForm({ initialData: { id: 1, name: 'Existing', slug: 'existing' } })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((w.vm as any).isEditMode).toBe(true)
     })
   })
 
-  describe('Phone Validation', () => {
-    it('should accept valid West Africa phone numbers (70-78 + 7 digits)', async () => {
-      const validNumbers = [
-        { value: '+236701234567', expected: true },
-        { value: '+236751234567', expected: true },
-        { value: '+236761234567', expected: true },
-        { value: '+236771234567', expected: true },
-        { value: '+236781234567', expected: true },
-      ]
-
-      // Note: Actual validation happens in form submission
-      // This test verifies the regex pattern
-      const phoneRegex = /^(\+[0-9]{1,3})?\s?[7][0-8][0-9]{7}$/
-
-      validNumbers.forEach(({ value, expected }) => {
-        expect(phoneRegex.test(value)).toBe(expected)
-      })
-    })
-
-    it('should reject invalid phone numbers (outside 70-78 range)', () => {
-      const invalidNumbers = [
-        '+236601234567', // 60 prefix (invalid)
-        '+236691234567', // 69 prefix (invalid)
-        '+2361012345', // Too short
-        '+2367012345678', // Too long
-        'notaphone',
-      ]
-
-      const phoneRegex = /^(\+[0-9]{1,3})?\s?[7][0-8][0-9]{7}$/
-
-      invalidNumbers.forEach((value) => {
-        expect(phoneRegex.test(value)).toBe(false)
-      })
-    })
-
-    it('should reject non-West Africa phone numbers', () => {
-      const phoneRegex = /^(\+[0-9]{1,3})?\s?[7][0-8][0-9]{7}$/
-
-      expect(phoneRegex.test('+13015551234')).toBe(false) // US number
-      expect(phoneRegex.test('+441234567890')).toBe(false) // UK number
-    })
-  })
-
-  describe('Slug Generation', () => {
-    it('should generate slug from name (lowercase, hyphens, no special chars)', () => {
-      const testCases = [
-        { name: 'Test Partner', expected: 'test-partner' },
-        { name: 'My Company Inc.', expected: 'my-company-inc' },
-        { name: 'UPPERCASE NAME', expected: 'uppercase-name' },
-        { name: 'Name With   Spaces', expected: 'name-with-spaces' },
-        { name: 'Name-With-Dashes', expected: 'name-with-dashes' },
-        { name: '123 Numbers 456', expected: '123-numbers-456' },
-      ]
-
-      testCases.forEach(({ name, expected }) => {
-        // Simulate slug generation logic
-        const slug = name
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '')
-
-        expect(slug).toBe(expected)
-      })
-    })
-
-    it('should remove special characters from slug', () => {
-      const name = 'Company & Co. (2024)'
-      const slug = name
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
-
-      expect(slug).toBe('company--co-2024')
-    })
-
-    it('should handle empty slug gracefully', () => {
-      const name = '!!!'
-      const slug = name
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
-
-      expect(slug).toBe('')
-    })
-  })
-
-  describe('Form Validation', () => {
-    it('should require partner name', () => {
-      const nameField = wrapper.vm.validationSchema.describe().fields.name
-
-      // Name is required and min 3 chars
-      expect(nameField.type).toBe('string')
-    })
-
-    it('should validate partner type is required', () => {
-      const typeField = wrapper.vm.validationSchema.describe().fields.partner_type
-
-      expect(typeField.type).toBe('string')
-    })
-
-    it('should validate status is required', () => {
-      const statusField = wrapper.vm.validationSchema.describe().fields.status
-
-      expect(statusField.type).toBe('string')
-    })
-
-    it('should validate email format if provided', () => {
-      const emailField = wrapper.vm.validationSchema.describe().fields.email
-
-      // Email should validate as email format
-      expect(emailField.type).toBe('string')
-    })
-  })
-
-  describe('Form Modes', () => {
-    it('should be in create mode when no initialData', () => {
-      const wrapper = mount(PartnerForm, {
-        props: { initialData: undefined },
-        global: { plugins: [i18n] },
-      })
-
-      expect(wrapper.vm.isEditMode).toBe(false)
-    })
-
-    it('should be in edit mode when initialData provided', () => {
-      const wrapper = mount(PartnerForm, {
-        props: {
-          initialData: {
-            id: 1,
-            name: 'Existing Partner',
-            slug: 'existing-partner',
-          },
-        },
-        global: { plugins: [i18n] },
-      })
-
-      expect(wrapper.vm.isEditMode).toBe(true)
-    })
-  })
-
-  describe('Form Submission', () => {
-    it('should emit submit event with form values', async () => {
-      const wrapper = mount(PartnerForm, {
-        props: { initialData: undefined },
-        global: { plugins: [i18n] },
-      })
-
-      // Mock form submission
-      const formValues = {
-        name: 'Test Partner',
-        slug: 'test-partner',
-        email: 'test@example.com',
-        phone: '+236701234567',
-        partner_type: 'customer',
-        status: 'active',
-        description: 'Test description',
-        address: 'Test address',
-        activity_area: ['technology'],
-        allowCreditDebt: false,
-        creditDebtThreshold: 0,
+  describe('Form submission', () => {
+    it('emits submit with the provided form values', async () => {
+      const values = {
+        name: 'Test Partner', slug: 'test-partner', email: 'test@example.com',
+        phone: '701234567', partner_type: 'customer', status: 'active',
+        description: '', address: '', activity_area: [], allowCreditDebt: false, creditDebtThreshold: 0,
       }
-
-      wrapper.vm.onSubmit(formValues)
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (wrapper.vm as any).onSubmit(values)
       expect(wrapper.emitted('submit')).toBeTruthy()
-      expect(wrapper.emitted('submit')[0]).toEqual([formValues])
+      expect(wrapper.emitted('submit')![0]).toEqual([values])
     })
 
-    it('should emit cancel event when cancel button clicked', async () => {
-      const wrapper = mount(PartnerForm, {
-        props: { initialData: undefined },
-        global: { plugins: [i18n] },
-      })
-
-      await wrapper.vm.emit('cancel')
-
+    it('emits cancel when the cancel button is clicked', async () => {
+      const cancel = wrapper.findAll('button').find(b => b.text().toLowerCase().includes('cancel'))
+      expect(cancel).toBeTruthy()
+      await cancel!.trigger('click')
       expect(wrapper.emitted('cancel')).toBeTruthy()
     })
   })

@@ -149,8 +149,10 @@ export function useCurrency() {
 
     // Clean the string: remove currency symbols and whitespace, normalize separators
     let cleaned = formatted
-      .replace(/[^\d\.,\-]/g, '') // Remove non-numeric characters except separators and minus
+      .replace(/[^\d\.,\-]/g, '')
       .trim()
+
+    if (!cleaned) return 0
 
     // Handle negative numbers
     const isNegative = cleaned.startsWith('-')

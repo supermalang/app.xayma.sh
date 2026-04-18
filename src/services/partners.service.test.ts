@@ -268,4 +268,46 @@ describe('Partners Service', () => {
       expect(credits).toBe(0)
     })
   })
+
+  describe('Phone validation (West Africa regex)', () => {
+    const phoneRegex = /^(?:\+221)?(?:70|75|76|77|78)[0-9]{7}$/
+
+    it('should accept valid West Africa phone numbers', () => {
+      const validNumbers = [
+        '+221701234567', // Senegal 70x
+        '+221751234567', // Senegal 75x
+        '+221761234567', // Senegal 76x
+        '+221771234567', // Senegal 77x
+        '+221781234567', // Senegal 78x
+        '701234567', // Without country code
+        '751234567',
+        '761234567',
+        '771234567',
+        '781234567',
+      ]
+
+      validNumbers.forEach((phone) => {
+        expect(phoneRegex.test(phone)).toBe(true)
+      })
+    })
+
+    it('should reject invalid West Africa phone numbers', () => {
+      const invalidNumbers = [
+        '+221601234567', // 60x - invalid prefix
+        '+221691234567', // 69x - invalid prefix
+        '+221801234567', // 80x - invalid prefix
+        '+221901234567', // 90x - invalid prefix
+        '+22170123456', // Too short
+        '+2217012345678', // Too long
+        '601234567', // Invalid prefix
+        '691234567',
+        'not-a-phone',
+        '+221', // Too short
+      ]
+
+      invalidNumbers.forEach((phone) => {
+        expect(phoneRegex.test(phone)).toBe(false)
+      })
+    })
+  })
 })

@@ -26,7 +26,7 @@ describe('PartnerTypeBadge.vue', () => {
     })
 
     expect(wrapper.text()).toContain('Customer')
-    expect(wrapper.vm.severity).toBe('info')
+    expect((wrapper.vm as any).severity).toBe('info')
   })
 
   it('renders Reseller type with success severity', () => {
@@ -36,7 +36,7 @@ describe('PartnerTypeBadge.vue', () => {
     })
 
     expect(wrapper.text()).toContain('Reseller')
-    expect(wrapper.vm.severity).toBe('success')
+    expect((wrapper.vm as any).severity).toBe('success')
   })
 
   it('updates when type prop changes', async () => {
@@ -50,7 +50,7 @@ describe('PartnerTypeBadge.vue', () => {
     await wrapper.setProps({ type: 'reseller' })
 
     expect(wrapper.text()).toContain('Reseller')
-    expect(wrapper.vm.severity).toBe('success')
+    expect((wrapper.vm as any).severity).toBe('success')
   })
 
   it('handles unknown type gracefully', () => {
@@ -59,6 +59,6 @@ describe('PartnerTypeBadge.vue', () => {
       global: { plugins: [i18n] },
     })
 
-    expect(wrapper.vm.severity).toBe('secondary')
+    expect((wrapper.vm as any).severity).toBe('secondary')
   })
 })
