@@ -177,7 +177,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
   - Step 2: Pick plan + version (`SelectButton`)
   - Step 3: Label (`InputText`) + domain names (`Chips` input; **validate via `valid_domain_array()` PostgreSQL function, NOT client-side regex**)
   - Step 4: Confirm + credit check (block + `Message` error if insufficient balance)
-- [ ] **3.10** Implement deployment credit check before submission — read `partner.remainingCredits` from store; block if < `monthlyCreditConsumption`
+- [x] **3.10** Implement deployment credit check before submission — read `partner.remainingCredits` from store; block if < `monthlyCreditConsumption`
 - [ ] **3.11** On deployment INSERT → call n8n webhook via `src/services/n8n.ts`; payload: control node, job template, partner, plan, domain
 - [x] **3.12** Build Deployment detail page (`/deployments/:id`) — status history (`Timeline`), domain(s), plan, action `ButtonGroup`
 - [ ] **3.13** Implement Supabase Realtime subscription for `deployments` — live status updates without page refresh
