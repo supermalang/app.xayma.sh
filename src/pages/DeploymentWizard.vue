@@ -154,20 +154,23 @@ import Steps from 'primevue/steps'
 import InputText from 'primevue/inputtext'
 import Chips from 'primevue/chips'
 import Message from 'primevue/message'
+import { useDeployments } from '@/composables/useDeployments'
+import { usePartnerStore } from '@/stores/partner.store'
 
 const router = useRouter()
 const { t } = useI18n()
+const partnerStore = usePartnerStore()
+const { createDeployment } = useDeployments()
 
 const activeStep = ref(0)
 const form = ref({
-  serviceId: null,
-  servicePlanId: null,
+  serviceId: null as number | null,
+  servicePlanId: null as number | null,
   label: '',
   domainNames: [],
 })
 const isDeploying = ref(false)
-const partnerCredits = ref(0)
-const requiredCredits = ref(0)
+const selectedPlan = ref<{ monthlyCreditConsumption?: number; label?: string } | null>(null)
 
 const steps = [
   { label: t('deployments.wizard.step_1') },
@@ -183,7 +186,12 @@ const canProceed = computed(() => {
   return true
 })
 
-const hasSufficientCredits = computed(() => partnerCredits.value >= requiredCredits.value)
+const hasSufficientCredits = computed(() => {
+  const balance = partnerStore.selectedPartnerCredits
+  const cost = selectedPlan.value?.monthlyCreditConsumption ?? 0
+  if (cost === 0) return true
+  return balance >= cost
+})
 
 function previousStep() {
   if (activeStep.value > 0) {
@@ -197,14 +205,25 @@ function nextStep() {
   }
 }
 
+function _onPlanSelected(plan: { id: number; monthlyCreditConsumption?: number; label?: string }) {
+  form.value.servicePlanId = plan.id
+  selectedPlan.value = plan
+}
+
 async function submitDeployment() {
-  // TODO: Implement deployment creation
-  console.log('Submit deployment:', form.value)
+  const partnerId = partnerStore.selectedPartner?.id
+  if (!partnerId) return
+
   isDeploying.value = true
   try {
-    // Call n8n webhook to create deployment
-    // Then redirect to deployments list
-    router.push('/deployments')
+    const result = await createDeployment(
+      form.value,
+      partnerId,
+      selectedPlan.value?.monthlyCreditConsumption ?? 0
+    )
+    if (result) {
+      router.push('/deployments')
+    }
   } finally {
     isDeploying.value = false
   }
