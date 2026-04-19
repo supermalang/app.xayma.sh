@@ -1,6 +1,74 @@
 # CLAUDE.md — Xayma.sh Project Guide
+
 > Read this file before making ANY changes to the codebase.
 > This file tells Claude Code how to work autonomously on this project.
+
+---
+
+## 0. Behavioral Constitution _(read before everything else)_
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+### Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+### Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: _"Would a senior engineer say this is overcomplicated?"_ If yes, simplify.
+
+### Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it — don't delete it.
+
+When your changes create orphans:
+
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+_Every changed line should trace directly to the user's request._
+
+### Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Run `/verify-task` after every task. Evidence before assertions — always.
 
 ---
 
@@ -52,38 +120,39 @@ docs/
 
 ## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Vue 3 + Vite + TypeScript |
-| UI components | PrimeVue 4 |
-| CSS | Tailwind CSS (layout, spacing, custom components) |
-| Icons | PrimeIcons + Heroicons |
-| State | Pinia |
-| Forms | VeeValidate + Zod |
-| Charts | Apache ECharts (vue-echarts) |
-| i18n | vue-i18n v11 |
-| Backend | n8n webhooks (no custom REST server) |
-| Database | Supabase (PostgreSQL + RLS) |
-| Auth | Supabase Auth |
-| Realtime | Supabase Realtime WebSockets |
-| Events | Kafka (KRaft, self-hosted on CX32) |
-| Storage | Supabase Storage |
-| Hosting | Docker + Nginx on Hetzner CX32 behind Traefik |
-| Errors | Sentry |
-| Monitoring | Datadog |
+| Layer         | Technology                                        |
+| ------------- | ------------------------------------------------- |
+| Framework     | Vue 3 + Vite + TypeScript                         |
+| UI components | PrimeVue 4                                        |
+| CSS           | Tailwind CSS (layout, spacing, custom components) |
+| Icons         | PrimeIcons + Heroicons                            |
+| State         | Pinia                                             |
+| Forms         | VeeValidate + Zod                                 |
+| Charts        | Apache ECharts (vue-echarts)                      |
+| i18n          | vue-i18n v11                                      |
+| Backend       | n8n webhooks (no custom REST server)              |
+| Database      | Supabase (PostgreSQL + RLS)                       |
+| Auth          | Supabase Auth                                     |
+| Realtime      | Supabase Realtime WebSockets                      |
+| Events        | Kafka (KRaft, self-hosted on CX32)                |
+| Storage       | Supabase Storage                                  |
+| Hosting       | Docker + Nginx on Hetzner CX32 behind Traefik     |
+| Errors        | Sentry                                            |
+| Monitoring    | Datadog                                           |
 
 ### PrimeVue + Tailwind Usage Split
-| PrimeVue | Tailwind |
-|----------|---------|
-| DataTable, Column, Paginator | Page layout, grid, flex |
-| Dialog, ConfirmDialog | Spacing, margin, padding |
-| Steps (wizard) | Custom badge/chip components |
-| Calendar, DatePicker | Typography utilities |
-| FileUpload | Color overrides via CSS vars |
-| Toast, Message | Responsive breakpoints |
-| Dropdown, MultiSelect, TreeSelect | Dark mode (`dark:` prefix) |
-| ProgressBar, Skeleton | Custom card shells |
-| Button (use PrimeVue Button) | Section backgrounds |
+
+| PrimeVue                          | Tailwind                     |
+| --------------------------------- | ---------------------------- |
+| DataTable, Column, Paginator      | Page layout, grid, flex      |
+| Dialog, ConfirmDialog             | Spacing, margin, padding     |
+| Steps (wizard)                    | Custom badge/chip components |
+| Calendar, DatePicker              | Typography utilities         |
+| FileUpload                        | Color overrides via CSS vars |
+| Toast, Message                    | Responsive breakpoints       |
+| Dropdown, MultiSelect, TreeSelect | Dark mode (`dark:` prefix)   |
+| ProgressBar, Skeleton             | Custom card shells           |
+| Button (use PrimeVue Button)      | Section backgrounds          |
 
 ---
 
@@ -112,33 +181,41 @@ npm run supabase:push     # Push schema migrations to remote
 ## Architecture Rules — NEVER VIOLATE THESE
 
 ### 1. No custom REST API backend
+
 All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **n8n webhooks** via `src/services/n8n.ts`. Never build an Express/Fastify/etc. server.
 
 ### 2. Never call n8n URLs directly
+
 All n8n calls go through `src/services/n8n.ts`. Never use `fetch()` to n8n URLs in components, stores, or composables — always the service wrapper.
 
 ### 3. n8n handles all async operations
+
 Anything involving AWX, Kafka, payments, or notifications goes through n8n. The Vue app fires and forgets — status is tracked via Supabase Realtime. Never await long operations synchronously.
 
 ### 4. RLS is the authorization layer
+
 RLS policies in Supabase enforce what each role can access. Never filter by role on the frontend for security — only for display. If data is missing, check RLS first.
 
 ### 5. Supabase service role key = server-side only
+
 The service role key lives **only** in n8n environment variables. It must never appear in any frontend code, committed `.env`, or Vite build output.
 
 ### 6. Kafka for all credit events
+
 Credit debit, topup, expiry, and suspension events **must** flow through Kafka. Never update `partners.remainingCredits` directly from the Vue app.
 Flow: Vue → n8n webhook → Kafka → n8n consumer → Supabase update.
 
 ### 7. Schema prefix in all Supabase queries
+
 ```typescript
 // CORRECT
-supabase.from('xayma_app.partners').select('*')
+supabase.from("xayma_app.partners").select("*");
 // WRONG — will hit public schema
-supabase.from('partners').select('*')
+supabase.from("partners").select("*");
 ```
 
 ### 8. Role checks via composable only
+
 ```typescript
 // CORRECT — in <script setup>
 const { isAdmin, isReseller, isCustomer } = useAuth()
@@ -147,24 +224,30 @@ v-if="authStore.user?.user_role === 'ADMIN'"
 ```
 
 ### 9. All strings must be i18n keys
+
 ```vue
 <!-- CORRECT -->
-{{ $t('deployments.status.active') }}
+{{ $t("deployments.status.active") }}
 <!-- WRONG — breaks FR users -->
 Active
 ```
+
 Add to BOTH `en.ts` AND `fr.ts` before committing. Never one without the other.
 
 ### 10. Mockups are the source of truth for UI
+
 Before implementing any screen, check `docs/mockups/`. Implement with tokens from `src/design-system/tokens.json` and patterns from `docs/design-system.md`.
 
 ### 11. Audit every mutation
+
 Every INSERT/UPDATE/DELETE on core tables is caught by PostgreSQL audit triggers writing to `general_audit`. If adding a new table, add the audit trigger.
 
 ### 12. Always clean up Realtime subscriptions
+
 ```typescript
-onUnmounted(() => supabase.removeChannel(channel))
+onUnmounted(() => supabase.removeChannel(channel));
 ```
+
 No exceptions. Dangling subscriptions cause memory leaks.
 
 ---
@@ -189,10 +272,12 @@ No exceptions. Dangling subscriptions cause memory leaks.
 ## Design System
 
 ### Before writing any UI code, read:
+
 1. `src/design-system/tokens.json` — all allowed color, spacing, radius, shadow values
 2. `docs/design-system.md` — component anatomy, layout rules, interaction patterns
 
 ### PrimeVue theming
+
 PrimeVue is themed via CSS variables in `src/assets/styles/primevue-theme.css`. Never override PrimeVue styles inline or with `!important`. Extend the theme file.
 
 ```css
@@ -205,12 +290,14 @@ PrimeVue is themed via CSS variables in `src/assets/styles/primevue-theme.css`. 
 ```
 
 ### Never:
+
 - Hardcode a hex color — use the design token CSS variable
 - Hardcode pixel values for spacing — use Tailwind spacing classes
 - Use `ml-*` / `mr-*` — use `ms-*` / `me-*` (RTL-safe)
 - Override PrimeVue styles inline — always via the theme file
 
 ### Working from a mockup:
+
 Paste a screenshot with `Ctrl+V` in the Claude Code terminal, or use `/from-figma [link]`.
 Claude will do mockup → token mapping → build → `/visual-check` screenshot comparison automatically.
 
@@ -234,15 +321,16 @@ Server runs automatically at `http://127.0.0.1:3846` (started by devcontainer `p
 
 5 specialist sub-agents + 1 lead in `.claude/agents/`. Claude invokes them automatically.
 
-| Moment | Agent |
-|--------|-------|
-| Starting any UI work | `css-design` — token mapping + PrimeVue component selection before any code |
-| Building Vue component / store / composable | `vue-specialist` — pattern validation |
-| Building any n8n workflow | `n8n-specialist` — contract, Kafka, error handling |
-| After implementation | `test-writer` — Vitest unit tests + Playwright E2E + screenshots |
-| Before every commit | `pr-reviewer` — nothing commits without APPROVE |
+| Moment                                      | Agent                                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------- |
+| Starting any UI work                        | `css-design` — token mapping + PrimeVue component selection before any code |
+| Building Vue component / store / composable | `vue-specialist` — pattern validation                                       |
+| Building any n8n workflow                   | `n8n-specialist` — contract, Kafka, error handling                          |
+| After implementation                        | `test-writer` — Vitest unit tests + Playwright E2E + screenshots            |
+| Before every commit                         | `pr-reviewer` — nothing commits without APPROVE                             |
 
 **Lead agent** — invoke manually:
+
 ```
 "give me sprint 3 status"    → reads IMPLEMENTATION_PLAN.md, reports progress
 "plan sprint 5"              → ordered task list with complexity estimates
@@ -250,6 +338,7 @@ Server runs automatically at `http://127.0.0.1:3846` (started by devcontainer `p
 ```
 
 ### Full task flow
+
 ```
 css-design → vue-specialist → n8n-specialist (if needed)
                 ↓ [implementation] ↓
@@ -267,29 +356,30 @@ css-design → vue-specialist → n8n-specialist (if needed)
 
 ## Slash Commands
 
-| Command | When to use |
-|---------|-------------|
-| `/new-feature <n>` | Add a new feature end-to-end (type + service + store + component + test) |
-| `/new-page <n>` | Scaffold a new page with route, layout, i18n keys |
-| `/verify-task` | Self-check after implementing a task — must pass before ✅ |
-| `/test-sprint` | Full E2E acceptance gate at end of each sprint |
-| `/status` | Read IMPLEMENTATION_PLAN.md and report current progress |
-| `/visual-check` | Screenshot comparison vs mockup reference |
-| `/n8n-workflow <n>` | Scaffold n8n workflow with input/output contract |
-| `/db-migration <n>` | Generate a Supabase SQL migration file |
+| Command             | When to use                                                              |
+| ------------------- | ------------------------------------------------------------------------ |
+| `/new-feature <n>`  | Add a new feature end-to-end (type + service + store + component + test) |
+| `/new-page <n>`     | Scaffold a new page with route, layout, i18n keys                        |
+| `/verify-task`      | Self-check after implementing a task — must pass before ✅               |
+| `/test-sprint`      | Full E2E acceptance gate at end of each sprint                           |
+| `/status`           | Read IMPLEMENTATION_PLAN.md and report current progress                  |
+| `/visual-check`     | Screenshot comparison vs mockup reference                                |
+| `/n8n-workflow <n>` | Scaffold n8n workflow with input/output contract                         |
+| `/db-migration <n>` | Generate a Supabase SQL migration file                                   |
 
 ---
 
 ## Testing
 
-| Layer | Tool | Covers |
-|-------|------|--------|
-| Unit + Component | Vitest + Vue Test Utils | Stores, composables, service functions, components |
-| E2E + Visual | Playwright MCP | Full user journeys, routing, i18n, layout screenshots |
-| Self-verify | `/verify-task` | Claude checks its own work after each task |
-| Sprint gate | `/test-sprint` | Full E2E before sprint is declared complete |
+| Layer            | Tool                    | Covers                                                |
+| ---------------- | ----------------------- | ----------------------------------------------------- |
+| Unit + Component | Vitest + Vue Test Utils | Stores, composables, service functions, components    |
+| E2E + Visual     | Playwright MCP          | Full user journeys, routing, i18n, layout screenshots |
+| Self-verify      | `/verify-task`          | Claude checks its own work after each task            |
+| Sprint gate      | `/test-sprint`          | Full E2E before sprint is declared complete           |
 
 **Rules:**
+
 - Unit tests co-located with source (`auth.store.ts` → `auth.store.test.ts`)
 - E2E tests in `tests/e2e/` organized by feature
 - Screenshots committed to `tests/screenshots/` for visual regression
@@ -321,29 +411,35 @@ css-design → vue-specialist → n8n-specialist (if needed)
 ## Supabase Patterns
 
 ### Realtime subscription
+
 ```typescript
 const channel = supabase
-  .channel('partner-credits')
-  .on('postgres_changes', {
-    event: 'UPDATE',
-    schema: 'xayma_app',
-    table: 'partners',
-    filter: `id=eq.${partnerId}`
-  }, (payload) => {
-    partnerStore.updateCredits(payload.new.remainingCredits)
-  })
-  .subscribe()
+  .channel("partner-credits")
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "xayma_app",
+      table: "partners",
+      filter: `id=eq.${partnerId}`,
+    },
+    (payload) => {
+      partnerStore.updateCredits(payload.new.remainingCredits);
+    },
+  )
+  .subscribe();
 
-onUnmounted(() => supabase.removeChannel(channel))
+onUnmounted(() => supabase.removeChannel(channel));
 ```
 
 ### Error handling
+
 ```typescript
-const { data, error } = await supabase.from('xayma_app.partners').select('*')
+const { data, error } = await supabase.from("xayma_app.partners").select("*");
 if (error) {
   // Use notification store — never console.log
-  notificationStore.addError(t('errors.fetch_failed'))
-  return
+  notificationStore.addError(t("errors.fetch_failed"));
+  return;
 }
 ```
 
@@ -374,25 +470,26 @@ Never commit `.env`. Use `.env.example` for documentation.
 
 ## Gotchas & Known Issues
 
-| Issue | Workaround |
-|-------|-----------|
-| Supabase requires `xayma_app.` prefix | Prefix all table names in all queries |
-| Phone validation is West Africa specific | Regex: `^(70\|75\|76\|77\|78)[0-9]{7}$` |
-| Supabase Realtime requires RLS enabled | All realtime tables must have RLS; realtime respects it |
-| Kafka KRaft needs `KAFKA_NODE_ID` env | Set in docker-compose; see `infra/kafka/README.md` |
-| n8n webhook URLs must be static | Never use dynamic paths; configure base URL in `settings` table |
-| Paytech IPN arrives before UI redirect | Credit update must be idempotent — check status before processing |
-| Domain regex for deployments | Uses PostgreSQL function `valid_domain_array()` — don't replicate in JS |
-| `useRoute()` outside `setup()` | Only call inside `setup()` or composables used within `setup()` |
-| PrimeVue DataTable + sticky header | Use `scrollHeight="flex"` + parent `height: calc(100vh - Xpx)` |
-| PrimeVue theme overrides | Only via `primevue-theme.css` CSS vars — never inline, never `!important` |
-| vue-i18n v11 | Use `const { t } = useI18n()` — not `this.$t()` |
+| Issue                                    | Workaround                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------- |
+| Supabase requires `xayma_app.` prefix    | Prefix all table names in all queries                                     |
+| Phone validation is West Africa specific | Regex: `^(70\|75\|76\|77\|78)[0-9]{7}$`                                   |
+| Supabase Realtime requires RLS enabled   | All realtime tables must have RLS; realtime respects it                   |
+| Kafka KRaft needs `KAFKA_NODE_ID` env    | Set in docker-compose; see `infra/kafka/README.md`                        |
+| n8n webhook URLs must be static          | Never use dynamic paths; configure base URL in `settings` table           |
+| Paytech IPN arrives before UI redirect   | Credit update must be idempotent — check status before processing         |
+| Domain regex for deployments             | Uses PostgreSQL function `valid_domain_array()` — don't replicate in JS   |
+| `useRoute()` outside `setup()`           | Only call inside `setup()` or composables used within `setup()`           |
+| PrimeVue DataTable + sticky header       | Use `scrollHeight="flex"` + parent `height: calc(100vh - Xpx)`            |
+| PrimeVue theme overrides                 | Only via `primevue-theme.css` CSS vars — never inline, never `!important` |
+| vue-i18n v11                             | Use `const { t } = useI18n()` — not `this.$t()`                           |
 
 ---
 
 ## File Creation Checklist
 
 When adding a new feature:
+
 - [ ] Type definition in `src/types/index.ts`
 - [ ] Service function in `src/services/`
 - [ ] Pinia store action or composable

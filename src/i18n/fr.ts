@@ -407,6 +407,19 @@ export default {
       inactive: 'Inactif',
       archived: 'Archivé',
     },
+    tabs: {
+      plans: 'Formules',
+      awx_config: 'Configuration AWX',
+    },
+    plans: {
+      add: 'Ajouter une formule',
+      empty: 'Aucune formule configurée pour ce service',
+      credits_per_month: 'crédits/mois',
+    },
+    awx: {
+      job_template_id: 'ID du modèle de job AWX',
+      not_configured: 'Configuration AWX non définie pour ce service',
+    },
   },
 
   // Service Plans
@@ -463,6 +476,15 @@ export default {
       select_plan: 'Sélectionnez un plan tarifaire',
       enter_domains: 'Entrez les noms de domaine pour ce déploiement',
       review_deployment: 'Vérifiez votre configuration de déploiement',
+    },
+    actions: {
+      stop: 'Arrêter',
+      start: 'Démarrer',
+      restart: 'Redémarrer',
+      view_details: 'Voir les détails',
+    },
+    card: {
+      monthly_cost: 'Coût mensuel',
     },
   },
 

@@ -407,6 +407,19 @@ export default {
       inactive: 'Inactive',
       archived: 'Archived',
     },
+    tabs: {
+      plans: 'Plans',
+      awx_config: 'AWX Configuration',
+    },
+    plans: {
+      add: 'Add Plan',
+      empty: 'No plans configured for this service',
+      credits_per_month: 'credits/month',
+    },
+    awx: {
+      job_template_id: 'AWX Job Template ID',
+      not_configured: 'AWX configuration not set for this service',
+    },
   },
 
   // Service Plans
@@ -463,6 +476,15 @@ export default {
       select_plan: 'Select a pricing plan',
       enter_domains: 'Enter domain names for this deployment',
       review_deployment: 'Review your deployment configuration',
+    },
+    actions: {
+      stop: 'Stop',
+      start: 'Start',
+      restart: 'Restart',
+      view_details: 'View Details',
+    },
+    card: {
+      monthly_cost: 'Monthly Cost',
     },
   },
 

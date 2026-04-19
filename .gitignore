@@ -25,6 +25,9 @@ dist/
 # Testing
 coverage/
 .nyc_output/
+playwright-report/
+test-results/
+tests/screenshots/
 
 # Misc
 .cache/

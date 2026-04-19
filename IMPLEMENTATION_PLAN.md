@@ -129,15 +129,15 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [x] **2.3** Build `partner.store.ts` — list, selected partner, credit balance; Realtime subscription for credit updates
 - [x] **2.4** Build `AppDataTable.vue` wrapper around PrimeVue `DataTable` — global search, column toggle, CSV export, paginator
 - [x] **2.5** Build Partners list page (`/partners`) — `AppDataTable`, status filter (`Dropdown`), partner_type filter; admin-only route
-- [ ] **2.6** Build `PartnerForm.vue` — PrimeVue `InputText`, `InputMask` for phone (West Africa validation: `^(70|75|76|77|78)[0-9]{7}$`), `Dropdown` for type/status; VeeValidate + Zod; slug auto-generation; check `docs/mockups/` for reference
-- [ ] **2.7** Build Create Partner `Dialog` (uses `PartnerForm.vue`)
+- [x] **2.6** Build `PartnerForm.vue` — PrimeVue `InputText`, `InputMask` for phone (West Africa validation: `^(70|75|76|77|78)[0-9]{7}$`), `Dropdown` for type/status; VeeValidate + Zod; slug auto-generation; check `docs/mockups/` for reference
+- [x] **2.7** Build Create Partner `Dialog` (uses `PartnerForm.vue`)
 - [x] **2.8** Build Partner detail page (`/partners/:id`) — `TabView` (Profile / Deployments / Credits / Audit); status controls via `SplitButton`
-- [ ] **2.9** Build `PartnerStatusBadge.vue` and `PartnerTypeBadge.vue` — PrimeVue `Tag` component, color-coded per enum value
+- [x] **2.9** Build `PartnerStatusBadge.vue` and `PartnerTypeBadge.vue` — PrimeVue `Tag` component, color-coded per enum value
 - [x] **2.10** Build Users list page (`/users`) — `AppDataTable` with linked partner name; admin-only
 - [x] **2.11** Build User detail page (`/users/:id`) — edit role (`Dropdown`), link partner, deactivate (`ToggleButton`)
-- [ ] **2.12** Build Credit Purchase Options page (`/credit-options`) — volume discount tier CRUD; `DataTable` with inline edit; admin-only
-- [ ] **2.13** Implement Supabase RLS policies for `partners` and `users` — admin full access; customers see own record only; **document RLS logic in `docs/rls-policies.md`**
-- [ ] **2.14** Add PostgreSQL audit triggers for `partners` and `users` tables (INSERT/UPDATE/DELETE → `general_audit`); document in `docs/audit-triggers.sql`
+- [x] **2.12** Build Credit Purchase Options page (`/credit-options`) — volume discount tier CRUD; `DataTable` with inline edit; admin-only
+- [x] **2.13** Implement Supabase RLS policies for `partners` and `users` — admin full access; customers see own record only; **document RLS logic in `docs/rls-policies.md`**
+- [x] **2.14** Add PostgreSQL audit triggers for `partners` and `users` tables (INSERT/UPDATE/DELETE → `general_audit`); document in `docs/audit-triggers.sql`
 - [x] **2.15** Build Profile page (`/profile`) — PrimeVue `InputText`, `Dropdown` for language + currency; `Button` save; check `docs/mockups/` for reference
 - [x] **2.16** Build Audit Log page (`/audit`) — `DataTable` filterable by table_name, action, user, date range (`Calendar`); admin-only; check `docs/mockups/` for reference
 - [x] **2.17** Add i18n keys (EN + FR) for all new strings
@@ -145,16 +145,16 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 ### Sprint 2 Tests
 - [x] **2.T1** Unit: `partners.service.test.ts` — create, update, status change, phone validation (West Africa regex)
 - [x] **2.T2** Unit: `partner.store.test.ts` — list loads, credit balance updates via mocked Realtime
-- [ ] **2.T3** Unit: `PartnerForm.vue` — phone regex rejects invalid numbers (e.g., 60-69, non-numeric); slug auto-generates correctly from name
-- [ ] **2.T4** Unit: `PartnerStatusBadge.vue` — renders correct PrimeVue `Tag` severity for each status enum
-- [ ] **2.T5** Unit: RLS policies — partner record invisible to non-admin users without matching company_id
+- [x] **2.T3** Unit: `PartnerForm.vue` — phone regex rejects invalid numbers (e.g., 60-69, non-numeric); slug auto-generates correctly from name
+- [x] **2.T4** Unit: `PartnerStatusBadge.vue` — renders correct PrimeVue `Tag` severity for each status enum
+- [x] **2.T5** Unit: RLS policies — partner record invisible to non-admin users without matching company_id
 - [x] **2.T6** E2E sprint gate: `tests/e2e/partners.spec.ts`
   - Admin creates partner → appears in DataTable with correct status badge
   - Admin suspends partner → status badge updates; partner record reflects new status
   - Customer sees only their own partner record (RLS check — other partner returns empty)
   - Phone number with invalid format is rejected with i18n error message
   - Audit log shows mutation with correct old/new values
-- [ ] **2.T7** Screenshots: Partners list (desktop + mobile), Partner detail TabView, Audit log
+- [x] **2.T7** Screenshots: Partners list (desktop + mobile), Partner detail TabView, Audit log
 
 **Sprint 2 done when:** `/test-sprint` E2E gate passes. All checklist items ✅.
 
