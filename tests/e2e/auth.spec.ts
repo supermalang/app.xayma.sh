@@ -6,14 +6,15 @@
 import { test, expect } from '@playwright/test'
 
 // Load test credentials from environment
+// Defaults match MOCK_USERS in src/stores/auth.store.ts
 const TEST_USERS = {
   admin: {
     email: process.env.TEST_ADMIN_EMAIL || 'admin@test.example.com',
-    password: process.env.TEST_ADMIN_PASSWORD || 'admin123456',
+    password: process.env.TEST_ADMIN_PASSWORD || 'test123456',
   },
   customer: {
     email: process.env.TEST_CUSTOMER_EMAIL || 'customer@test.example.com',
-    password: process.env.TEST_CUSTOMER_PASSWORD || 'customer123456',
+    password: process.env.TEST_CUSTOMER_PASSWORD || 'test123456',
   },
 }
 
