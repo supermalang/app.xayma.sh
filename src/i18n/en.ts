@@ -485,6 +485,8 @@ export default {
       select_plan: 'Select a pricing plan',
       enter_domains: 'Enter domain names for this deployment',
       review_deployment: 'Review your deployment configuration',
+      next: 'Next',
+      deploy: 'Deploy',
     },
     actions: {
       stop: 'Stop',

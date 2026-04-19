@@ -115,7 +115,7 @@
       <!-- Navigation -->
       <div class="flex justify-between mt-8">
         <Button
-          label="Back"
+          :label="$t('common.back')"
           icon="pi pi-arrow-left"
           class="p-button-secondary"
           :disabled="activeStep === 0"
@@ -124,7 +124,7 @@
         <div class="flex gap-2">
           <Button
             v-if="activeStep < 3"
-            label="Next"
+            :label="$t('deployments.wizard.next')"
             icon="pi pi-arrow-right"
             icon-pos="right"
             :disabled="!canProceed"
@@ -132,7 +132,7 @@
           />
           <Button
             v-else
-            label="Deploy"
+            :label="$t('deployments.wizard.deploy')"
             icon="pi pi-check"
             :disabled="!hasSufficientCredits || isDeploying"
             :loading="isDeploying"
@@ -156,10 +156,18 @@ import Chips from 'primevue/chips'
 import Message from 'primevue/message'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
+import { useNotificationStore } from '@/stores/notification.store'
+
+interface PlanInfo {
+  id?: number
+  monthlyCreditConsumption?: number
+  label?: string
+}
 
 const router = useRouter()
 const { t } = useI18n()
 const partnerStore = usePartnerStore()
+const notificationStore = useNotificationStore()
 const { createDeployment } = useDeployments()
 
 const activeStep = ref(0)
@@ -170,7 +178,7 @@ const form = ref({
   domainNames: [],
 })
 const isDeploying = ref(false)
-const selectedPlan = ref<{ monthlyCreditConsumption?: number; label?: string } | null>(null)
+const selectedPlan = ref<PlanInfo | null>(null)
 
 const steps = [
   { label: t('deployments.wizard.step_1') },
@@ -187,8 +195,9 @@ const canProceed = computed(() => {
 })
 
 const hasSufficientCredits = computed(() => {
+  if (!selectedPlan.value) return false
   const balance = partnerStore.selectedPartnerCredits
-  const cost = selectedPlan.value?.monthlyCreditConsumption ?? 0
+  const cost = selectedPlan.value.monthlyCreditConsumption ?? 0
   if (cost === 0) return true
   return balance >= cost
 })
@@ -205,21 +214,24 @@ function nextStep() {
   }
 }
 
-function _onPlanSelected(plan: { id: number; monthlyCreditConsumption?: number; label?: string }) {
-  form.value.servicePlanId = plan.id
-  selectedPlan.value = plan
-}
-
 async function submitDeployment() {
   const partnerId = partnerStore.selectedPartner?.id
-  if (!partnerId) return
+  if (!partnerId) {
+    notificationStore.addError(t('errors.fetch_failed'))
+    return
+  }
+
+  if (!selectedPlan.value) {
+    notificationStore.addError(t('deployments.errors.insufficient_credits'))
+    return
+  }
 
   isDeploying.value = true
   try {
     const result = await createDeployment(
       form.value,
       partnerId,
-      selectedPlan.value?.monthlyCreditConsumption ?? 0
+      selectedPlan.value.monthlyCreditConsumption ?? 0
     )
     if (result) {
       router.push('/deployments')

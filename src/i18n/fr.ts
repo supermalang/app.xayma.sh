@@ -485,6 +485,8 @@ export default {
       select_plan: 'Sélectionnez un plan tarifaire',
       enter_domains: 'Entrez les noms de domaine pour ce déploiement',
       review_deployment: 'Vérifiez votre configuration de déploiement',
+      next: 'Suivant',
+      deploy: 'Déployer',
     },
     actions: {
       stop: 'Arrêter',
