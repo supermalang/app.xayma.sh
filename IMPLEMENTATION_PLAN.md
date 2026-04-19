@@ -164,8 +164,8 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 **Goal:** Admin configures services; customers deploy instances; AWX integration works end-to-end.
 
 ### Tasks
-- [ ] **3.1** Build `src/services/services.service.ts` — CRUD for `xayma_app.services` and `xayma_app.serviceplans`
-- [ ] **3.2** Build `src/services/deployments.service.ts` — CRUD for `xayma_app.deployments`
+- [x] **3.1** Build `src/services/services.service.ts` — CRUD for `xayma_app.services` and `xayma_app.serviceplans`
+- [x] **3.2** Build `src/services/deployments.service.ts` — CRUD for `xayma_app.deployments`
 - [x] **3.3** Build `src/services/n8n.ts` — webhook caller with typed payloads, retry on 5xx, error normalization
 - [x] **3.4** Build Control Nodes page (`/control-nodes`) — `DataTable` + create/edit `Dialog`; admin-only
 - [x] **3.5** Build Services page (`/services`) — service catalogue, `ToggleButton` for `isPubliclyAvailable`; admin-only
@@ -188,7 +188,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **3.18** Add i18n keys (EN + FR) for all new strings
 
 ### Sprint 3 Tests
-- [ ] **3.T1** Unit: `deployments.service.test.ts` — create, status update, credit check helper
+- [x] **3.T1** Unit: `deployments.service.test.ts` — create, status update, credit check helper
 - [x] **3.T2** Unit: `n8n.service.test.ts` — webhook called with correct payload; 5xx triggers retry; error normalized
 - [x] **3.T3** Unit: Deployment wizard — Step 4 blocks when credits < plan consumption; domain `Chips` input calls `valid_domain_array()` PostgreSQL function to validate (NOT JS regex)
 - [x] **3.T4** Unit: `DeploymentStatusBadge.vue` — correct PrimeVue `Tag` severity for each status
