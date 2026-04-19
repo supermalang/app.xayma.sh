@@ -156,7 +156,7 @@ import Chips from 'primevue/chips'
 import Message from 'primevue/message'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
-import { useNotificationStore } from '@/stores/notification.store'
+import { useNotificationStore } from '@/stores/notifications.store'
 
 interface PlanInfo {
   id?: number
