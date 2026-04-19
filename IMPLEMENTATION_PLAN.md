@@ -185,7 +185,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **3.15** Configure Ansible playbooks: `deploy_odoo.yml`, `stop_odoo.yml`, `start_odoo.yml`, `restart_odoo.yml`, `add_traefik_route.yml`
 - [ ] **3.16** Implement AWX job call in n8n (HTTP node); update `deployments.status` on success/fail via Supabase
 - [x] **3.17** Implement RLS policies for `deployments` and `services`
-- [ ] **3.18** Add i18n keys (EN + FR) for all new strings
+- [x] **3.18** Add i18n keys (EN + FR) for all new strings
 
 ### Sprint 3 Tests
 - [x] **3.T1** Unit: `deployments.service.test.ts` — create, status update, credit check helper
