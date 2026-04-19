@@ -51,6 +51,7 @@ export default {
 
   // Errors
   errors: {
+    error: 'Error',
     required: 'This field is required',
     invalid_email: 'Invalid email address',
     fetch_failed: 'Failed to fetch data',

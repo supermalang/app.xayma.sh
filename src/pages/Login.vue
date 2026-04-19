@@ -1,6 +1,6 @@
 <template>
   <div class="w-full max-w-md">
-    <Card class="shadow-lg">
+    <Card class="bg-surface-container-low">
       <template #header>
         <div class="p-6 border-b border-outline-variant/20">
           <h1 class="text-2xl font-bold text-on-surface">{{ $t('auth.login') }}</h1>

@@ -51,6 +51,7 @@ export default {
 
   // Errors
   errors: {
+    error: 'Erreur',
     required: 'Ce champ est obligatoire',
     invalid_email: 'Adresse e-mail invalide',
     fetch_failed: 'Échec de la récupération des données',
