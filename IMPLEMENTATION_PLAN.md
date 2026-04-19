@@ -199,7 +199,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
   - Stop/Start actions update status in real time via Realtime (no page refresh)
   - Customer cannot access another partner's deployment (RLS — returns empty)
   - Wizard Step 4 blocked with error when credits insufficient
-- [ ] **3.T6** Screenshots: Deployment list, wizard each step (4), deployment detail
+- [x] **3.T6** Screenshots: Deployment list, wizard each step (4), deployment detail
 
 **Sprint 3 done when:** `/test-sprint` E2E gate passes. All checklist items ✅.
 
