@@ -395,6 +395,15 @@ export default {
   services: {
     title: 'Services',
     create: 'Nouveau service',
+    empty: 'Aucun service configuré',
+    columns: {
+      name: 'Nom',
+      status: 'Statut',
+      isPubliclyAvailable: 'Public',
+    },
+    create_dialog: {
+      title: 'Nouveau service',
+    },
     form: {
       name: 'Nom du service',
       description: 'Description',

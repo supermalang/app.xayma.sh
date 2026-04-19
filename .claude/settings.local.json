@@ -3,5 +3,8 @@
     "allow": [
       "mcp__stitch__get_screen"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-dev": true
   }
 }

@@ -169,7 +169,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [x] **3.3** Build `src/services/n8n.ts` — webhook caller with typed payloads, retry on 5xx, error normalization
 - [x] **3.4** Build Control Nodes page (`/control-nodes`) — `DataTable` + create/edit `Dialog`; admin-only
 - [x] **3.5** Build Services page (`/services`) — service catalogue, `ToggleButton` for `isPubliclyAvailable`; admin-only
-- [ ] **3.6** Build Service detail page (`/services/:id`) — `TabView` (Plans / AWX Config); plan CRUD via inline `DataTable` edit
+- [x] **3.6** Build Service detail page (`/services/:id`) — `TabView` (Plans / AWX Config); plan CRUD via inline `DataTable` edit
 - [x] **3.7** Build Deployments list page (`/deployments`) — role-aware (admin sees all, customer/reseller see own); `SelectButton` status filter; check `docs/mockups/` for reference
 - [ ] **3.8** Build `DeploymentCard.vue` — PrimeVue `Card` with `Tag` status badge, `ProgressBar` credit meter, domain link, `SplitButton` actions; check `docs/mockups/` for design
 - [x] **3.9** Build New Deployment wizard (`/deployments/new`) — PrimeVue `Steps` (4 steps); check `docs/mockups/` for each step:

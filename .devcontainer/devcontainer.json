@@ -24,17 +24,21 @@
     }
   },
 
-  // Post-create: install deps + Playwright browsers + vibe-annotations
-  "postCreateCommand": "sudo chown -R node:node /workspaces && rm -rf node_modules package-lock.json && npm install && npx playwright install chromium --with-deps && npm install -g vibe-annotations-server",
+  // Post-create: install deps + Playwright browsers + vibe-annotations + Superpowers skill
+  "postCreateCommand": "sudo chown -R node:node /workspaces && rm -rf node_modules package-lock.json && npm install && npx playwright install chromium --with-deps && npm install -g vibe-annotations-server && mkdir -p ~/.claude/skills && ([ -d ~/.claude/skills/superpowers ] || git clone --depth=1 https://github.com/obra/superpowers.git ~/.claude/skills/superpowers)",
 
   // Post-start: auto-start vibe-annotations, remind developer of commands
   "postStartCommand": "vibe-annotations-server start &>/dev/null & echo '\\n🚀 Xayma Dev Container ready\\n   npm run dev                   → start Vite dev server (port 5173)\\n   claude                        → start Claude Code\\n   (vibe-annotations running on :3846)\\n'",
 
-  // Persist Claude credentials, npm globals, and ZSH history across rebuilds
+  // Persist Claude credentials, skills, npm globals, and ZSH history across rebuilds
   "mounts": [
     // Bind-mount Claude credentials from Windows host (login via `claude` on host first)
     "source=${localEnv:APPDATA}/Claude,target=/home/node/.claude,type=bind,consistency=cached",
+    // Named volume for Claude Code skills — persists independently across rebuilds
+    "source=xayma-claude-skills,target=/home/node/.claude/skills,type=volume",
+    // Named volume for npm globals
     "source=xayma-npm-global,target=/home/node/.npm-global,type=volume",
+    // Named volume for ZSH history
     "source=xayma-zsh-history,target=/home/node/.zsh_history,type=volume"
   ],
 

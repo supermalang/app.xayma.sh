@@ -145,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from 'primevue/useconfirm'
@@ -182,19 +182,17 @@ const plansLoading = ref(false)
 const error = ref<string | null>(null)
 const editingRows = ref<any[]>([])
 
-const statusSeverity = ref<'success' | 'warn' | 'secondary'>('secondary')
+const statusSeverity = computed(() => {
+  if (service.value?.status === 'active') return 'success'
+  if (service.value?.status === 'inactive') return 'warn'
+  return 'secondary'
+})
 
 onMounted(async () => {
   const id = Number(route.params.id)
   loading.value = true
   try {
     service.value = await getService(id)
-    statusSeverity.value =
-      service.value?.status === 'active'
-        ? 'success'
-        : service.value?.status === 'inactive'
-          ? 'warn'
-          : 'secondary'
     await loadPlans(id)
   } catch {
     error.value = t('errors.fetch_failed')
