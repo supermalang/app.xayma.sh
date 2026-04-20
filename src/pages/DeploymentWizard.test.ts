@@ -263,7 +263,7 @@ describe('DeploymentWizard - Deployment Creation on Step 4', () => {
     vi.clearAllMocks()
   })
 
-  it('calls n8n webhook when deploy button clicked with valid form', async () => {
+  it('calls workflow engine webhook when deploy button clicked with valid form', async () => {
     const createSpy = vi.mocked(workflowEngineService.createDeployment)
 
     const payload = {

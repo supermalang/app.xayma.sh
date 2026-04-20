@@ -12,10 +12,10 @@ const i18n = createI18n({
       errors: { fetch_failed: 'Failed to fetch data' },
       services: {
         status: { active: 'Active', inactive: 'Inactive', archived: 'Archived' },
-        tabs: { plans: 'Plans', awx_config: 'AWX Configuration' },
+        tabs: { plans: 'Plans', deployment_engine_config: 'Deployment Configuration' },
         plans: { add: 'Add Plan', empty: 'No plans configured for this service', credits_per_month: 'credits/month' },
         form: { control_node_id: 'Control Node' },
-        awx: { job_template_id: 'AWX Job Template ID', not_configured: 'AWX configuration not set for this service' },
+        deployment_engine: { job_template_id: 'Deployment Engine Job Template ID', not_configured: 'Deployment engine configuration not set for this service' },
       },
       service_plans: {
         form: { label: 'Plan Name', slug: 'Slug', description: 'Description', monthlyCreditConsumption: 'Monthly Credit Consumption' },
