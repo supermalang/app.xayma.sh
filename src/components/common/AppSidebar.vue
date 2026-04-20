@@ -1,5 +1,5 @@
 <template>
-  <aside class="w-64 h-screen fixed left-0 top-0 bg-slate-50 border-r border-outline-variant/20 flex flex-col z-40">
+  <aside class="w-64 h-[calc(100vh-64px)] fixed left-0 top-16 bg-slate-50 border-r border-outline-variant/20 flex flex-col z-40">
     <!-- Org Identity -->
     <div class="px-4 py-8 border-b border-outline-variant/10">
       <div class="flex items-center gap-3">
