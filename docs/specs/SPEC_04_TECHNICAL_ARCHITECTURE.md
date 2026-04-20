@@ -16,7 +16,7 @@
 | Charts | Apache ECharts (vue-echarts) |
 | Form validation | VeeValidate + Yup |
 | i18n | vue-i18n v9 (FR + EN) |
-| HTTP client | Supabase JS SDK (direct queries) + fetch for n8n webhooks |
+| HTTP client | Supabase JS SDK (direct queries) + fetch for workflow engine webhooks |
 | Real-time | Supabase WebSockets (Realtime) |
 | Dev environment | VSCode Dev Container (Node 20 + Docker) |
 | Containerization | Docker (multi-stage build) |
@@ -38,8 +38,8 @@
 | Service | Role | Hosting |
 |---------|------|---------|
 | **Supabase** | PostgreSQL DB, Auth, Row-Level Security, Realtime WebSockets | Supabase Cloud (EU region) |
-| **n8n** | Workflow automation (credit deduction, notifications, AWX triggers) | Self-hosted Docker on CX32 |
-| **AWX** | Ansible automation for Docker container provisioning | Self-hosted Docker on CX32 |
+| **Workflow Engine** | Workflow automation (credit deduction, notifications, deployment engine triggers) | Self-hosted Docker on CX32 |
+| **Deployment Engine** | Infrastructure automation for Docker container provisioning | Self-hosted Docker on CX32 |
 | **Kafka** | Event streaming (credit.debit, credit.topup, deployment.suspend, etc.) | Self-hosted Docker on CX32 (KRaft mode, no Zookeeper) |
 | **Traefik** | Reverse proxy, SSL termination, routing per customer domain | Self-hosted Docker on CX32 |
 | **Strapi** | Headless CMS for marketing content | Self-hosted Docker on CX32 |
@@ -51,13 +51,13 @@
 
 | Service | Purpose | Integration method |
 |---------|---------|-------------------|
-| **Paytech** | Payment processing (Wave, Orange Money, card) | REST API from frontend → n8n webhook for IPN |
-| **RapidPro + Twilio** | WhatsApp notifications | n8n HTTP node → RapidPro API → Twilio → WhatsApp |
-| **Brevo** | Transactional email notifications (FR + EN templates) | n8n Brevo node (native) |
-| **Africa's Talking** | SMS notifications (West Africa) | n8n HTTP node |
+| **Paytech** | Payment processing (Wave, Orange Money, card) | REST API from frontend → workflow engine webhook for IPN |
+| **RapidPro + Twilio** | WhatsApp notifications | Workflow engine HTTP node → RapidPro API → Twilio → WhatsApp |
+| **Brevo** | Transactional email notifications (FR + EN templates) | Workflow engine Brevo node (native) |
+| **Africa's Talking** | SMS notifications (West Africa) | Workflow engine HTTP node |
 | **DockerHub** | Container image registry | GitHub Actions push |
 | **Datadog** | Monitoring & alerting | Datadog agent on all Hetzner nodes |
-| **Hetzner Cloud API** | Node provisioning (future) | n8n HTTP node |
+| **Hetzner Cloud API** | Node provisioning (future) | Workflow engine HTTP node |
 
 > **Email roadmap note:** Brevo covers all transactional email at launch (credit alerts, deployment confirmations, payment receipts). **Mautic** (self-hosted marketing automation) is planned for a future version to handle customer lifecycle campaigns, drip sequences, and onboarding flows. Mautic will run as an additional Docker service on CX32 when introduced.
 
@@ -66,9 +66,9 @@
 ## 4. Hard Technical Constraints
 
 - **Supabase direct queries from frontend** — no custom REST API layer; all DB access goes through Supabase JS SDK with RLS enforcing authorization
-- **n8n as orchestrator** — all async/background operations (credit deduction, notifications, AWX calls) flow through n8n
-- **Docker-only** — no Kubernetes at launch; all customer instances are Docker containers managed by AWX/Ansible on Hetzner CX52 nodes
-- **Kafka for credit events** — credit debit/credit operations must be event-sourced through Kafka for auditability and reliability; n8n consumes Kafka topics
+- **Workflow engine as orchestrator** — all async/background operations (credit deduction, notifications, deployment engine calls) flow through workflow engine
+- **Docker-only** — no Kubernetes at launch; all customer instances are Docker containers managed by deployment engine on Hetzner CX52 nodes
+- **Kafka for credit events** — credit debit/credit operations must be event-sourced through Kafka for auditability and reliability; workflow engine consumes Kafka topics
 - **Claude Code as primary dev tool** — `/mockups` folder contains reference UI designs; Claude Code reads these for implementation guidance
 - **Dev Container** — all development happens inside VSCode Dev Container; no local Node installation required
 
@@ -83,7 +83,7 @@
 | Authorization | Supabase RLS policies per table per role |
 | Role enforcement | `users.user_role` ENUM checked in every RLS policy |
 | Route guards | Vue Router `beforeEach` guard checks Pinia auth store |
-| API security | Supabase anon key in frontend; service role key only in n8n server-side |
+| API security | Supabase anon key in frontend; service role key only in workflow engine server-side |
 
 ### RLS Policy Pattern
 ```sql
@@ -103,8 +103,8 @@ FOR SELECT USING (
 │                    HETZNER CX32 (Management Node)            │
 │                                                               │
 │  ┌──────────┐  ┌──────────┐  ┌────────┐  ┌──────────────┐  │
-│  │  Traefik │  │   AWX    │  │  n8n   │  │    Kafka     │  │
-│  │ (proxy)  │  │(Ansible) │  │(flows) │  │  (KRaft)     │  │
+│  │  Traefik │  │Deployment│  │Workflow│  │    Kafka     │  │
+│  │ (proxy)  │  │ Engine   │  │ Engine │  │  (KRaft)     │  │
 │  └────┬─────┘  └────┬─────┘  └───┬────┘  └──────┬───────┘  │
 │       │              │            │               │           │
 │  ┌────┴─────┐  ┌─────┴──────┐    │         ┌────┴────────┐  │
@@ -142,10 +142,10 @@ FOR SELECT USING (
 | Flow | Path |
 |------|------|
 | User login | Vue → Supabase Auth → JWT → Pinia store |
-| Deploy instance | Vue → Supabase insert (deployment) → n8n webhook → AWX job → Docker on CX52 → Traefik route |
-| Credit deduction | Kafka topic (credit.debit) → n8n consumer → Supabase update → Realtime → Vue UI |
-| Payment | Vue → Paytech API → Paytech IPN → n8n webhook → Supabase credit update → Kafka |
-| Notification | n8n → RapidPro+Twilio (WhatsApp) / Brevo (email) / Africa's Talking (SMS) / Supabase Realtime (in-app) |
+| Deploy instance | Vue → Supabase insert (deployment) → workflow engine webhook → deployment engine job → Docker on CX52 → Traefik route |
+| Credit deduction | Kafka topic (credit.debit) → workflow engine consumer → Supabase update → Realtime → Vue UI |
+| Payment | Vue → Paytech API → Paytech IPN → workflow engine webhook → Supabase credit update → Kafka |
+| Notification | Workflow engine → RapidPro+Twilio (WhatsApp) / Brevo (email) / Africa's Talking (SMS) / Supabase Realtime (in-app) |
 | Marketing content | Nuxt → Strapi REST API → rendered SSR page |
 
 ---
@@ -154,11 +154,11 @@ FOR SELECT USING (
 
 | Topic | Producer | Consumer | Purpose |
 |-------|---------|---------|---------|
-| `credit.debit` | n8n (cron every 15min) | n8n | Deduct credits per active deployment |
-| `credit.topup` | n8n (Paytech IPN) | n8n | Add credits on payment |
-| `credit.expiry` | n8n (cron daily) | n8n | Mark expired credits |
-| `deployment.created` | Supabase trigger | n8n | Trigger AWX deploy job |
-| `deployment.suspend` | n8n (credit=0) | n8n | Trigger AWX stop job |
-| `deployment.resume` | n8n (credit topup) | n8n | Trigger AWX start job |
-| `notification.send` | n8n | n8n | Fan-out to all notification channels |
-| `audit.event` | n8n | n8n | Write to general_audit table |
+| `credit.debit` | Workflow engine (cron every 15min) | Workflow engine | Deduct credits per active deployment |
+| `credit.topup` | Workflow engine (Paytech IPN) | Workflow engine | Add credits on payment |
+| `credit.expiry` | Workflow engine (cron daily) | Workflow engine | Mark expired credits |
+| `deployment.created` | Supabase trigger | Workflow engine | Trigger deployment engine deploy job |
+| `deployment.suspend` | Workflow engine (credit=0) | Workflow engine | Trigger deployment engine stop job |
+| `deployment.resume` | Workflow engine (credit topup) | Workflow engine | Trigger deployment engine start job |
+| `notification.send` | Workflow engine | Workflow engine | Fan-out to all notification channels |
+| `audit.event` | Workflow engine | Workflow engine | Write to general_audit table |
