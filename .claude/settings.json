@@ -4,7 +4,7 @@
     "team": [
       "css-design",
       "vue-specialist",
-      "n8n-specialist",
+      "workflow-engine-specialist",
       "test-writer",
       "pr-reviewer",
       "lead"
@@ -18,7 +18,7 @@
       "test-sprint",
       "status",
       "visual-check",
-      "n8n-workflow",
+      "workflow-engine",
       "db-migration"
     ]
   },
