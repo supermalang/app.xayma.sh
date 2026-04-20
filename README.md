@@ -1,269 +1,80 @@
-# Xayma.sh — Credit-Based SaaS for Software Deployments in West Africa
+# Xayma.sh — Deploy Software in Minutes, Pay Only What You Use
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Database](https://img.shields.io/badge/Database-Service-3ECF8E)](https://)
-[![License](https://img.shields.io/badge/License-Proprietary-red)](#license)
+**Xayma** is a cloud platform for businesses in West Africa to launch and manage web applications instantly, with flexible credit-based billing.
 
-## Overview
+## What is Xayma?
 
-Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for web applications and custom containerized software. Built on a modern Vue 3 frontend, serverless workflow engine automation, and a managed relational database service.
+Xayma makes it easy for small and medium businesses to:
+- 🚀 **Launch web applications instantly** — no technical setup required
+- 💳 **Pay only for what you use** — credit-based pricing, no long-term contracts
+- 👥 **Manage team access** — fine-grained roles and permissions for different team members
+- 🌍 **Local support** — available in English and French, payments via Wave and Orange Money
+- 📊 **Track everything** — see your deployments, billing, and usage in real-time
 
-**Key Value:** Businesses in Senegal, Mali, and neighboring countries can launch enterprise-grade software deployments in minutes with flexible credit-based billing via Wave and Orange Money.
+## How It Works
 
-## Features
+1. **Sign Up** — Create an account or invite team members
+2. **Select Your App** — Choose a pre-configured application or bring your own
+3. **Deploy** — Click deploy and your app is live within minutes
+4. **Pay As You Go** — Credit-based billing, no surprises
+5. **Manage** — Monitor uptime, scale when needed, pause anytime
 
-- 🚀 **One-Click Deployments** — Launch pre-configured web applications or custom containerized software with instant provisioning
-- 💳 **Flexible Billing** — Credit-based pricing with micropayments via Wave/Orange Money  
-- 👥 **Multi-Role Access** — Admin, Reseller, Customer, and Sales roles with fine-grained permissions
-- 🔒 **Enterprise Security** — Row-level security (RLS), encrypted credentials, audit logging
-- 🌍 **Localized UX** — Full English/French UI with West African payment integration
-- 📊 **Real-Time Dashboards** — Live deployment status, credit consumption, and billing insights
-- 🔗 **No Custom Backend** — Serverless architecture: workflow engine for automation, database service for data
-- 📱 **Responsive Design** — Desktop, tablet, and mobile support
+## Key Features
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Vue 3 + TypeScript + Vite + PrimeVue 4 |
-| **Styling** | Tailwind CSS + design tokens |
-| **State** | Pinia |
-| **Forms** | VeeValidate + Zod |
-| **i18n** | vue-i18n (EN/FR) |
-| **Database** | Managed relational database service |
-| **Auth** | Database-integrated authentication |
-| **Realtime** | WebSocket-based real-time subscriptions |
-| **Automation** | workflow engine webhooks |
-| **Events** | Kafka (KRaft) |
-| **Testing** | Vitest + Playwright |
-| **Deployment** | Docker + Nginx on Hetzner |
+- **One-Click Deployments** — Pre-configured applications ready to launch
+- **Custom Apps** — Bring your own containerized application
+- **Team Management** — Admin, Reseller, Customer, and Sales roles
+- **Enterprise Security** — Encrypted data, audit logs, role-based access control
+- **Real-Time Status** — Live dashboards for deployments and billing
+- **Mobile Friendly** — Works on desktop, tablet, and mobile
 
 ## Getting Started
 
-### Prerequisites
+Visit [xayma.sh](https://xayma.sh) to:
+- Learn more about our platform
+- See pricing and available applications
+- Sign up for a free trial
 
-- Node.js 18+ and npm/pnpm
-- Relational database service instance (local or hosted)
-- workflow engine instance for webhook automation (optional for dev)
+## For Developers & Deployers
 
-### Installation
+If you're interested in deploying Xayma yourself:
 
+**Prerequisites:**
+- Node.js 18+
+- A relational database service
+- A workflow automation service for background jobs
+
+**Quick Start:**
 ```bash
-# Clone the repository
 git clone https://github.com/supermalang/app.xayma.sh.git
 cd app.xayma.sh
-
-# Install dependencies
 npm install
-
-# Copy environment template
 cp .env.example .env.local
-
-# Add your database service credentials to .env.local
-# VITE_DB_URL=https://...
-# VITE_DB_ANON_KEY=...
-```
-
-### Running Locally
-
-```bash
-# Start development server (port 5173)
 npm run dev
-
-# Run type check
-npm run type-check
-
-# Run linter
-npm run lint:fix
-
-# Run unit tests
-npm run test
-
-# Run E2E tests
-npm run test:e2e
 ```
 
-### Building for Production
+**Documentation:**
+- **[Developer Guide](docs/)** — Architecture, development workflow, technical specifications
+- **[Contributing](CLAUDE.md)** — How to contribute to Xayma
+- **[Runbook](docs/runbook.md)** — Deployment and operations guide
 
-```bash
-npm run build    # Type-check + production bundle
-npm run test:run # Run all tests once
-```
+## Security & Privacy
 
-## Architecture
+- **Data Isolation** — Each customer's data is fully isolated and encrypted
+- **Audit Trail** — All system changes are logged for compliance
+- **No Access** — Your data is yours; we don't access it without permission
+- **West African Compliance** — Built with local regulations in mind
 
-### Core Principles
+## Support
 
-**No Custom REST API** — All database reads use database service SDK. All writes and async operations trigger workflow engine webhooks.
-
-**RLS is the Security Layer** — Row-level security in the database enforces multi-tenancy. Frontend never filters by role.
-
-**Kafka for Credit Events** — Credit debits, topups, expirations flow through Kafka → workflow engine consumers → database updates.
-
-**Schema Prefix on All Queries** — All database queries target `xayma_app.*` schema, never the public schema.
-
-### Data Flow
-
-```
-Vue 3 App
-    ↓
-[Database SDK] — Read operations (RLS enforced)
-    ↓
-Relational Database (xayma_app schema)
-    ↓
-[Workflow Engine Webhooks] — Write/async operations
-    ↓
-[Kafka] — Credit events, deployments, notifications
-    ↓
-[deployment engine] — deployment engine for deployment orchestration
-```
-
-For detailed architecture rules, see [CLAUDE.md](CLAUDE.md).
-
-## Project Structure
-
-```
-src/
-├── components/          # Vue components (shared, feature-specific)
-│   ├── common/         # Reusable UI (AppDataTable, AppHeader, etc.)
-│   ├── deployments/    # DeploymentCard, DeploymentWizard
-│   ├── credits/        # CreditMeter, CreditBundleCard
-│   ├── partners/       # PartnerForm, PartnerStatusBadge
-│   └── notifications/  # NotificationBell, NotificationFeed
-├── pages/              # Vue Router page components
-├── stores/             # Pinia state management (auth, partners, deployments)
-├── composables/        # Reusable composition API logic
-├── services/           # Database client, workflow engine service, settings
-├── types/              # TypeScript types (domain + auto-generated from database)
-├── i18n/               # English (en.ts) and French (fr.ts) translations
-├── lib/                # Utilities (formatters, validators, fixtures)
-├── design-system/      # tokens.json (single source of truth for colors, spacing, etc.)
-└── assets/             # Styles, icons, images
-```
-
-## Environment Variables
-
-```bash
-# Required: Database Service
-VITE_DB_URL=https://your-database-service-url
-VITE_DB_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-# Required: Workflow Engine
-VITE_WORKFLOW_ENGINE_BASE_URL=https://workflow-engine.your-domain.com
-
-# Required: Payments
-VITE_PAYMENT_GATEWAY_API_KEY=your_payment_gateway_public_key
-
-# Optional: Monitoring
-VITE_SENTRY_DSN=https://...
-VITE_APP_ENV=development
-```
-
-Copy `.env.example` and update with your values:
-
-```bash
-cp .env.example .env.local
-```
-
-## Documentation
-
-- **[CLAUDE.md](CLAUDE.md)** — Architecture rules, slash commands, conventions, gotchas
-- **[docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** — Feature roadmap and sprint status
-- **[docs/specs/](docs/specs/)** — Full technical specifications (8 documents)
-- **[docs/design-system.md](docs/design-system.md)** — UI component patterns and layout rules
-- **[docs/rls-policies.md](docs/rls-policies.md)** — Row-level security policy documentation
-
-## Development Workflow
-
-### Running Tests
-
-```bash
-# Unit + Component tests (watch mode)
-npm run test
-
-# Single run (CI)
-npm run test:run
-
-# E2E tests (interactive UI)
-npm run test:e2e:ui
-
-# E2E tests (headless)
-npm run test:e2e
-
-# Coverage report
-npm run test:coverage
-```
-
-### Linting & Formatting
-
-```bash
-npm run lint        # Check for issues
-npm run lint:fix    # Auto-fix issues
-npm run type-check  # TypeScript strict check
-```
-
-### Database Migrations
-
-```bash
-npm run db:types  # Regenerate TypeScript types from schema
-npm run db:push   # Push migrations to remote database
-```
-
-### Slash Commands
-
-```bash
-npm run new-feature <name>      # Scaffold a new feature end-to-end
-npm run new-page <name>         # Create a new page with routing
-npm run verify-task             # Self-check task implementation
-npm run test-sprint             # Full E2E acceptance gate
-npm run status                  # Sprint progress report
-npm run visual-check            # Screenshot comparison vs mockup
-```
-
-## Contributing
-
-1. Read [CLAUDE.md](CLAUDE.md) — it covers conventions, safety rules, and the architectural charter
-2. Follow the style guide: TypeScript strict, Vue Composition API, Tailwind + design tokens, i18n for all strings
-3. Write tests alongside code (unit tests co-located, E2E in `tests/e2e/`)
-4. Run `/verify-task` after implementation — evidence before assertions
-5. Create a pull request with a detailed description of why, not what
-
-## Multi-Tenancy & Security
-
-- **RLS by Company ID** — Every user belongs to one partner (company). RLS uses `auth.uid()` and `users.company_id` to enforce data isolation.
-- **No Frontend Filtering** — If data appears missing, check RLS policies first. Never manually filter by role on the frontend.
-- **Audit Trail** — All INSERT/UPDATE/DELETE on core tables flow through database audit triggers → `general_audit` table
-- **Encrypted Credentials** — API keys and tokens are encrypted at rest, never logged or exposed
-
-## Deployment
-
-Deployed on Hetzner CX32 (management app) behind Traefik reverse proxy.
-
-**Docker:**
-```bash
-docker build -t xayma-app:latest .
-docker run -p 80:80 xayma-app:latest
-```
-
-**CI/CD:** GitHub Actions builds and pushes Docker images on tag.
-
-See [docs/DEPLOYMENT_INFRASTRUCTURE.md](docs/specs/SPEC_08_DEPLOYMENT_INFRASTRUCTURE.md) for full infrastructure details.
-
-## Known Issues & Gotchas
-
-| Issue | Workaround |
-|-------|-----------|
-| Database queries must use `xayma_app.` prefix | Always prefix table names: `db.from("xayma_app.partners")` |
-| Phone validation is West Africa specific | Use regex: `^(70\|75\|76\|77\|78)[0-9]{7}$` for Senegal |
-| PrimeVue DataTable sticky header | Use `scrollHeight="flex"` + parent `height: calc(100vh - Xpx)` |
-| `useRoute()` outside `setup()` | Only call inside `setup()` or composables |
-| PrimeVue theme overrides | Only via `src/assets/styles/primevue-theme.css` CSS vars, never inline |
+- **Email:** support@xayma.sh
+- **Documentation:** [xayma.sh/docs](https://xayma.sh/docs)
+- **Status:** [status.xayma.sh](https://status.xayma.sh)
 
 ## License
 
-Proprietary. Unauthorized copying or derivative works are prohibited.
+Proprietary. All rights reserved.
 
 ---
 
-**Built with ❤️ for SMEs in West Africa.**
+**Built for businesses in West Africa. By Xayma Team.**
