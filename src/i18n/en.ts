@@ -419,7 +419,7 @@ export default {
     },
     tabs: {
       plans: 'Plans',
-      awx_config: 'AWX Configuration',
+      awx_config: 'Deployment Configuration',
     },
     plans: {
       add: 'Add Plan',
@@ -427,8 +427,8 @@ export default {
       credits_per_month: 'credits/month',
     },
     awx: {
-      job_template_id: 'AWX Job Template ID',
-      not_configured: 'AWX configuration not set for this service',
+      job_template_id: 'Deployment Engine Job Template ID',
+      not_configured: 'Deployment engine configuration not set for this service',
     },
   },
 
@@ -448,10 +448,10 @@ export default {
   deployments: {
     title: 'Deployments',
     create: 'New Deployment',
-    create_success: 'Deployment created successfully. AWX is now provisioning your instance.',
+    create_success: 'Deployment created successfully. Provisioning is now underway.',
     delete_success: 'Deployment deleted successfully',
     terminate_success: 'Deployment termination requested',
-    webhook_pending: 'Deployment created but AWX provisioning is pending. Check status shortly.',
+    webhook_pending: 'Deployment created but provisioning is pending. Check status shortly.',
     action_stop_success: 'Deployment stopped',
     action_start_success: 'Deployment started',
     action_restart_success: 'Deployment restarted',
