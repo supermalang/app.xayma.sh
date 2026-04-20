@@ -7,7 +7,7 @@
 
 ## Overview
 
-Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for Odoo Community instances and custom Docker applications. Built on a modern Vue 3 frontend, serverless n8n automation, and PostgreSQL with Supabase.
+Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for Odoo Community instances and custom Docker applications. Built on a modern Vue 3 frontend, serverless workflow engine automation, and PostgreSQL with Supabase.
 
 **Key Value:** Businesses in Senegal, Mali, and neighboring countries can launch enterprise-grade Odoo deployments in minutes with flexible credit-based billing via Wave and Orange Money.
 
@@ -19,7 +19,7 @@ Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, mana
 - 🔒 **Enterprise Security** — Row-level security (RLS) via Supabase, encrypted credentials, audit logging
 - 🌍 **Localized UX** — Full English/French UI with West African payment integration
 - 📊 **Real-Time Dashboards** — Live deployment status, credit consumption, and billing insights
-- 🔗 **No Custom Backend** — Serverless architecture: n8n for automation, Supabase for data
+- 🔗 **No Custom Backend** — Serverless architecture: workflow engine for automation, Supabase for data
 - 📱 **Responsive Design** — Desktop, tablet, and mobile support
 
 ## Tech Stack
@@ -34,7 +34,7 @@ Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, mana
 | **Database** | Supabase (PostgreSQL) |
 | **Auth** | Supabase Auth |
 | **Realtime** | Supabase WebSockets |
-| **Automation** | n8n webhooks |
+| **Automation** | workflow engine webhooks |
 | **Events** | Kafka (KRaft) |
 | **Testing** | Vitest + Playwright |
 | **Deployment** | Docker + Nginx on Hetzner |
@@ -45,7 +45,7 @@ Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, mana
 
 - Node.js 18+ and npm/pnpm
 - Supabase project (local or hosted)
-- n8n instance for webhook automation (optional for dev)
+- workflow engine instance for webhook automation (optional for dev)
 
 ### Installation
 
@@ -95,11 +95,11 @@ npm run test:run # Run all tests once
 
 ### Core Principles
 
-**No Custom REST API** — All database reads use Supabase JS SDK. All writes and async operations trigger n8n webhooks.
+**No Custom REST API** — All database reads use Supabase JS SDK. All writes and async operations trigger workflow engine webhooks.
 
 **RLS is the Security Layer** — Row-level security in PostgreSQL enforces multi-tenancy. Frontend never filters by role.
 
-**Kafka for Credit Events** — Credit debits, topups, expirations flow through Kafka → n8n consumers → Supabase updates.
+**Kafka for Credit Events** — Credit debits, topups, expirations flow through Kafka → workflow engine consumers → Supabase updates.
 
 **Schema Prefix on All Queries** — All Supabase queries target `xayma_app.*` schema, never the public schema.
 
@@ -112,7 +112,7 @@ Vue 3 App
     ↓
 PostgreSQL (xayma_app schema)
     ↓
-[n8n Webhooks] — Write/async operations
+[Workflow Engine Webhooks] — Write/async operations
     ↓
 [Kafka] — Credit events, deployments, notifications
     ↓
@@ -134,7 +134,7 @@ src/
 ├── pages/              # Vue Router page components
 ├── stores/             # Pinia state management (auth, partners, deployments)
 ├── composables/        # Reusable composition API logic
-├── services/           # Supabase client, n8n service, settings
+├── services/           # Supabase client, workflow engine service, settings
 ├── types/              # TypeScript types (domain + auto-generated from Supabase)
 ├── i18n/               # English (en.ts) and French (fr.ts) translations
 ├── lib/                # Utilities (formatters, validators, fixtures)
@@ -150,7 +150,7 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Required: n8n Webhooks
-VITE_N8N_WEBHOOK_BASE_URL=https://n8n.your-domain.com
+VITE_WORKFLOW_ENGINE_BASE_URL=https://n8n.your-domain.com
 
 # Required: Payments
 VITE_PAYMENT_GATEWAY_API_KEY=your_payment_gateway_public_key
