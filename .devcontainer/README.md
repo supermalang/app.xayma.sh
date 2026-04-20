@@ -26,7 +26,7 @@ claude  # follow the OAuth prompt in your browser
 
 ```bash
 cp .env.example .env
-# Fill in your online Supabase, workflow engine, and other service values in .env
+# Fill in your online database service, workflow engine, and other service values in .env
 ```
 
 ### Start the dev server
@@ -47,8 +47,8 @@ cc              start Claude Code (--dangerously-skip-permissions is auto-set)
 check           type-check + lint before committing
 testrun         run all unit tests
 e2e             run Playwright E2E tests
-sbtypes         regenerate Supabase TypeScript types after schema changes
-sbpush          push schema changes to remote Supabase
+sbtypes         regenerate database service TypeScript types after schema changes
+sbpush          push schema changes to remote database service
 ```
 
 ---
@@ -68,7 +68,7 @@ sbpush          push schema changes to remote Supabase
 | `coverage` | vitest with coverage            |
 | `e2e`      | Playwright E2E                  |
 | `e2eui`    | Playwright UI mode              |
-| `sbpush`   | push schema to remote Supabase  |
+| `sbpush`   | push schema to remote database service  |
 | `sbtypes`  | regenerate TS types from remote |
 | `cc`       | `claude`                        |
 | `gs`       | `git status`                    |
@@ -97,7 +97,7 @@ sbpush          push schema changes to remote Supabase
 | Styling     | Tailwind IntelliSense                                                     |
 | i18n        | i18n Ally (shows EN+FR inline)                                            |
 | Testing     | Vitest Explorer, Playwright                                               |
-| Database    | Supabase, SQLTools + PG driver                                            |
+| Database    | database service, SQLTools + PG driver                                            |
 | Git         | GitLens, Git Graph, GitHub PRs                                            |
 | API         | REST Client (test workflow engine webhooks via `tests/api/webhooks.http`) |
 | DX          | Error Lens, Path IntelliSense, Spell Checker, Icons                       |

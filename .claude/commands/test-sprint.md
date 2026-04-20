@@ -25,7 +25,7 @@ npm run test:e2e
 Covers all critical workflows:
 - **Auth**: login, register, logout, session persistence
 - **Core feature**: CRUD operations, status changes, data validation
-- **Realtime**: Live updates via Supabase
+- **Realtime**: Live updates via database service
 - **Error handling**: Network failures, invalid input, edge cases
 - **i18n**: Both EN and FR language switching
 - **Role guards**: Correct access control per user role

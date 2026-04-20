@@ -6,19 +6,19 @@
 ## 1. Name & Description
 
 **Name:** Xayma.sh
-**Tagline:** Deploy Odoo in minutes. Pay as you go. Grow your business.
-**One-sentence description:** Xayma.sh is a credit-based SaaS platform that lets businesses and resellers in West Africa deploy, manage, and scale Odoo Community instances through a self-service portal — without any infrastructure knowledge.
+**Tagline:** Deploy web applications in minutes. Pay as you go. Grow your business.
+**One-sentence description:** Xayma.sh is a credit-based SaaS platform that lets businesses and resellers in West Africa deploy, manage, and scale pre-configured web applications instances through a self-service portal — without any infrastructure knowledge.
 
 ---
 
 ## 2. Problem Statement
 
-SMEs in West Africa that want to adopt Odoo face three hard blockers:
-- **No local infrastructure expertise** — setting up a server, Docker, and Odoo is beyond most small businesses
-- **No affordable managed option** — international Odoo SaaS providers (Odoo.sh) are priced for European/North American markets
-- **No reseller-friendly model** — IT integrators and digital agencies have no white-label, multi-tenant platform to resell Odoo to their clients
+SMEs in West Africa that want to adopt web applications face three hard blockers:
+- **No local infrastructure expertise** — setting up a server, Docker, and web applications is beyond most small businesses
+- **No affordable managed option** — international web applications SaaS providers (web applications.sh) are priced for European/North American markets
+- **No reseller-friendly model** — IT integrators and digital agencies have no white-label, multi-tenant platform to resell web applications to their clients
 
-Xayma.sh solves all three by providing a fully managed, credit-based, multi-tenant Odoo deployment platform built for the West African market, with pricing in FCFA, payments via Wave/Orange Money/Payment Gateway, and a reseller programme with volume discounts.
+Xayma.sh solves all three by providing a fully managed, credit-based, multi-tenant web applications deployment platform built for the West African market, with pricing in FCFA, payments via Wave/Orange Money/Payment Gateway, and a reseller programme with volume discounts.
 
 ---
 
@@ -27,8 +27,8 @@ Xayma.sh solves all three by providing a fully managed, credit-based, multi-tena
 | Profile | Description | Experience Level |
 |---------|-------------|-----------------|
 | **Admin** | Platform operator (you) — manages all entities, infrastructure, settings | Technical |
-| **Customer** | SME owner or manager deploying Odoo for their own business | Non-technical |
-| **Reseller** | IT integrator or digital agency deploying Odoo for their clients | Semi-technical |
+| **Customer** | SME owner or manager deploying web applications for their own business | Non-technical |
+| **Reseller** | IT integrator or digital agency deploying web applications for their clients | Semi-technical |
 | **Sales** | Sales consultant tracking their portfolio and commissions | Non-technical |
 
 ---
@@ -54,7 +54,7 @@ Xayma.sh solves all three by providing a fully managed, credit-based, multi-tena
 
 - **Team size:** Solo developer
 - **Frontend:** Vue 3 + TypeScript (SPA), Nuxt 3 (marketing site)
-- **Backend:** Supabase (PostgreSQL + Auth + Realtime), workflow engine (automation)
+- **Backend:** database service (relational database + Auth + Realtime), workflow engine (automation)
 - **Infrastructure:** Hetzner CX32 (management), CX52 nodes (customer instances)
 - **Tooling:** Claude Code (AI-assisted development), VSCode Dev Container, GitHub Actions
 
@@ -77,8 +77,8 @@ Xayma.sh solves all three by providing a fully managed, credit-based, multi-tena
 
 | Competitor | Weakness | Xayma.sh advantage |
 |-----------|----------|-------------------|
-| Odoo.sh | EUR pricing, no African payment methods, no reseller model | FCFA pricing, Wave/Orange Money, reseller programme |
-| Generic VPS providers | No managed Odoo, requires technical setup | Fully managed, one-click deploy |
+| web applications.sh | EUR pricing, no African payment methods, no reseller model | FCFA pricing, Wave/Orange Money, reseller programme |
+| Generic VPS providers | No managed web applications, requires technical setup | Fully managed, one-click deploy |
 | Local IT integrators | Manual setup, no self-service, no SLA | Self-service portal, automated provisioning, credit model |
 | OCA hosting partners | No West Africa presence | Local market focus, local payments, local support |
 
@@ -105,9 +105,9 @@ Everything in the 8-sprint implementation plan. Transactional notifications only
   - **Segmentation:** By partner type, plan, credit balance, deployment count, last activity, language
   - **Attribution:** Full funnel tracking from first ad click → registration → first deployment → first payment
   - Mautic replaces Brevo for marketing emails (Brevo stays for transactional)
-  - Integration: Mautic syncs contacts from Supabase via workflow engine (nightly or on key events like registration, first deployment, suspension)
+  - Integration: Mautic syncs contacts from database service via workflow engine (nightly or on key events like registration, first deployment, suspension)
 - Billing PDF generation (invoice per credit purchase)
-- Odoo module marketplace (curated list of installable modules per plan)
+- web applications module marketplace (curated list of installable modules per plan)
 
 ### v3 — Scale
 - Multi-region deployment (Côte d'Ivoire, Cameroon nodes)

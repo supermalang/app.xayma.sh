@@ -20,7 +20,7 @@
 
 ### Composable: Realtime Notifications Manager
 - **`src/composables/useNotifications.ts`** (200 lines)
-  - Supabase Realtime subscription on `notifications` table
+  - database service Realtime subscription on `notifications` table
   - Auto-fetches and subscribes on mount
   - Proper cleanup on unmount
   - Computed properties: `unreadNotifications`, `groupedByDate`
@@ -121,9 +121,9 @@
 ```
 workflow engine Webhook
     ↓
-PostgreSQL (xayma_app.notifications)
+relational database (xayma_app.notifications)
     ↓
-Supabase Realtime Channel
+database service Realtime Channel
     ↓
 useNotifications Composable
     ↓
@@ -137,7 +137,7 @@ NotificationBell + NotificationFeed + Notifications Page
 - Auto-cleanup on component unmount
 
 ### State Management
-- No Pinia store required (uses composable + Supabase Realtime)
+- No Pinia store required (uses composable + database service Realtime)
 - Reactive notifications array with computed properties
 - Automatic synchronization across browser tabs via Realtime
 
@@ -148,7 +148,7 @@ NotificationBell + NotificationFeed + Notifications Page
 These backend workflows are needed to complete the feature:
 - **5.3-5.4**: Credit deduction cron → publish `credit.debit` → consume to update balance + create transaction
 - **5.5-5.6**: Suspension/resumption triggers → publish `deployment.suspend/resume` → deployment engine integration
-- **5.7-5.11**: Notification fan-out → RapidPro (WhatsApp), Brevo (Email), Africa's Talking (SMS), Supabase insert
+- **5.7-5.11**: Notification fan-out → RapidPro (WhatsApp), Brevo (Email), Africa's Talking (SMS), database service insert
 
 **Current state:** Frontend will subscribe to notifications but backend workflows need to populate the `notifications` table.
 

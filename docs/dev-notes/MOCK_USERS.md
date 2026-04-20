@@ -53,14 +53,14 @@ Test the app with different permissions by logging in as:
 
 ## When to Disable Mock Mode
 
-When ready to use real Supabase credentials:
+When ready to use real database service credentials:
 1. Update `.env`:
    ```env
    VITE_MOCK_AUTH=false
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_URL=https://your-project.database service.co
    VITE_SUPABASE_ANON_KEY=your-key-here
    ```
 
 2. Restart `npm run dev`
 
-3. Use real Supabase auth for login
+3. Use real database service auth for login

@@ -10,13 +10,13 @@
 ## 8-Layer Review Checklist
 
 ### 1. Architecture & Rules (CLAUDE.md)
-- ✅ No custom REST API backend (all DB via Supabase, logic via workflow engine)
+- ✅ No custom REST API backend (all DB via database service, logic via workflow engine)
 - ✅ All workflow engine calls go through `src/services/workflow-engine.ts`
 - ✅ RLS is authorization layer (no manual role filtering)
 - ✅ Kafka for all credit events
-- ✅ Schema prefix in all Supabase queries: `xayma_app.table`
+- ✅ Schema prefix in all database service queries: `xayma_app.table`
 - ✅ No `any` types (zero `any`, use `unknown` + type guards)
-- ✅ Supabase service role key only in workflow engine environment variables
+- ✅ database service service role key only in workflow engine environment variables
 
 ### 2. Code Quality
 - ✅ No hardcoded hex colors or pixel values
@@ -29,9 +29,9 @@
 
 ### 3. Security
 - ✅ No secrets in committed files (.env, API keys, tokens)
-- ✅ RLS policies enforced (Supabase)
+- ✅ RLS policies enforced (database service)
 - ✅ No client-side authorization checks that bypass RLS
-- ✅ Supabase service key not in build output
+- ✅ database service service key not in build output
 - ✅ workflow engine webhook URLs from `xayma_app.settings` table, not hardcoded
 - ✅ Sensitive data not in logs/console
 
@@ -48,7 +48,7 @@
 - ✅ Props typed: `defineProps<{}>()`
 - ✅ Emits typed: `defineEmits<{}>()`
 - ✅ Function return types explicit
-- ✅ Generated types used: `Database` from supabase.ts
+- ✅ Generated types used: `Database` from database service.ts
 - ✅ `vue-tsc` type-check passes
 
 ### 6. i18n & Localization

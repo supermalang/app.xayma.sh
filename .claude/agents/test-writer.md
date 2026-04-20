@@ -10,7 +10,7 @@
 ## Responsibilities
 1. **Unit Tests**: Stores, composables, service functions, validators (all mocked)
 2. **Component Tests**: Props, emits, user interactions (with Vue Test Utils, mocked dependencies)
-3. **E2E Tests**: Full user journeys (with Playwright, real Supabase, runs at sprint end only)
+3. **E2E Tests**: Full user journeys (with Playwright, real database service, runs at sprint end only)
 4. **Visual Regression**: Screenshots vs. mockup reference
 5. **Coverage**: Aim for 80%+ coverage on business logic
 
@@ -23,9 +23,9 @@
 // File: src/stores/auth.store.test.ts
 import { vi } from 'vitest'
 
-// Mock Supabase BEFORE importing the store
-vi.mock('@/services/supabase', () => ({
-  supabase: {
+// Mock database service BEFORE importing the store
+vi.mock('@/services/database service', () => ({
+  database service: {
     auth: {
       signInWithPassword: vi.fn(),
       signOut: vi.fn(),
@@ -48,11 +48,11 @@ import { useAuthStore } from './auth.store'
 import { mockUser, mockPartner } from 'tests/fixtures'
 import { vi } from 'vitest'
 
-vi.mock('@/services/supabase')
+vi.mock('@/services/database service')
 
 it('loads partner data', async () => {
   const mockData = mockPartner({ status: 'active' })
-  vi.mocked(supabase.from).mockReturnValue({
+  vi.mocked(database service.from).mockReturnValue({
     select: vi.fn().mockResolvedValue({ data: [mockData], error: null })
   })
 
@@ -64,8 +64,8 @@ it('loads partner data', async () => {
 ```
 
 ### E2E Tests Use Real Services
-- **Never mock** Supabase in E2E tests
-- **Use dedicated test users** from `.env.test` (stored in test Supabase project)
+- **Never mock** database service in E2E tests
+- **Use dedicated test users** from `.env.test` (stored in test database service project)
 - **Clean up after tests**: delete created records via `page.request.delete()`
 - **Run only at sprint end** via `/test-sprint` (not per-task)
 
@@ -130,7 +130,7 @@ describe('AppButton.vue', () => {
 })
 ```
 
-### E2E Tests (Playwright) — Real Supabase Only
+### E2E Tests (Playwright) — Real database service Only
 ```typescript
 // File: tests/e2e/auth.spec.ts
 import { test, expect } from '@playwright/test'
@@ -148,7 +148,7 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[type="password"]', testAdmin.password)
     await page.click('button:has-text("Sign In")')
 
-    // Hits real Supabase auth — no mocks
+    // Hits real database service auth — no mocks
     await expect(page).toHaveURL('/dashboard')
     await expect(page.locator('[data-test-id="admin-sidebar"]')).toBeVisible()
   })
@@ -166,7 +166,7 @@ test.describe('Authentication Flow', () => {
     await page.click('text=Logout')
 
     await expect(page).toHaveURL('/login')
-    // Session cleared in real Supabase auth
+    // Session cleared in real database service auth
   })
 })
 ```
@@ -191,14 +191,14 @@ test('partners list matches design mockup', async ({ page }) => {
 | Gate | When | Tools | Data |
 |------|------|-------|------|
 | **Per-Task** (`/verify-task`) | After implementing each task | Unit tests + lint + type-check | Mocked (vi.mock + fixtures) |
-| **Per-Sprint** (`/test-sprint`) | End of each sprint | Full E2E suite + coverage + visual | Real Supabase dev project |
+| **Per-Sprint** (`/test-sprint`) | End of each sprint | Full E2E suite + coverage + visual | Real database service dev project |
 
 ### Coverage Targets
 - **Stores**: 90%+ (critical business logic, mocked)
 - **Composables**: 85%+ (mocked)
 - **Service functions**: 95%+ (mocked)
 - **Components**: 70%+ (focus on logic with mocked services, not template rendering)
-- **E2E workflows**: Happy path + error case (real Supabase at sprint end)
+- **E2E workflows**: Happy path + error case (real database service at sprint end)
 
 ### What to Test
 - ✅ Business logic (calculations, validations, state changes)
@@ -254,7 +254,7 @@ npm run test:e2e:ui        # Playwright interactive UI
 - [ ] E2E tests for full workflows
 - [ ] Error cases covered (invalid input, network failure, etc.)
 - [ ] Async operations properly awaited
-- [ ] Mocks used for external services (supabase, workflow engine)
+- [ ] Mocks used for external services (database service, workflow engine)
 - [ ] Screenshots committed for visual regression
 - [ ] All tests pass locally before submitting
 - [ ] Coverage ≥ 80% on core logic

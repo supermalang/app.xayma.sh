@@ -20,14 +20,14 @@
 ---
 
 ### 2. ✅ Auth Initialization Timeout
-**Problem:** `supabase.auth.getSession()` had no timeout; router guard could hang indefinitely
+**Problem:** `database service.auth.getSession()` had no timeout; router guard could hang indefinitely
 
 **Fixed File:** `src/stores/auth.store.ts`
 - Added `Promise.race` with 5-second timeout
 - Added error handler to gracefully degrade to unauthenticated state
 - Router guard now always unblocks within 5 seconds
 
-**Result:** App renders login page even if Supabase is unreachable
+**Result:** App renders login page even if database service is unreachable
 
 ---
 
@@ -63,14 +63,14 @@
 
 ---
 
-### 6. ✅ Supabase Credentials Placeholder
-**Problem:** `.env` contained fake Supabase URL (`test.supabase.co`) and anon key
+### 6. ✅ database service Credentials Placeholder
+**Problem:** `.env` contained fake database service URL (`test.database service.co`) and anon key
 
 **Fixed File:** `.env`
 - Replaced placeholders with clear instructions
-- Added comments pointing to Supabase Dashboard for real credentials
+- Added comments pointing to database service Dashboard for real credentials
 
-**Result:** Clear guidance for users to add their real Supabase project credentials
+**Result:** Clear guidance for users to add their real database service project credentials
 
 ---
 
@@ -89,15 +89,15 @@
 
 ## Next Steps for User
 
-### Step 1: Add Real Supabase Credentials
+### Step 1: Add Real database service Credentials
 Edit `.env` and replace:
 ```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_URL=https://your-project-ref.database service.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
 SUPABASE_PROJECT_ID=your-project-id
 ```
 
-Get these from: [Supabase Dashboard](https://app.supabase.com) → Settings → API
+Get these from: [database service Dashboard](https://app.database service.com) → Settings → API
 
 ### Step 2: Start Dev Server
 ```bash
@@ -127,9 +127,9 @@ Navigate to `http://localhost:5173` from Windows
 - [x] i18n compiles without duplicate key warnings
 - [x] Auth timeout implemented (5 seconds max)
 - [x] No duplicate `initialize()` calls
-- [ ] Add real Supabase credentials to `.env`
+- [ ] Add real database service credentials to `.env`
 - [ ] Run `npm run dev` and verify page loads in browser
-- [ ] Test login with Supabase credentials
+- [ ] Test login with database service credentials
 
 ---
 
@@ -153,7 +153,7 @@ All infrastructure fixes complete. The browser loading issue is now resolved:
 
 1. ✅ Dev server is network-accessible
 2. ✅ Auth initialization won't hang indefinitely
-3. ✅ App will gracefully degrade if Supabase is unreachable
+3. ✅ App will gracefully degrade if database service is unreachable
 4. ✅ No module or compilation errors
 
-**User is ready to add Supabase credentials and start the dev server.**
+**User is ready to add database service credentials and start the dev server.**

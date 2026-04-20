@@ -6,7 +6,7 @@
 
 **Architecture:** Replace `src/services/workflow engine.ts` with `src/services/workflow-engine.ts`, create new `src/services/deployment-engine.ts`, rename all environment variables and database settings keys, update all documentation to use generic terminology.
 
-**Tech Stack:** Vue 3 + TypeScript, Supabase, Vite environment variables
+**Tech Stack:** Vue 3 + TypeScript, database service, Vite environment variables
 
 ---
 
@@ -24,7 +24,7 @@
 - `CLAUDE.md` (modified) — replace all workflow engine/deployment engine/deployment engine references
 - `docs/specs/SPEC_04_TECHNICAL_ARCHITECTURE.md` (modified) — update backend section
 - `docs/specs/SPEC_08_DEPLOYMENT_INFRASTRUCTURE.md` (modified) — update infrastructure section
-- `docs/superpowers/migrations/` — Supabase migration to rename settings keys
+- `docs/superpowers/migrations/` — database service migration to rename settings keys
 
 **Code:**
 - All `.ts` files importing `workflow engine.service` — update import paths
@@ -35,15 +35,15 @@
 
 ## Tasks
 
-### Task 1: Create Supabase Migration for Settings Table
+### Task 1: Create database service Migration for Settings Table
 
 **Files:**
-- Create: `supabase/migrations/20260420000000_rename_engine_settings_keys.sql`
+- Create: `database service/migrations/20260420000000_rename_engine_settings_keys.sql`
 
 - [ ] **Step 1: Create migration file**
 
 ```bash
-touch supabase/migrations/20260420000000_rename_engine_settings_keys.sql
+touch database service/migrations/20260420000000_rename_engine_settings_keys.sql
 ```
 
 - [ ] **Step 2: Write migration to rename settings keys**
@@ -78,7 +78,7 @@ COMMENT ON TABLE xayma_app.settings IS
 - [ ] **Step 3: Verify migration file is well-formed**
 
 ```bash
-head -20 supabase/migrations/20260420000000_rename_engine_settings_keys.sql
+head -20 database service/migrations/20260420000000_rename_engine_settings_keys.sql
 ```
 
 Expected: File starts with the UPDATE statements above.
@@ -86,7 +86,7 @@ Expected: File starts with the UPDATE statements above.
 - [ ] **Step 4: Commit migration**
 
 ```bash
-git add supabase/migrations/20260420000000_rename_engine_settings_keys.sql
+git add database service/migrations/20260420000000_rename_engine_settings_keys.sql
 git commit -m "migration: rename workflow engine/awx settings keys to generic engine names"
 ```
 
@@ -193,7 +193,7 @@ export const initDeploymentEngine = async () => {
 
 /**
  * Trigger provisioning of a new customer instance.
- * Fire-and-forget. Status tracked via Supabase Realtime (deployment_status table).
+ * Fire-and-forget. Status tracked via database service Realtime (deployment_status table).
  */
 export const provisionInstance = async (payload: {
   serverId: string
@@ -218,7 +218,7 @@ export const provisionInstance = async (payload: {
 
 /**
  * Trigger update of an existing customer instance.
- * Fire-and-forget. Status tracked via Supabase Realtime.
+ * Fire-and-forget. Status tracked via database service Realtime.
  */
 export const updateInstance = async (payload: {
   serverId: string
@@ -243,7 +243,7 @@ export const updateInstance = async (payload: {
 
 /**
  * Trigger deletion of a customer instance.
- * Fire-and-forget. Status tracked via Supabase Realtime.
+ * Fire-and-forget. Status tracked via database service Realtime.
  */
 export const deleteInstance = async (payload: { serverId: string }) => {
   if (!deploymentEngineUrl.value) {
@@ -402,8 +402,8 @@ git commit -m "chore: rename workflow engine env var to workflow_engine, add dep
 In CLAUDE.md, find Rule #1 through Rule #6. Replace:
 
 Rule #1:
-- "All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow engine.ts`."
-- Change to: "All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow-engine.ts`."
+- "All DB reads go through **database service JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow engine.ts`."
+- Change to: "All DB reads go through **database service JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow-engine.ts`."
 
 Rule #2:
 - "All workflow engine calls go through `src/services/workflow engine.ts`."
@@ -414,16 +414,16 @@ Rule #3:
 - Change to: "Workflow engine handles all async operations"
 - "Anything involving deployment engine, Kafka, payments, or notifications goes through workflow engine."
 - Change to: "Anything involving deployment engine, Kafka, payments, or notifications goes through workflow engine."
-- "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
-- Change to: "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
+- "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → database service update."
+- Change to: "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → database service update."
 
 Rule #5:
 - "The service role key lives **only** in workflow engine environment variables."
 - Change to: "The service role key lives **only** in workflow engine environment variables."
 
 Rule #6:
-- "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
-- Change to: "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
+- "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → database service update."
+- Change to: "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → database service update."
 
 - [ ] **Step 2: Update Platform Settings section**
 
@@ -759,6 +759,6 @@ All tasks complete. Refactor is done:
 
 ✓ **Type consistency:** Functions use consistent naming (`getWorkflowEngineUrl`, `getDeploymentEngineUrl`). Service methods are identical in both old and new files (fire-and-forget semantics preserved).
 
-✓ **No missing requirements:** All requirements from the spec are covered. Supabase migration, service renames, documentation updates, environment variables, and final verification all present.
+✓ **No missing requirements:** All requirements from the spec are covered. database service migration, service renames, documentation updates, environment variables, and final verification all present.
 
 ✓ **Granularity:** Each task is 2-5 minutes of work with clear stopping points (commits between tasks).

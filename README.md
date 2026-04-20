@@ -1,4 +1,4 @@
-# Xayma.sh — Credit-Based SaaS for Odoo Deployments in West Africa
+# Xayma.sh — Credit-Based SaaS for Software Deployments in West Africa
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -7,13 +7,13 @@
 
 ## Overview
 
-Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for Odoo Community instances and custom Docker applications. Built on a modern Vue 3 frontend, serverless workflow engine automation, and a managed relational database service.
+Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for web applications and custom containerized software. Built on a modern Vue 3 frontend, serverless workflow engine automation, and a managed relational database service.
 
-**Key Value:** Businesses in Senegal, Mali, and neighboring countries can launch enterprise-grade Odoo deployments in minutes with flexible credit-based billing via Wave and Orange Money.
+**Key Value:** Businesses in Senegal, Mali, and neighboring countries can launch enterprise-grade software deployments in minutes with flexible credit-based billing via Wave and Orange Money.
 
 ## Features
 
-- 🚀 **One-Click Deployments** — Launch Odoo Community or custom Docker apps with pre-configured sizing
+- 🚀 **One-Click Deployments** — Launch pre-configured web applications or custom containerized software with instant provisioning
 - 💳 **Flexible Billing** — Credit-based pricing with micropayments via Wave/Orange Money  
 - 👥 **Multi-Role Access** — Admin, Reseller, Customer, and Sales roles with fine-grained permissions
 - 🔒 **Enterprise Security** — Row-level security (RLS), encrypted credentials, audit logging

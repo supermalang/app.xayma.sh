@@ -8,17 +8,17 @@
 
 ### Credential Management
 
-#### ✅ Supabase Anon Key (Frontend-Safe)
+#### ✅ database service Anon Key (Frontend-Safe)
 ```typescript
 // CORRECT: Included in .env and bundled
-VITE_SUPABASE_URL=https://project.supabase.co
+VITE_SUPABASE_URL=https://project.database service.co
 VITE_SUPABASE_ANON_KEY=eyJ...  // PUBLIC — safe for frontend
 ```
 - Can select/insert/update/delete via RLS policies
 - Scoped to authenticated users only
 - Safe to commit to `.env.example`
 
-#### ❌ Supabase Service Role Key (Backend-Only)
+#### ❌ database service Service Role Key (Backend-Only)
 ```typescript
 // WRONG: Never in frontend code
 SUPABASE_SERVICE_ROLE_KEY=sbp_...  // PRIVATE — admin access only
@@ -161,11 +161,11 @@ docker-compose up -d xayma-app
 ### High Error Rate
 1. Check Sentry dashboard for top errors
 2. If recent deploy: Rollback
-3. If not deployment-related: Check Supabase status
+3. If not deployment-related: Check database service status
 4. Investigate RLS policy changes or database issues
 
 ### Database Connectivity
-1. Test Supabase: `npx supabase status`
+1. Test database service: `npx database service status`
 2. Check DSN in env vars
 3. Verify RLS policies (may be blocking queries)
 4. Check auth.users table for user records
@@ -193,7 +193,7 @@ docker-compose up -d xayma-app
 | Service down | 2 min | Page oncall immediately |
 | Error rate spike | >5% for 1 min | Investigate; consider rollback |
 | High latency | P95 >2s | Check database queries |
-| Supabase down | Any outage | Wait for status page; notify users if >15 min |
+| database service down | Any outage | Wait for status page; notify users if >15 min |
 | Payment webhook failures | >10 in 5 min | Check workflow engine; page payment team |
 
 ### Logging
@@ -235,19 +235,19 @@ Sentry.captureMessage('User signed in', 'info')
 ## Backup & Recovery
 
 ### Database Backups
-Supabase handles daily backups automatically (7-day retention).
+database service handles daily backups automatically (7-day retention).
 
 Manual backup:
 ```bash
 # Export full database
-npx supabase db dump --db-url "..." > backup-$(date +%Y%m%d).sql
+npx database service db dump --db-url "..." > backup-$(date +%Y%m%d).sql
 
 # Restore from backup
 psql $DATABASE_URL < backup-20260326.sql
 ```
 
 ### Disaster Recovery
-1. **Database lost**: Restore from Supabase backup (Dashboard → Backups)
+1. **Database lost**: Restore from database service backup (Dashboard → Backups)
 2. **App secrets lost**: Regenerate from workflow engine environment settings
 3. **Full outage**: Re-deploy to new Hetzner instance with same code/data
 
@@ -277,7 +277,7 @@ const { data: darkModeEnabled } = await getSettingValue('feature_dark_mode')
 | Role | Contact | Response Time |
 |------|---------|----------------|
 | **On-call Eng** | [PagerDuty] | 5 min |
-| **Supabase Support** | support@supabase.io | 1–4 hours |
+| **database service Support** | support@database service.io | 1–4 hours |
 | **Payment Gateway Support** | support@paytech.sn | 2–24 hours |
 
 ---

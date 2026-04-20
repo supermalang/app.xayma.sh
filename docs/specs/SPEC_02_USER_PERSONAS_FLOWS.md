@@ -13,7 +13,7 @@
 | **SALES** | Read-only partner data + own portfolio | View customers in their portfolio, view commissions, cannot modify platform data |
 | **SUPPORT** | Read-all | View all entities, cannot create/delete, can update deployment status |
 
-Role is stored on the `users.user_role` field and enforced via Supabase RLS policies.
+Role is stored on the `users.user_role` field and enforced via database service RLS policies.
 
 ---
 
@@ -25,12 +25,12 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 - **Needs:** Dashboard with real-time stats, deployment status monitoring, credit management, deployment engine integration, Kafka event monitoring
 
 ### 2.2 Customer — "Fatou" (SME Owner)
-- **Goal:** Deploy Odoo for her clothing business, keep it running, top up credits before expiry
+- **Goal:** Deploy web applications for her clothing business, keep it running, top up credits before expiry
 - **Frustrations:** Current solutions require IT knowledge she doesn't have, pricing is opaque, payments in EUR are impossible
 - **Needs:** Simple dashboard showing her instance status, easy credit top-up via Wave/Orange Money, WhatsApp alerts before credits expire
 
 ### 2.3 Reseller — "Ibrahima" (IT Integrator)
-- **Goal:** Deploy and manage Odoo instances for 10+ clients under one account, benefit from volume discounts
+- **Goal:** Deploy and manage web applications instances for 10+ clients under one account, benefit from volume discounts
 - **Frustrations:** Managing each client's infrastructure separately, no consolidated view, margins eaten by manual work
 - **Needs:** Multi-deployment dashboard, bulk credit purchase with discount, ability to manage client instances independently
 
@@ -55,9 +55,9 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 7. Clicks "Buy Credits" →
 8. Selects credit bundle (10 credits = 10,000 FCFA) →
 9. Pays via Wave/Orange Money/Card (Payment Gateway) →
-10. Credits added to account (Kafka event → workflow engine → Supabase update) →
+10. Credits added to account (Kafka event → workflow engine → database service update) →
 11. Clicks "New Deployment" →
-12. Selects service (Odoo Community), version, plan (Starter/Pro/Enterprise) →
+12. Selects service (pre-configured web applications), version, plan (Starter/Pro/Enterprise) →
 13. Enters deployment label and domain →
 14. System checks credit balance (must cover ≥1 day of plan consumption) →
 15. deployment engine job triggered → Docker containers provisioned on CX52 node →
@@ -71,8 +71,8 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 ```
 1. workflow engine cron runs every 15 minutes →
 2. Kafka event published: credit.debit for each active deployment →
-3. workflow engine consumer updates partner.remainingCredits in Supabase →
-4. Supabase Realtime pushes update to customer dashboard →
+3. workflow engine consumer updates partner.remainingCredits in database service →
+4. database service Realtime pushes update to customer dashboard →
 5. At 20% credits remaining → WhatsApp + email + SMS warning sent →
 6. At 10% → second warning sent →
 7. At 0% credits → Kafka event: deployment.suspend →
@@ -102,7 +102,7 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 
 ```
 1. Admin logs in → navigates to Services →
-2. Creates new service (Odoo 17) →
+2. Creates new service (web applications 17) →
 3. Links to control node (deployment engine instance on CX32) →
 4. Configures job template name, deploy/stop/start/restart tags →
 5. Adds service plans (Starter: 10 credits/30d, Pro: 20, Enterprise: 50) →

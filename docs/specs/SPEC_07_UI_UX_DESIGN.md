@@ -156,8 +156,8 @@ Color: green > 30%, amber 10–30%, red < 10%
 ### Deployment Status Card
 ```
 ┌──────────────────────────────────────────┐
-│  🟢 ACTIVE    Fatou Boutique Odoo        │
-│  starter.xayma.sh  |  Odoo 17 Starter   │
+│  🟢 ACTIVE    Fatou Boutique web applications        │
+│  starter.xayma.sh  |  web applications 17 Starter   │
 │  10 credits/day  |  Created 2 weeks ago  │
 │  [Stop]  [Restart]  [Open App →]         │
 └──────────────────────────────────────────┘

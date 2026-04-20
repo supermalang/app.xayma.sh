@@ -1,6 +1,6 @@
 # Row-Level Security (RLS) Policies
 
-All sensitive data access is controlled via Supabase RLS policies. The frontend has **zero authority** to filter or restrict data — all filtering happens at the database layer.
+All sensitive data access is controlled via database service RLS policies. The frontend has **zero authority** to filter or restrict data — all filtering happens at the database layer.
 
 ## Policies Overview
 
@@ -36,7 +36,7 @@ All sensitive data access is controlled via Supabase RLS policies. The frontend 
 
 All policies:
 1. **Are enabled** by default (RLS enforced on the table)
-2. **Use `auth.uid()`** from Supabase Auth — never trust frontend role claims
+2. **Use `auth.uid()`** from database service Auth — never trust frontend role claims
 3. **Join users table** for company_id lookup when needed
 4. **Are tested** in E2E suite before deployment
 
@@ -67,7 +67,7 @@ If a user queries data outside their scope, the result is **empty**, not an erro
 
 ## Grant & Revoke
 
-Policies are created in a **single migration file**: `supabase/migrations/20240326_rls_partners_users.sql`
+Policies are created in a **single migration file**: `database service/migrations/20240326_rls_partners_users.sql`
 
 To disable RLS (dev/testing only):
 ```sql

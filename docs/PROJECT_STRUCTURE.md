@@ -126,19 +126,19 @@ xayma/
 │   │   │   └── notifications.store.ts      # In-app notifications
 │   │   │
 │   │   ├── services/
-│   │   │   ├── supabase.ts                 # Supabase client singleton
+│   │   │   ├── database service.ts                 # database service client singleton
 │   │   │   ├── auth.service.ts
 │   │   │   ├── partners.service.ts
 │   │   │   ├── users.service.ts
 │   │   │   ├── deployments.service.ts
-│   │   │   ├── services.service.ts         # Supabase services/serviceplans
+│   │   │   ├── services.service.ts         # database service services/serviceplans
 │   │   │   ├── credits.service.ts
 │   │   │   ├── settings.service.ts
 │   │   │   ├── audit.service.ts
 │   │   │   └── workflow engine.service.ts              # workflow engine webhook calls
 │   │   │
 │   │   ├── types/
-│   │   │   ├── database.types.ts           # Auto-generated from Supabase
+│   │   │   ├── database.types.ts           # Auto-generated from database service
 │   │   │   ├── partner.types.ts
 │   │   │   ├── deployment.types.ts
 │   │   │   ├── credit.types.ts
@@ -227,11 +227,11 @@ xayma/
 │   │       ├── xayma.yml                   # Platform routes
 │   │       └── customers/                  # Per-customer routes (deployment engine-generated)
 │   ├── ansible/
-│   │   ├── deploy_odoo.yml                 # Provision Odoo instance on CX52
-│   │   ├── stop_odoo.yml
-│   │   ├── start_odoo.yml
-│   │   ├── restart_odoo.yml
-│   │   ├── delete_odoo.yml
+│   │   ├── deploy_web application.yml                 # Provision web applications instance on CX52
+│   │   ├── stop_web application.yml
+│   │   ├── start_web application.yml
+│   │   ├── restart_web application.yml
+│   │   ├── delete_web application.yml
 │   │   ├── add_traefik_route.yml
 │   │   └── inventory/
 │   │       └── hosts.yml
@@ -254,7 +254,7 @@ xayma/
 ## Notes
 
 - **`/mockups`** is read-only reference — never edited programmatically, only by the developer adding design screenshots
-- **`/infra/ansible/deploy_odoo.yml`** is the most critical playbook — it provisions a complete Odoo instance on CX52; changes here affect all future deployments
-- **`database.types.ts`** is auto-generated; never edit manually. Regenerate with: `npx supabase gen types typescript --project-id <id> > src/types/database.types.ts`
+- **`/infra/ansible/deploy_web application.yml`** is the most critical playbook — it provisions a complete web applications instance on CX52; changes here affect all future deployments
+- **`database.types.ts`** is auto-generated; never edit manually. Regenerate with: `npx database service gen types typescript --project-id <id> > src/types/database.types.ts`
 - **`.env.local`** is gitignored; `.env.example` is committed and documents all required vars
 - The `app/` and `marketing/` folders are separate npm projects — each has its own `package.json`, `Dockerfile`, and CI/CD step

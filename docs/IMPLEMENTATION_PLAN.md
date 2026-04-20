@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN — Xayma.sh
 > v3 · Last updated: March 2026
-> Stack: Vue 3 + TypeScript · PrimeVue 4 · Tailwind CSS · Supabase · workflow engine · Kafka · Docker · deployment engine · Traefik
+> Stack: Vue 3 + TypeScript · PrimeVue 4 · Tailwind CSS · database service · workflow engine · Kafka · Docker · deployment engine · Traefik
 
 ---
 
@@ -37,18 +37,18 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 ### Testing Convention (Two-Tier Model)
 
 **Per-Task Gate** (`/verify-task` — run after every task):
-- Unit tests with **mocked external services** (`vi.mock()` Supabase, workflow engine)
+- Unit tests with **mocked external services** (`vi.mock()` database service, workflow engine)
 - All unit tests use typed fixtures from `tests/fixtures/`
 - Coverage ≥80% on business logic
 - ESLint + TypeScript type-check
 
 **Per-Sprint Gate** (`/test-sprint` — run at sprint end only):
-- Full E2E test suite with **real Supabase dev project** (no mocks)
+- Full E2E test suite with **real database service dev project** (no mocks)
 - Dedicated test users per role (stored in `.env.test`)
 - Coverage validation + visual regression screenshots
 - Sprint is NOT done until `/test-sprint` passes
 
-**Key Rule:** Unit tests NEVER hit real Supabase/workflow engine. E2E tests ALWAYS hit real services. This keeps per-task cycle fast (mocked), sprint validation complete (real).
+**Key Rule:** Unit tests NEVER hit real database service/workflow engine. E2E tests ALWAYS hit real services. This keeps per-task cycle fast (mocked), sprint validation complete (real).
 
 ---
 
@@ -56,7 +56,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 **Goal:** All external services, infrastructure, and local dev environment ready. Cannot start Sprint 1 without these.
 
 ### External Setup (1 week parallel with local setup)
-- [ ] **0.1** Supabase project created; database schema migrated from `docs/specs/SPEC_05_DATABASE_DESIGN.md`; RLS enabled on all tables
+- [ ] **0.1** database service project created; database schema migrated from `docs/specs/SPEC_05_DATABASE_DESIGN.md`; RLS enabled on all tables
 - [ ] **0.2** GitHub repository (existing repo from v1) cleared for v2 rewrite; create `v2-rewrite` branch; configure branch protection on `main` (no commits directly, PR + CI/CD required)
 - [ ] **0.3** DockerHub account created; set up private image repository for `xayma-app` and `xayma-cms`
 - [ ] **0.4** Hetzner CX32 (management) + CX52 (first customer node) provisioned; SSH access verified
@@ -67,7 +67,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 
 ### Local Dev Setup
 - [x] **0.9** Dev Container configured: Node 20 Bookworm, Docker, Playwright dependencies (see Sprint 1.9 contingency)
-- [x] **0.10** `.env.example` created with all vars (Supabase URL/anon key, workflow engine base URL, payment gateway keys, Sentry DSN, Datadog API key)
+- [x] **0.10** `.env.example` created with all vars (database service URL/anon key, workflow engine base URL, payment gateway keys, Sentry DSN, Datadog API key)
 - [x] **0.11** Confirm design system tokens from `docs/mockups/DESIGN-SYSTEM.md` are finalized; no changes to design during sprints
 
 **Sprint 0 blocking gate:** All checklist items ✅ before Sprint 1 day 1.
@@ -90,11 +90,11 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [x] **1.10** Configure `vibe-annotations-server`; add helper script at `scripts/vibe-annotations.sh` with `pending`, `watch`, `resolve` commands
 - [x] **1.11** Set up `.claude/agents/` (css-design, vue-specialist, workflow engine-specialist, test-writer, pr-reviewer, lead) and `.claude/commands/` (new-feature, new-page, verify-task, test-sprint, status, visual-check, workflow engine-workflow, db-migration)
 - [x] **1.12** Create `.env.example` with all required vars; document in `README.md`
-- [ ] **1.13** **SECURITY AUDIT:** Add CI check to prevent Supabase service role key in built bundle; document in `docs/runbook.md` that service role key = workflow engine only, never frontend
+- [ ] **1.13** **SECURITY AUDIT:** Add CI check to prevent database service service role key in built bundle; document in `docs/runbook.md` that service role key = workflow engine only, never frontend
 
 ### Auth Tasks
-- [x] **1.14** Integrate Supabase JS SDK; create `src/services/supabase.ts` singleton
-- [x] **1.15** Generate initial Supabase TypeScript types (`npm run supabase:types`)
+- [x] **1.14** Integrate database service JS SDK; create `src/services/database service.ts` singleton
+- [x] **1.15** Generate initial database service TypeScript types (`npm run database service:types`)
 - [x] **1.16** Build Login page (`/login`) — PrimeVue InputText + Password + Button; VeeValidate + Zod schema; check `docs/mockups/` for reference
 - [x] **1.17** Build Register page (`/register`) — firstname, email, phone (validate against West Africa regex: `^(70|75|76|77|78)[0-9]{7}$`), company name; Zod schema; PrimeVue form
 - [x] **1.18** Implement `auth.store.ts` — `signIn()`, `signOut()`, `restoreSession()` on app mount, `onAuthStateChange` listener
@@ -136,8 +136,8 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [x] **2.10** Build Users list page (`/users`) — `AppDataTable` with linked partner name; admin-only
 - [x] **2.11** Build User detail page (`/users/:id`) — edit role (`Dropdown`), link partner, deactivate (`ToggleButton`)
 - [x] **2.12** Build Credit Purchase Options page (`/credit-options`) — volume discount tier CRUD; `DataTable` with inline edit; admin-only
-- [x] **2.13** Implement Supabase RLS policies for `partners` and `users` — admin full access; customers see own record only; **document RLS logic in `docs/rls-policies.md`**
-- [x] **2.14** Add PostgreSQL audit triggers for `partners` and `users` tables (INSERT/UPDATE/DELETE → `general_audit`); document in `docs/audit-triggers.sql`
+- [x] **2.13** Implement database service RLS policies for `partners` and `users` — admin full access; customers see own record only; **document RLS logic in `docs/rls-policies.md`**
+- [x] **2.14** Add relational database audit triggers for `partners` and `users` tables (INSERT/UPDATE/DELETE → `general_audit`); document in `docs/audit-triggers.sql`
 - [x] **2.15** Build Profile page (`/profile`) — PrimeVue `InputText`, `Dropdown` for language + currency; `Button` save; check `docs/mockups/` for reference
 - [x] **2.16** Build Audit Log page (`/audit`) — `DataTable` filterable by table_name, action, user, date range (`Calendar`); admin-only; check `docs/mockups/` for reference
 - [x] **2.17** Add i18n keys (EN + FR) for all new strings
@@ -175,22 +175,22 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [x] **3.9** Build New Deployment wizard (`/deployments/new`) — PrimeVue `Steps` (4 steps); check `docs/mockups/` for each step:
   - Step 1: Pick service (`DataView` grid of service cards)
   - Step 2: Pick plan + version (`SelectButton`)
-  - Step 3: Label (`InputText`) + domain names (`Chips` input; **validate via `valid_domain_array()` PostgreSQL function, NOT client-side regex**)
+  - Step 3: Label (`InputText`) + domain names (`Chips` input; **validate via `valid_domain_array()` relational database function, NOT client-side regex**)
   - Step 4: Confirm + credit check (block + `Message` error if insufficient balance)
 - [x] **3.10** Implement deployment credit check before submission — read `partner.remainingCredits` from store; block if < `monthlyCreditConsumption`
 - [ ] **3.11** On deployment INSERT → call workflow engine webhook via `src/services/workflow engine.ts`; payload: control node, job template, partner, plan, domain
 - [x] **3.12** Build Deployment detail page (`/deployments/:id`) — status history (`Timeline`), domain(s), plan, action `ButtonGroup`
-- [ ] **3.13** Implement Supabase Realtime subscription for `deployments` — live status updates without page refresh
+- [ ] **3.13** Implement database service Realtime subscription for `deployments` — live status updates without page refresh
 - [x] **3.14** Build `DeploymentStatusBadge.vue` — PrimeVue `Tag` with correct severity per `deployment_status` enum
-- [ ] **3.15** Configure deployment engine playbooks: `deploy_odoo.yml`, `stop_odoo.yml`, `start_odoo.yml`, `restart_odoo.yml`, `add_traefik_route.yml`
-- [ ] **3.16** Implement deployment engine job call in workflow engine (HTTP node); update `deployments.status` on success/fail via Supabase
+- [ ] **3.15** Configure deployment engine playbooks: `deploy_web application.yml`, `stop_web application.yml`, `start_web application.yml`, `restart_web application.yml`, `add_traefik_route.yml`
+- [ ] **3.16** Implement deployment engine job call in workflow engine (HTTP node); update `deployments.status` on success/fail via database service
 - [x] **3.17** Implement RLS policies for `deployments` and `services`
 - [x] **3.18** Add i18n keys (EN + FR) for all new strings
 
 ### Sprint 3 Tests
 - [x] **3.T1** Unit: `deployments.service.test.ts` — create, status update, credit check helper
 - [x] **3.T2** Unit: `workflow engine.service.test.ts` — webhook called with correct payload; 5xx triggers retry; error normalized
-- [x] **3.T3** Unit: Deployment wizard — Step 4 blocks when credits < plan consumption; domain `Chips` input calls `valid_domain_array()` PostgreSQL function to validate (NOT JS regex)
+- [x] **3.T3** Unit: Deployment wizard — Step 4 blocks when credits < plan consumption; domain `Chips` input calls `valid_domain_array()` relational database function to validate (NOT JS regex)
 - [x] **3.T4** Unit: `DeploymentStatusBadge.vue` — correct PrimeVue `Tag` severity for each status
 - [x] **3.T5** E2E sprint gate: `tests/e2e/deployments.spec.ts`
   - Customer completes wizard → status shows `pending_deployment` immediately
@@ -219,7 +219,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **4.8** Implement idempotency in IPN handler — skip processing if transaction `status` already `completed`
 - [x] **4.9** Build Credit History page (`/credits/history`) — `DataTable` with type `Tag`, amount (IBM Plex Mono), date (ISO 8601), status; `Calendar` date range filter; paginated; check `docs/mockups/` for reference
 - [x] **4.10** Build `CreditMeter.vue` — PrimeVue `ProgressBar` with dynamic color (green >30%, amber 10–30%, red <10%); days-remaining estimate in IBM Plex Mono; expiry date `Tag`; check `docs/mockups/` for design
-- [ ] **4.11** Wire `CreditMeter` to Supabase Realtime on `partners.remainingCredits` — live updates without refresh
+- [ ] **4.11** Wire `CreditMeter` to database service Realtime on `partners.remainingCredits` — live updates without refresh
 - [ ] **4.12** Implement credit threshold alerts — publish `notification.send` Kafka event at 20% and 10% remaining
 - [ ] **4.13** Implement reseller volume discount — auto-apply in buy flow from `partner_credit_purchase_options`; display savings amount
 - [ ] **4.14** Implement credit expiry in workflow engine — daily cron zeroes expired credits; publishes `credit.expiry`
@@ -267,11 +267,11 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **5.4** Implement workflow engine `credit.debit` Kafka consumer — updates `partners.remainingCredits`; writes debit `credit_transaction`
 - [ ] **5.5** Implement suspension trigger — credits reach 0 → publish `deployment.suspend` → workflow engine triggers deployment engine stop → update `deployments.status`
 - [ ] **5.6** Implement resumption trigger — `credit.topup` event → check suspended deployments for partner → publish `deployment.resume` → deployment engine start
-- [ ] **5.7** Implement notification fan-out workflow engine workflow — consumes `notification.send`; branches to: RapidPro (WhatsApp), Brevo (email), Africa's Talking (SMS), Supabase in-app insert
+- [ ] **5.7** Implement notification fan-out workflow engine workflow — consumes `notification.send`; branches to: RapidPro (WhatsApp), Brevo (email), Africa's Talking (SMS), database service in-app insert
 - [ ] **5.8** Configure RapidPro + Twilio integration in workflow engine (HTTP node → RapidPro API; auth token from `settings` table; FR + EN message templates defined in RapidPro)
 - [ ] **5.9** Configure Brevo transactional email in workflow engine (native Brevo workflow engine node; HTML templates in FR + EN; verified sending domain)
 - [ ] **5.10** Configure Africa's Talking SMS in workflow engine (HTTP node; West Africa number format)
-- [ ] **5.11** Implement in-app notifications — workflow engine inserts to `xayma_app.notifications`; Vue subscribes via Supabase Realtime
+- [ ] **5.11** Implement in-app notifications — workflow engine inserts to `xayma_app.notifications`; Vue subscribes via database service Realtime
 - [x] **5.12** Build `NotificationBell.vue` — PrimeVue `OverlayBadge` with unread count; opens `NotificationFeed.vue` via `OverlayPanel`; check `docs/mockups/` for design
 - [x] **5.13** Build Notifications page (`/notifications`) — PrimeVue `DataView` list; read/unread state; timestamps (ISO 8601); action links; check `docs/mockups/` for reference
 - [ ] **5.14** Add Kafka consumer lag metric → Datadog custom metric (via Kafka UI REST API polled by workflow engine)
@@ -381,10 +381,10 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **8.4** Set up Datadog Synthetic monitors for `my.xayma.net` and `blog.xayma.net` (every 5 min)
 - [ ] **8.5** Configure GitHub Actions `ci.yml` — on every PR: lint → type-check → `test:run` → build
 - [ ] **8.6** Configure GitHub Actions `deploy.yml` — on merge to `main`: build Docker images → push DockerHub → SSH to CX32 → pull + redeploy → health check → Datadog event
-- [ ] **8.7** Configure all GitHub Secrets (DockerHub, SSH key, Supabase anon key, Sentry DSN, Datadog API key)
+- [ ] **8.7** Configure all GitHub Secrets (DockerHub, SSH key, database service anon key, Sentry DSN, Datadog API key)
 - [ ] **8.8** Implement Docker volume backup cron on CX52 nodes → rsync to Contabo (see `SPEC_08`)
-- [ ] **8.9** Implement weekly Supabase `pg_dump` → Contabo via workflow engine cron
-- [ ] **8.10** Security hardening — disable SSH password auth on all nodes; UFW rules; restrict Portainer to admin IP; Supabase CORS to `my.xayma.net` only
+- [ ] **8.9** Implement weekly database service `pg_dump` → Contabo via workflow engine cron
+- [ ] **8.10** Security hardening — disable SSH password auth on all nodes; UFW rules; restrict Portainer to admin IP; database service CORS to `my.xayma.net` only
 - [ ] **8.11** Load test — **use k6 script** (`tests/load/deploy-and-credit.js`): 20 concurrent users through full deploy + credit deduction cycle; target: 0 errors, p95 response < 500ms; publish results to Datadog
 - [ ] **8.12** Write `docs/runbook.md` — add CX52 node, restore from backup, roll back deploy, manually trigger credit deduction
 - [ ] **8.13** Final QA — full user journey for each role (Admin, Customer, Reseller, Sales) on production URL
@@ -443,7 +443,7 @@ Sprint 8 (Hardening) ───────────────────�
 | Dependency | Status | Needed by |
 |-----------|--------|-----------|
 | **SPRINT 0 (Blocking)** |
-| Supabase project created + schema migrated from SPEC_05 | ⬜ | Sprint 1 |
+| database service project created + schema migrated from SPEC_05 | ⬜ | Sprint 1 |
 | GitHub repo (existing v1) cleared + `v2-rewrite` branch created + `main` protection | ⬜ | Sprint 1 |
 | DockerHub account + private image repo created | ⬜ | Sprint 1 |
 | Domain `blog.xayma.net` registered + DNS control verified | ⬜ | Sprint 0 |
@@ -453,7 +453,7 @@ Sprint 8 (Hardening) ───────────────────�
 | Dev Container configured (Node 20, Playwright deps) | ⬜ | Sprint 0 |
 | **SPRINT 3–8 (Parallel)** |
 | deployment engine installed on CX32 | ⬜ | Sprint 3 |
-| deployment engine playbooks for Odoo Community written | ⬜ | Sprint 3 |
+| deployment engine playbooks for pre-configured web applications written | ⬜ | Sprint 3 |
 | Payment Gateway merchant account approved | ⬜ | Sprint 4 |
 | WhatsApp Business API (RapidPro) approved | ⬜ | Sprint 5 |
 | Africa's Talking SMS account active | ⬜ | Sprint 5 |
@@ -494,7 +494,7 @@ Before Sprint 1, confirm:
 
 - [ ] All Sprint 0 external dependencies ✅
 - [ ] `.env.example` file created + committed
-- [ ] Supabase schema migrated + RLS enabled
+- [ ] database service schema migrated + RLS enabled
 - [ ] Design system tokens in `src/design-system/tokens.json` + `docs/design-system.md` + `docs/mockups/` reviewed
 - [ ] CLAUDE.md read and understood (especially architecture rules + gotchas)
 - [ ] All 8 specs read (SPEC_02 through SPEC_08)

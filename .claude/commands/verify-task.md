@@ -17,11 +17,11 @@
 - [ ] No hardcoded colors/pixels (design tokens only)
 
 ### Architecture Compliance (CLAUDE.md)
-- [ ] Supabase queries prefixed with `xayma_app.`
+- [ ] database service queries prefixed with `xayma_app.`
 - [ ] All workflow engine calls go through `src/services/workflow-engine.ts`
 - [ ] RLS policies checked (not manual role filtering)
 - [ ] Realtime subscriptions cleaned up in `onUnmounted`
-- [ ] No Supabase service role key in frontend code
+- [ ] No database service service role key in frontend code
 
 ### Implementation Pattern
 - [ ] Vue components use `<script setup>` (no Options API)
@@ -38,7 +38,7 @@
 
 ### Testing (Per-Task)
 - [ ] Unit tests pass: `npm run test:run`
-  - All Supabase, workflow engine calls mocked via `vi.mock()`
+  - All database service, workflow engine calls mocked via `vi.mock()`
   - Use typed fixtures from `tests/fixtures/`
 - [ ] Unit test coverage ≥80% on business logic
 - [ ] Coverage report: `npm run test:coverage`
@@ -60,7 +60,7 @@
 ✅ No hardcoded values: PASS
 
 ## Architecture
-✅ Supabase schema prefix: PASS
+✅ database service schema prefix: PASS
 ✅ workflow engine service usage: PASS
 ✅ RLS policies: PASS
 
@@ -78,8 +78,8 @@ If any check fails:
 ❌ **NOT READY** — Fix issues below:
 1. Unit test coverage 72% (need ≥80%)
    - Run: npm run test:coverage
-2. Missing mock for supabase.from() in auth.store.test.ts
-   - Use: vi.mock('@/services/supabase')
+2. Missing mock for database service.from() in auth.store.test.ts
+   - Use: vi.mock('@/services/database service')
    - Import fixture: import { mockUser } from 'tests/fixtures'
 ```
 

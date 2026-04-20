@@ -8,7 +8,7 @@
 | Node | Hetzner Plan | RAM | Role |
 |------|-------------|-----|------|
 | Management node | CX32 | 8GB | Traefik, deployment engine, workflow engine, Kafka, Strapi, Portainer, Datadog agent, Vue app container, Nuxt marketing container |
-| Customer node(s) | CX52 | 32GB | Odoo customer instances (~20 per node) |
+| Customer node(s) | CX52 | 32GB | web applications customer instances (~20 per node) |
 | Backup storage | Contabo VPS (large disk) | 4GB | Offsite backup target |
 
 All nodes communicate via **Hetzner Private Network** (10.0.0.x range). Only Traefik exposes ports 80/443 to the public internet.
@@ -46,8 +46,8 @@ services:
 ### Customer Nodes — per deployment
 ```
 Each customer instance = 2 containers:
-  - odoo_<slug>     (Odoo Community app, 512MB–4GB depending on plan)
-  - postgres_<slug> (PostgreSQL DB, 512MB–2GB depending on plan)
+  - web application_<slug>     (pre-configured web applications app, 512MB–4GB depending on plan)
+  - postgres_<slug> (relational database DB, 512MB–2GB depending on plan)
 
 Resource limits set via Docker --memory and --cpus flags
 Applied by deployment engine at provisioning time based on serviceplan
@@ -189,8 +189,8 @@ http:
 
 ## 7. Backup Strategy
 
-### Supabase (Database)
-- Supabase Cloud automated daily backups (included in plan)
+### database service (Database)
+- database service Cloud automated daily backups (included in plan)
 - Weekly manual export via `pg_dump` triggered by workflow engine cron → stored on Contabo
 - Retention: 30 days
 
@@ -215,8 +215,8 @@ rsync -az /backup/ backup@contabo-node:/xayma-backups/$(hostname)/
 ### Backup Schedule
 | Data | Frequency | Retention | Location |
 |------|-----------|-----------|---------|
-| Supabase DB | Daily (automatic) | 30 days | Supabase Cloud |
-| Supabase DB | Weekly (manual pg_dump) | 90 days | Contabo |
+| database service DB | Daily (automatic) | 30 days | database service Cloud |
+| database service DB | Weekly (manual pg_dump) | 90 days | Contabo |
 | Customer Docker volumes | Daily | 14 days | Contabo |
 | Workflow engine automations | Daily export | 30 days | Contabo |
 | Kafka topics | Not backed up (transient) | N/A | N/A |
@@ -227,7 +227,7 @@ rsync -az /backup/ backup@contabo-node:/xayma-backups/$(hostname)/
 |----------|-----|-----|-----------|
 | CX32 management node failure | 2h | 24h | Provision new CX32, restore from DockerHub + backup |
 | CX52 customer node failure | 4h | 24h | Provision new CX52, restore volumes from Contabo |
-| Supabase outage | 0 (Supabase handles) | 0 | Supabase SLA covers this |
+| database service outage | 0 (database service handles) | 0 | database service SLA covers this |
 | Accidental data deletion | 1h | 24h | Restore from pg_dump on Contabo |
 
 ---
@@ -239,15 +239,15 @@ rsync -az /backup/ backup@contabo-node:/xayma-backups/$(hostname)/
 | HTTPS everywhere | Traefik + Let's Encrypt auto-renewal |
 | Private network | All internal services on Hetzner private 10.0.0.x |
 | Secrets management | Docker secrets / environment variables; never in code |
-| Supabase RLS | All tables have row-level security enabled |
+| database service RLS | All tables have row-level security enabled |
 | Service role key | Only in workflow engine environment; never in browser |
 | SSH access | Key-based only; password auth disabled on all nodes |
 | Docker socket | Portainer access restricted to admin IP |
 | Kafka | No public port exposed; internal network only |
 | Deployment engine | Internal network only; accessed via Traefik with auth |
 | Datadog API key | Stored as GitHub secret and Docker secret |
-| Payment keys | Stored in Supabase settings table, accessed only by workflow engine |
-| CORS | Vue app only; Supabase CORS restricted to app.xayma.sh |
+| Payment keys | Stored in database service settings table, accessed only by workflow engine |
+| CORS | Vue app only; database service CORS restricted to app.xayma.sh |
 
 ---
 
@@ -275,7 +275,7 @@ services:
 
 `.env.local` (gitignored):
 ```
-VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_URL=https://xxx.database service.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 VITE_WORKFLOW_ENGINE_BASE_URL=https://workflow-engine.xayma.sh
 VITE_PAYMENT_GATEWAY_API_KEY=...

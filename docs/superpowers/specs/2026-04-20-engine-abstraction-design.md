@@ -59,7 +59,7 @@ export const triggerNotification = (payload) => webhookCall(...)
 **Responsibilities:**
 - Construct webhook envelopes (contract defined by engine implementation)
 - Handle timeouts, retries
-- Fire-and-forget semantics (async operations tracked via Supabase Realtime)
+- Fire-and-forget semantics (async operations tracked via database service Realtime)
 - Never blocks UI
 
 #### Deployment Engine Service
@@ -131,7 +131,7 @@ Key sections affected:
 - Rule #1: "No custom REST API backend" — still accurate, mention workflow engine instead
 - Rule #2: "Never call n8n URLs directly" → "Never call workflow engine URLs directly"
 - Rule #3: "n8n handles all async operations" → "Workflow engine handles..."
-- Rule #5: "Supabase service role key = server-side only" → mention workflow engine stores it
+- Rule #5: "database service service role key = server-side only" → mention workflow engine stores it
 - Rule #6: "Kafka for all credit events" → "Flow: Vue → workflow engine webhook → Kafka → ..."
 - Platform Settings section: "n8n base URL" → "workflow engine base URL"
 - Agent team: remove n8n-specialist reference (or update if that agent stays)
@@ -157,7 +157,7 @@ POST /webhook/<operation>
   ↓
 [Workflow Engine Implementation — n8n, Zapier, custom, etc.]
   ↓
-Kafka events → Supabase updates ← Vue Realtime subscriptions
+Kafka events → database service updates ← Vue Realtime subscriptions
 
 ---
 
@@ -167,7 +167,7 @@ deployment-engine.ts (public API: provisionInstance, updateInstance, deleteInsta
   ↓
 [Deployment Engine API — AWX, Ansible Tower, custom, etc.]
   ↓
-Supabase updates ← Vue Realtime subscriptions
+database service updates ← Vue Realtime subscriptions
 ```
 
 No logic changes; abstraction is transparent to consumers.
@@ -188,7 +188,7 @@ No logic changes; abstraction is transparent to consumers.
 - [ ] All imports updated (`find . -name '*.ts' | xargs grep 'from.*n8n'` returns nothing)
 - [ ] All CLAUDE.md references replaced (no "n8n", "AWX", "Ansible" except in git history/comments)
 - [ ] `.env.example` updated with new variable names
-- [ ] Supabase migration applied (settings keys renamed)
+- [ ] database service migration applied (settings keys renamed)
 - [ ] Type safety verified (TypeScript strict mode, zero `any`)
 - [ ] No broken imports (type-check passes)
 - [ ] `/verify-task` passes all checks
@@ -201,7 +201,7 @@ No logic changes; abstraction is transparent to consumers.
 1. Rename service files, update imports
 2. Rename env vars, update config
 3. Rename documentation references
-4. Apply Supabase migration (idempotent)
+4. Apply database service migration (idempotent)
 5. Run type-check, tests
 6. Commit to master
 

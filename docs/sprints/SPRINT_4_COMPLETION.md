@@ -74,7 +74,7 @@
   - "Top up" button when balance <50%
 
 - **4.11** `src/composables/usePartnerCredits.ts` (140 lines)
-  - Supabase Realtime subscription on `partners.remainingCredits`
+  - database service Realtime subscription on `partners.remainingCredits`
   - Auto-fetch balance on mount
   - Computed properties: percentageRemaining, isLowBalance, isCriticalBalance, isHealthy, daysUntilExpiry, isExpired, isSuspended
   - Proper cleanup on unmount
@@ -173,7 +173,7 @@ These require workflow engine instance setup and are outside frontend scope:
 ✅ **All code follows project standards:**
 - Vue 3 Composition API with `<script setup lang="ts">`
 - Zero `any` types (strict TypeScript)
-- Supabase queries with `xayma_app.` schema prefix
+- database service queries with `xayma_app.` schema prefix
 - RLS enforcement via row-level security policies
 - Realtime subscriptions with proper cleanup
 - i18n keys for all UI text (EN + FR)
@@ -197,7 +197,7 @@ These require workflow engine instance setup and are outside frontend scope:
 - [x] All frontend code implemented and integrated
 - [x] Routes configured with role-based access
 - [x] i18n keys complete (EN + FR)
-- [x] Supabase schema configured (requires backend team)
+- [x] database service schema configured (requires backend team)
 - [x] Design system tokens applied
 - [x] PrimeVue components used correctly
 - [x] Realtime subscriptions properly cleaned up

@@ -16,8 +16,8 @@
 | Charts | Apache ECharts (vue-echarts) |
 | Form validation | VeeValidate + Yup |
 | i18n | vue-i18n v9 (FR + EN) |
-| HTTP client | Supabase JS SDK (direct queries) + fetch for workflow engine webhooks |
-| Real-time | Supabase WebSockets (Realtime) |
+| HTTP client | database service JS SDK (direct queries) + fetch for workflow engine webhooks |
+| Real-time | database service WebSockets (Realtime) |
 | Dev environment | VSCode Dev Container (Node 20 + Docker) |
 | Containerization | Docker (multi-stage build) |
 | CI/CD | GitHub Actions → DockerHub → Hetzner |
@@ -37,7 +37,7 @@
 
 | Service | Role | Hosting |
 |---------|------|---------|
-| **Supabase** | PostgreSQL DB, Auth, Row-Level Security, Realtime WebSockets | Supabase Cloud (EU region) |
+| **database service** | relational database DB, Auth, Row-Level Security, Realtime WebSockets | database service Cloud (EU region) |
 | **Workflow Engine** | Workflow automation (credit deduction, notifications, deployment engine triggers) | Self-hosted Docker on CX32 |
 | **Deployment Engine** | Infrastructure automation for Docker container provisioning | Self-hosted Docker on CX32 |
 | **Kafka** | Event streaming (credit.debit, credit.topup, deployment.suspend, etc.) | Self-hosted Docker on CX32 (KRaft mode, no Zookeeper) |
@@ -65,7 +65,7 @@
 
 ## 4. Hard Technical Constraints
 
-- **Supabase direct queries from frontend** — no custom REST API layer; all DB access goes through Supabase JS SDK with RLS enforcing authorization
+- **database service direct queries from frontend** — no custom REST API layer; all DB access goes through database service JS SDK with RLS enforcing authorization
 - **Workflow engine as orchestrator** — all async/background operations (credit deduction, notifications, deployment engine calls) flow through workflow engine
 - **Docker-only** — no Kubernetes at launch; all customer instances are Docker containers managed by deployment engine on Hetzner CX52 nodes
 - **Kafka for credit events** — credit debit/credit operations must be event-sourced through Kafka for auditability and reliability; workflow engine consumes Kafka topics
@@ -78,12 +78,12 @@
 
 | Layer | Mechanism |
 |-------|-----------|
-| Identity | Supabase Auth (email/password, JWT) |
+| Identity | database service Auth (email/password, JWT) |
 | Session | JWT stored in httpOnly cookie (Nuxt) or localStorage (Vue SPA) |
-| Authorization | Supabase RLS policies per table per role |
+| Authorization | database service RLS policies per table per role |
 | Role enforcement | `users.user_role` ENUM checked in every RLS policy |
 | Route guards | Vue Router `beforeEach` guard checks Pinia auth store |
-| API security | Supabase anon key in frontend; service role key only in workflow engine server-side |
+| API security | database service anon key in frontend; service role key only in workflow engine server-side |
 
 ### RLS Policy Pattern
 ```sql
@@ -115,14 +115,14 @@ FOR SELECT USING (
          │                    │           │
          ▼                    ▼           ▼
 ┌─────────────┐    ┌──────────────┐   ┌──────────────────────┐
-│  Supabase   │    │  Hetzner     │   │  External Services   │
+│  database service   │    │  Hetzner     │   │  External Services   │
 │  (Cloud EU) │    │  CX52 Nodes  │   │  Payment Gateway, Brevo, │
 │  DB+Auth+RT │    │  (Customer   │   │  RapidPro+Twilio,    │
 │             │    │  containers) │   │  Africa's Talking,   │
 │             │    │              │   │  DockerHub           │
 └─────────────┘    └──────────────┘   └──────────────────────┘
          ▲
-         │ Supabase JS SDK
+         │ database service JS SDK
          │ (direct queries + WebSocket)
 ┌─────────────────────────────┐
 │  Vue 3 SPA (app.xayma.sh)  │
@@ -141,11 +141,11 @@ FOR SELECT USING (
 
 | Flow | Path |
 |------|------|
-| User login | Vue → Supabase Auth → JWT → Pinia store |
-| Deploy instance | Vue → Supabase insert (deployment) → workflow engine webhook → deployment engine job → Docker on CX52 → Traefik route |
-| Credit deduction | Kafka topic (credit.debit) → workflow engine consumer → Supabase update → Realtime → Vue UI |
-| Payment | Vue → Payment Gateway API → Payment Gateway IPN → workflow engine webhook → Supabase credit update → Kafka |
-| Notification | Workflow engine → RapidPro+Twilio (WhatsApp) / Brevo (email) / Africa's Talking (SMS) / Supabase Realtime (in-app) |
+| User login | Vue → database service Auth → JWT → Pinia store |
+| Deploy instance | Vue → database service insert (deployment) → workflow engine webhook → deployment engine job → Docker on CX52 → Traefik route |
+| Credit deduction | Kafka topic (credit.debit) → workflow engine consumer → database service update → Realtime → Vue UI |
+| Payment | Vue → Payment Gateway API → Payment Gateway IPN → workflow engine webhook → database service credit update → Kafka |
+| Notification | Workflow engine → RapidPro+Twilio (WhatsApp) / Brevo (email) / Africa's Talking (SMS) / database service Realtime (in-app) |
 | Marketing content | Nuxt → Strapi REST API → rendered SSR page |
 
 ---
@@ -157,7 +157,7 @@ FOR SELECT USING (
 | `credit.debit` | Workflow engine (cron every 15min) | Workflow engine | Deduct credits per active deployment |
 | `credit.topup` | Workflow engine (Payment Gateway IPN) | Workflow engine | Add credits on payment |
 | `credit.expiry` | Workflow engine (cron daily) | Workflow engine | Mark expired credits |
-| `deployment.created` | Supabase trigger | Workflow engine | Trigger deployment engine deploy job |
+| `deployment.created` | database service trigger | Workflow engine | Trigger deployment engine deploy job |
 | `deployment.suspend` | Workflow engine (credit=0) | Workflow engine | Trigger deployment engine stop job |
 | `deployment.resume` | Workflow engine (credit topup) | Workflow engine | Trigger deployment engine start job |
 | `notification.send` | Workflow engine | Workflow engine | Fan-out to all notification channels |
