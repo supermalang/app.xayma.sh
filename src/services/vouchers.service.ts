@@ -122,7 +122,7 @@ export async function getVoucherByCode(code: string) {
 
 /**
  * Create a new voucher
- * NOTE: This is typically called by n8n after code generation
+ * NOTE: This is typically called by workflow engine after code generation
  */
 export async function createVoucher(voucher: Omit<Voucher, 'id' | 'created_at'>) {
   const { data, error } = await supabaseFrom('vouchers')

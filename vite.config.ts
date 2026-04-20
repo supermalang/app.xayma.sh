@@ -5,7 +5,7 @@ import fs from 'fs'
 
 /**
  * Security plugin: Prevent Supabase service role key in bundle
- * Service role key must ONLY be used in n8n (backend), never in frontend
+ * Service role key must ONLY be used in workflow engine (backend), never in frontend
  */
 const securityPlugin: Plugin = {
   name: 'security-check',
@@ -21,7 +21,7 @@ const securityPlugin: Plugin = {
         if (serviceRoleKeyPattern.test(source)) {
           throw new Error(
             `❌ SECURITY VIOLATION: Service role key detected in ${filename}\n` +
-            'Service role key must ONLY be used in n8n environment variables (backend).\n' +
+            'Service role key must ONLY be used in workflow engine environment variables (backend).\n' +
             'Never commit or bundle in frontend code.\n' +
             'See docs/runbook.md for secure credential handling.'
           )

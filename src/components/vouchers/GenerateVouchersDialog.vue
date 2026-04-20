@@ -153,7 +153,7 @@ import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import { supabaseFrom } from '@/services/supabase'
-import { callN8nWebhook } from '@/services/n8n'
+import { callWorkflowEngineWebhook } from '@/services/workflow-engine'
 
 interface Props {
   visible: boolean
@@ -227,8 +227,8 @@ async function handleGenerate() {
     loading.value = true
     error.value = null
 
-    // Call n8n webhook to generate vouchers
-    await callN8nWebhook('/webhook/generate-vouchers', {
+    // Call workflow engine webhook to generate vouchers
+    await callWorkflowEngineWebhook('/webhook/generate-vouchers', {
       creditsAmount: form.value.creditsAmount,
       quantity: form.value.quantity,
       expiryDate: form.value.expiryDate.toISOString(),

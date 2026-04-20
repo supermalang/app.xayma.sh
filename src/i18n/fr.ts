@@ -419,16 +419,16 @@ export default {
     },
     tabs: {
       plans: 'Formules',
-      awx_config: 'Configuration AWX',
+      deployment_engine_config: 'Configuration du déploiement',
     },
     plans: {
       add: 'Ajouter une formule',
       empty: 'Aucune formule configurée pour ce service',
       credits_per_month: 'crédits/mois',
     },
-    awx: {
-      job_template_id: 'ID du modèle de job AWX',
-      not_configured: 'Configuration AWX non définie pour ce service',
+    deployment_engine: {
+      job_template_id: 'ID du modèle de job du moteur de déploiement',
+      not_configured: 'Configuration du moteur de déploiement non définie pour ce service',
     },
   },
 
@@ -448,10 +448,10 @@ export default {
   deployments: {
     title: 'Déploiements',
     create: 'Nouveau déploiement',
-    create_success: 'Déploiement créé avec succès. AWX provisionne maintenant votre instance.',
+    create_success: 'Déploiement créé avec succès. L\'approvisionnement est en cours.',
     delete_success: 'Déploiement supprimé avec succès',
     terminate_success: 'Arrêt du déploiement demandé',
-    webhook_pending: 'Déploiement créé mais approvisionnement AWX en attente. Vérifiez le statut bientôt.',
+    webhook_pending: 'Déploiement créé mais approvisionnement en attente. Vérifiez le statut bientôt.',
     action_stop_success: 'Déploiement arrêté',
     action_start_success: 'Déploiement démarré',
     action_restart_success: 'Déploiement redémarré',

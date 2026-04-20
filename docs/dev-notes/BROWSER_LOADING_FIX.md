@@ -47,30 +47,30 @@ server: {
 
 ---
 
-### 2. ✅ FIXED: Fake Supabase credentials caused DNS hang
-**Issue:** `.env` contained `VITE_SUPABASE_URL=https://test.supabase.co` (non-existent domain). When `src/stores/auth.store.ts` called `supabase.auth.getSession()`, it fired an HTTP request to this fake URL. DNS resolution for `.co` TLD with invalid subdomain could hang for 30-120 seconds, during which the router guard awaited `initialize()` and never called `next()`, leaving the page blank.
+### 2. ✅ FIXED: Fake database service credentials caused DNS hang
+**Issue:** `.env` contained `VITE_SUPABASE_URL=https://test.database service.co` (non-existent domain). When `src/stores/auth.store.ts` called `database service.auth.getSession()`, it fired an HTTP request to this fake URL. DNS resolution for `.co` TLD with invalid subdomain could hang for 30-120 seconds, during which the router guard awaited `initialize()` and never called `next()`, leaving the page blank.
 
 **File Changed:**
 - `.env` → Replaced fake placeholders with instructions for real credentials
 
 **Before:**
 ```env
-VITE_SUPABASE_URL=https://test.supabase.co
+VITE_SUPABASE_URL=https://test.database service.co
 VITE_SUPABASE_ANON_KEY=test-key-placeholder
 ```
 
 **After:**
 ```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_URL=https://your-project-ref.database service.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
 ```
 
-**Result:** Users are now explicitly reminded to add their real Supabase credentials. Until they do, the 5-second timeout (fix #3) prevents the router guard from blocking forever.
+**Result:** Users are now explicitly reminded to add their real database service credentials. Until they do, the 5-second timeout (fix #3) prevents the router guard from blocking forever.
 
 ---
 
 ### 3. ✅ FIXED: `auth.store.ts` → `initialize()` had no timeout
-**Issue:** `supabase.auth.getSession()` could hang indefinitely if the Supabase URL was unreachable or DNS was slow. The router's `beforeEach` guard awaited this call with no timeout, blocking all route navigation indefinitely.
+**Issue:** `database service.auth.getSession()` could hang indefinitely if the database service URL was unreachable or DNS was slow. The router's `beforeEach` guard awaited this call with no timeout, blocking all route navigation indefinitely.
 
 **File Changed:**
 - `src/stores/auth.store.ts` → Wrapped `getSession()` in `Promise.race` with 5-second timeout
@@ -80,7 +80,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
 async function initialize() {
   try {
     isLoading.value = true
-    const { data, error } = await supabase.auth.getSession()
+    const { data, error } = await database service.auth.getSession()
     if (error) throw error
     user.value = data.session?.user || null
   } finally {
@@ -96,13 +96,13 @@ async function initialize() {
   try {
     isLoading.value = true
 
-    // Add timeout to prevent infinite waiting if Supabase is unreachable
+    // Add timeout to prevent infinite waiting if database service is unreachable
     const timeout = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('Auth initialization timeout (5s)')), 5000)
     )
 
     const { data, error } = await Promise.race([
-      supabase.auth.getSession(),
+      database service.auth.getSession(),
       timeout,
     ])
 
@@ -119,12 +119,12 @@ async function initialize() {
 }
 ```
 
-**Result:** Router guard always calls `next()` within 5 seconds. If Supabase is unreachable, the app renders with `user = null` (unauthenticated state) and login page is shown immediately.
+**Result:** Router guard always calls `next()` within 5 seconds. If database service is unreachable, the app renders with `user = null` (unauthenticated state) and login page is shown immediately.
 
 ---
 
 ### 4. ✅ FIXED: Duplicate `initialize()` call in App.vue
-**Issue:** Both the router guard and `App.vue:onMounted` called `authStore.initialize()`, causing two parallel requests to Supabase and potential race conditions.
+**Issue:** Both the router guard and `App.vue:onMounted` called `authStore.initialize()`, causing two parallel requests to database service and potential race conditions.
 
 **File Changed:**
 - `src/App.vue` → Removed `await authStore.initialize()` from `onMounted`
@@ -152,8 +152,8 @@ onMounted(() => {
 
 ## How to Complete the Setup
 
-### Step 1: Get Real Supabase Credentials
-1. Go to [Supabase Dashboard](https://app.supabase.com)
+### Step 1: Get Real database service Credentials
+1. Go to [database service Dashboard](https://app.database service.com)
 2. Select your project (or create one)
 3. Go to **Settings → API**
 4. Copy **Project URL** and **anon public key**
@@ -161,7 +161,7 @@ onMounted(() => {
 ### Step 2: Update `.env`
 Replace the placeholders in `/workspaces/04 Xayma 2.0/.env`:
 ```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_URL=https://your-project-ref.database service.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
 ```
 
@@ -181,8 +181,8 @@ Navigate to `http://localhost:5173`
 
 **Expected browser behavior:**
 - Page loads within 2 seconds
-- If Supabase is configured correctly: you see the login page
-- If Supabase credentials are still fake: page loads blank with warning in DevTools console (but doesn't hang)
+- If database service is configured correctly: you see the login page
+- If database service credentials are still fake: page loads blank with warning in DevTools console (but doesn't hang)
 - Open DevTools (F12) → Console → should see no hanging requests
 
 ---
@@ -193,8 +193,8 @@ Navigate to `http://localhost:5173`
 - [ ] Browser loads page within 2 seconds (not spinning forever)
 - [ ] DevTools Console has no hanging network requests
 - [ ] Clicking on `/login` loads the login page immediately
-- [ ] With real Supabase creds: Login form works end-to-end
-- [ ] With fake Supabase creds: App shows login page within 5 seconds, console shows auth timeout warning
+- [ ] With real database service creds: Login form works end-to-end
+- [ ] With fake database service creds: App shows login page within 5 seconds, console shows auth timeout warning
 
 ---
 
@@ -215,13 +215,13 @@ Navigate to `http://localhost:5173`
 
 The "keeps loading" symptom was caused by **three stacked issues**:
 1. Dev server not reachable from Windows browser (WSL2 loopback issue)
-2. Fake Supabase URL causing DNS hangs
+2. Fake database service URL causing DNS hangs
 3. Router guard awaiting auth with no timeout
 
 All three are now **fixed**. The app will:
 - ✅ Serve pages to Windows browser from WSL2
 - ✅ Timeout auth after 5 seconds (not hang indefinitely)
-- ✅ Show login page even with unreachable Supabase
-- ✅ Work correctly with real Supabase credentials
+- ✅ Show login page even with unreachable database service
+- ✅ Work correctly with real database service credentials
 
-Next step: Add your real Supabase credentials to `.env` and restart `npm run dev`.
+Next step: Add your real database service credentials to `.env` and restart `npm run dev`.

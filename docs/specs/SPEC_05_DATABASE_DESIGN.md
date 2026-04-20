@@ -1,6 +1,6 @@
 # SPEC 05 — Database Design
 > Xayma.sh · v2 · Last updated: March 2026
-> Schema: `xayma_app` · Database: Supabase (PostgreSQL 15)
+> Schema: `xayma_app` · Database: database service (relational database 15)
 
 ---
 
@@ -10,13 +10,13 @@
 |--------|-------|---------|
 | Users | `users` | Platform users linked to a partner/company |
 | Partners | `partners` | Customer/reseller/affiliate organizations |
-| Services | `services` | Deployable app definitions (Odoo Community, Docker) |
+| Services | `services` | Deployable app definitions (pre-configured web applications, Docker) |
 | Service Plans | `serviceplans` | Pricing tiers per service (Starter/Pro/Enterprise) |
 | Deployments | `deployments` | Individual running instances per partner |
 | Credit Transactions | `credit_transactions` | All credit purchases, deductions, and voucher redemptions |
 | Vouchers | `vouchers` | Admin-generated credit voucher codes |
 | Voucher Redemptions | `voucher_redemptions` | Tracks which partner redeemed which voucher |
-| Control Nodes | `control_nodes` | AWX nodes managing infrastructure |
+| Control Nodes | `control_nodes` | deployment engine nodes managing infrastructure |
 | Settings | `settings` | Platform-wide key/value configuration |
 | Role Permissions | `role_permissions` | Permission definitions per role |
 | Credit Purchase Options | `partner_credit_purchase_options` | Volume discount tiers per partner type |
@@ -106,7 +106,7 @@ redeemed_by           UUID → users.id                             -- user who 
 UNIQUE (voucher_id, partner_id)                                   -- one redemption per partner per voucher
 ```
 
-**users** — linked to Supabase Auth via UUID
+**users** — linked to database service Auth via UUID
 ```
 id            UUID PK (= auth.uid())
 firstname     VARCHAR(50) NOT NULL
@@ -228,7 +228,7 @@ modified    TIMESTAMPTZ
 
 ## 4. Multi-Tenancy Model
 
-**Row-level multi-tenancy** using Supabase RLS:
+**Row-level multi-tenancy** using database service RLS:
 - All partner-scoped data filtered by `partner_id` or `company_id`
 - Every user has a `company_id` pointing to their partner record
 - RLS policies enforce that users can only SELECT/INSERT/UPDATE rows belonging to their partner
@@ -286,9 +286,9 @@ CREATE UNIQUE INDEX idx_voucher_redemptions_unique ON xayma_app.voucher_redempti
 | Field | Table | Handling |
 |-------|-------|---------|
 | `authorizationToken` | `control_nodes` | Stored encrypted; never exposed to frontend |
-| `paymentApiKey` | `settings` | Server-side only (n8n); never in client queries |
-| `paymentSecretKey` | `settings` | Server-side only (n8n); never in client queries |
-| `email` | `users` | Supabase Auth handles; GDPR-compliant |
+| `paymentApiKey` | `settings` | Server-side only (workflow engine); never in client queries |
+| `paymentSecretKey` | `settings` | Server-side only (workflow engine); never in client queries |
+| `email` | `users` | database service Auth handles; GDPR-compliant |
 | `phone` | `partners` | PII — access restricted by RLS |
 | `amountPaid` | `credit_transactions` | MONEY type; audit-logged |
 
@@ -296,25 +296,25 @@ CREATE UNIQUE INDEX idx_voucher_redemptions_unique ON xayma_app.voucher_redempti
 
 ## 7. Data Retention & Audit Trail
 
-- **Audit trail:** All INSERT/UPDATE/DELETE on core tables written to `general_audit` via PostgreSQL triggers
+- **Audit trail:** All INSERT/UPDATE/DELETE on core tables written to `general_audit` via relational database triggers
 - **Soft deletes:** Records set to `status = 'archived'` before eventual `pending_deletion` then hard delete
 - **Deployment retention:** Archived deployments kept for 90 days (configurable via `settings.MaxDaysToArchiveDepl`)
 - **Partner retention:** Archived partners kept for 180 days (configurable via `settings.MaxDaysToArchiveOrgs`)
 - **Credit transactions:** Never deleted — permanent financial record
 - **Audit log:** Never deleted — permanent record
 
-### Supabase Realtime Subscriptions
+### database service Realtime Subscriptions
 
-The following tables are subscribed to via Supabase Realtime WebSockets:
+The following tables are subscribed to via database service Realtime WebSockets:
 ```javascript
 // Real-time subscriptions used in the Vue app
-supabase.channel('deployments')
+database service.channel('deployments')
   .on('postgres_changes', { event: '*', schema: 'xayma_app', table: 'deployments' }, handler)
 
-supabase.channel('partners')
+database service.channel('partners')
   .on('postgres_changes', { event: 'UPDATE', schema: 'xayma_app', table: 'partners',
     filter: `id=eq.${partnerId}` }, handler)  // credit balance updates
 
-supabase.channel('notifications')
+database service.channel('notifications')
   .on('postgres_changes', { event: 'INSERT', schema: 'xayma_app', table: 'notifications' }, handler)
 ```

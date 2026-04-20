@@ -7,7 +7,7 @@ import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@/services/supabase'
 import * as deploymentService from '@/services/deployments.service'
-import * as n8nService from '@/services/n8n'
+import * as workflowEngineService from '@/services/workflow-engine'
 import { useNotificationStore } from '@/stores/notifications.store'
 
 export interface DeploymentFormData {
@@ -96,7 +96,7 @@ export function useDeployments() {
    * Create a new deployment
    * 1. Validate credits
    * 2. Create deployment record in Supabase
-   * 3. Call n8n webhook to trigger AWX deployment
+   * 3. Call workflow engine webhook to trigger deployment engine
    */
   async function createDeployment(
     formData: DeploymentFormData,
@@ -132,9 +132,9 @@ export function useDeployments() {
         return null
       }
 
-      // Step 3: Call n8n webhook to trigger deployment
+      // Step 3: Call workflow engine webhook to trigger deployment
       try {
-        await n8nService.createDeployment({
+        await workflowEngineService.createDeployment({
           deploymentId: newDeployment.id,
           partnerId,
           serviceId: formData.serviceId!,
@@ -150,8 +150,8 @@ export function useDeployments() {
         return newDeployment
       } catch (webhookError) {
         // Webhook failed, but deployment record was created
-        // Status will be updated when n8n eventually processes or times out
-        console.error('n8n webhook error:', webhookError)
+        // Status will be updated when workflow engine eventually processes or times out
+        console.error('workflow engine webhook error:', webhookError)
         notificationStore.addError(t('deployments.webhook_pending'))
         return newDeployment
       }
@@ -173,8 +173,8 @@ export function useDeployments() {
   ) {
     isLoading.value = true
     try {
-      // Call n8n webhook
-      await n8nService.performDeploymentAction({
+      // Call workflow engine webhook
+      await workflowEngineService.performDeploymentAction({
         deploymentId,
         action,
       })
@@ -200,8 +200,8 @@ export function useDeployments() {
   async function terminateDeployment(deploymentId: number) {
     isLoading.value = true
     try {
-      // Call n8n webhook
-      await n8nService.terminateDeployment({ deploymentId })
+      // Call workflow engine webhook
+      await workflowEngineService.terminateDeployment({ deploymentId })
 
       // Update local state optimistically
       const deployment = deployments.value.find((d) => d.id === deploymentId)

@@ -1,6 +1,6 @@
 # Audit Triggers Documentation
 
-All changes to critical tables are automatically logged to `xayma_app.general_audit` via PostgreSQL triggers.
+All changes to critical tables are automatically logged to `xayma_app.general_audit` via relational database triggers.
 
 ## Audited Tables
 
@@ -96,11 +96,11 @@ The audit table is **append-only** — records are never updated or deleted. Thi
 
 ## Deployment
 
-Triggers are created in migration: `supabase/migrations/20240326_rls_partners_users.sql`
+Triggers are created in migration: `database service/migrations/20240326_rls_partners_users.sql`
 
 To apply:
 ```bash
-npm run supabase:push
+npm run database service:push
 ```
 
 To disable triggers (dev/testing):

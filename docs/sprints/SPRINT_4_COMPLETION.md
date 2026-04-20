@@ -37,7 +37,7 @@
   - Auto-calculate and apply reseller volume discount
   - Integrate voucher redemption section
   - Call `initiateCheckout()` webhook on bundle selection
-  - Redirect to Paytech payment URL
+  - Redirect to payment gateway URL
 
 - **4.4** `src/components/credits/CreditBundleCard.vue`
   - Card layout: icon header, credits (monospace), pricing section
@@ -45,9 +45,9 @@
   - "Select Bundle" button with @select event emission
   - Responsive to discount application
 
-### Phase 3: Paytech Payment Integration ✅
+### Phase 3: Payment Gateway Payment Integration ✅
 - **4.5** Checkout flow integrated
-  - n8n webhook: `/webhook/initiate-checkout`
+  - workflow engine webhook: `/webhook/initiate-checkout`
   - Returns: `{ paymentUrl, transactionId, reference }`
   - Status: PENDING created in database
 
@@ -74,7 +74,7 @@
   - "Top up" button when balance <50%
 
 - **4.11** `src/composables/usePartnerCredits.ts` (140 lines)
-  - Supabase Realtime subscription on `partners.remainingCredits`
+  - database service Realtime subscription on `partners.remainingCredits`
   - Auto-fetch balance on mount
   - Computed properties: percentageRemaining, isLowBalance, isCriticalBalance, isHealthy, daysUntilExpiry, isExpired, isSuspended
   - Proper cleanup on unmount
@@ -106,7 +106,7 @@
   - Modal form with validation
   - Fields: credits amount (≥100), quantity (1-100), expiry date (tomorrow+), partner type, target partner
   - Summary box showing total distribution
-  - Calls `/webhook/generate-vouchers` n8n webhook
+  - Calls `/webhook/generate-vouchers` workflow engine webhook
   - Form reset after successful generation
   - Error messages for validation failures
 
@@ -155,16 +155,16 @@
 
 ---
 
-## Backend Tasks (n8n) — Pending
+## Backend Tasks (workflow engine) — Pending
 
-These require n8n instance setup and are outside frontend scope:
+These require workflow engine instance setup and are outside frontend scope:
 
 | Task | Description | Status |
 |------|-------------|--------|
-| 4.7-4.8 | Paytech IPN webhook handler (idempotent status update) | Pending n8n |
-| 4.14-4.15 | Credit expiry cron + debt suspension logic | Pending n8n |
-| 4.18 | Voucher bulk generation workflow | Pending n8n |
-| 4.20 | Voucher redemption + credit debit workflow | Pending n8n |
+| 4.7-4.8 | Payment Gateway IPN webhook handler (idempotent status update) | Pending workflow engine |
+| 4.14-4.15 | Credit expiry cron + debt suspension logic | Pending workflow engine |
+| 4.18 | Voucher bulk generation workflow | Pending workflow engine |
+| 4.20 | Voucher redemption + credit debit workflow | Pending workflow engine |
 
 ---
 
@@ -173,7 +173,7 @@ These require n8n instance setup and are outside frontend scope:
 ✅ **All code follows project standards:**
 - Vue 3 Composition API with `<script setup lang="ts">`
 - Zero `any` types (strict TypeScript)
-- Supabase queries with `xayma_app.` schema prefix
+- database service queries with `xayma_app.` schema prefix
 - RLS enforcement via row-level security policies
 - Realtime subscriptions with proper cleanup
 - i18n keys for all UI text (EN + FR)
@@ -197,15 +197,15 @@ These require n8n instance setup and are outside frontend scope:
 - [x] All frontend code implemented and integrated
 - [x] Routes configured with role-based access
 - [x] i18n keys complete (EN + FR)
-- [x] Supabase schema configured (requires backend team)
+- [x] database service schema configured (requires backend team)
 - [x] Design system tokens applied
 - [x] PrimeVue components used correctly
 - [x] Realtime subscriptions properly cleaned up
-- [x] n8n webhook service layer implemented
-- [ ] Backend n8n workflows deployed
+- [x] workflow engine webhook service layer implemented
+- [ ] Backend workflow engine workflows deployed
 - [ ] Database migrations applied
 - [ ] RLS policies configured
-- [ ] Paytech API credentials configured
+- [ ] Payment Gateway API credentials configured
 - [ ] Staging environment testing
 
 ---
@@ -222,7 +222,7 @@ These require n8n instance setup and are outside frontend scope:
 - ✅ Customers/resellers redeem vouchers
 
 **Next steps:**
-1. Deploy n8n workflows (4.7-4.8, 4.14-4.15, 4.18, 4.20)
+1. Deploy workflow engine workflows (4.7-4.8, 4.14-4.15, 4.18, 4.20)
 2. Configure database schema and RLS
 3. Deploy to staging
 4. UAT with stakeholders
@@ -249,4 +249,4 @@ These require n8n instance setup and are outside frontend scope:
 
 **Sprint 4 Frontend: COMPLETE ✅**
 
-*Awaiting backend n8n workflows and database configuration to proceed with staging deployment.*
+*Awaiting backend workflow engine workflows and database configuration to proceed with staging deployment.*

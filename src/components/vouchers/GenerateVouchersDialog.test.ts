@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import GenerateVouchersDialog from './GenerateVouchersDialog.vue'
 vi.mock('@/services/vouchers.service')
-vi.mock('@/services/n8n')
+vi.mock('@/services/workflow-engine')
 vi.mock('@/services/supabase', () => ({
   supabaseFrom: vi.fn().mockReturnValue({
     select: vi.fn().mockResolvedValue({ data: [], error: null }),

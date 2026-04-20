@@ -78,7 +78,7 @@ import InputText from 'primevue/inputtext'
 import CreditBundleCard from '@/components/credits/CreditBundleCard.vue'
 import { supabaseFrom } from '@/services/supabase'
 import { getApplicableDiscount, calculateDiscountedPrice } from '@/services/credits.service'
-import { initiateCheckout, redeemVoucher as callRedeemVoucher } from '@/services/n8n'
+import { initiateCheckout, redeemVoucher as callRedeemVoucher } from '@/services/workflow-engine'
 
 interface CreditBundle {
   id: string
@@ -178,13 +178,13 @@ async function handleSelectBundle(bundleId: string) {
     // TODO: Implement proper partner ID from useAuth/store
     const partnerId = 'temp-partner-id'
 
-    // Call n8n webhook to initiate checkout
+    // Call workflow engine webhook to initiate checkout
     const result = await initiateCheckout({
       bundleId,
       partnerId,
     })
 
-    // Redirect to Paytech payment URL
+    // Redirect to payment gateway URL
     if (result.paymentUrl) {
       // Store transaction ID in session for success page
       sessionStorage.setItem('pendingTransactionId', result.transactionId)

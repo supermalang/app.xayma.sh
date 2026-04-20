@@ -23,6 +23,7 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 ### 1. Credits Service (`src/services/credits.service.test.ts`)
 
 **Functions tested:**
+
 - `listTransactions()` — pagination, filtering (status, date range, search), error handling
 - `getTransaction()` — fetch by ID, error handling
 - `createTransaction()` — create with valid data, error handling
@@ -38,6 +39,7 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 ### 2. Vouchers Service (`src/services/vouchers.service.test.ts`)
 
 **Functions tested:**
+
 - `listVouchers()` — pagination, filtering (status, partner type, search), error handling
 - `getVoucher()` — fetch by ID, error handling
 - `getVoucherByCode()` — fetch by code
@@ -55,6 +57,7 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 #### `useCurrency` (`src/composables/useCurrency.test.ts`)
 
 **Functions tested:**
+
 - `format(amount, currency)` — FCFA (no decimals), USD/EUR (2 decimals)
 - `formatSymbol(currency)` — return correct symbol
 - `formatReadable()` — format with symbol
@@ -71,6 +74,7 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 ### 1. GenerateVouchersDialog (`src/components/vouchers/GenerateVouchersDialog.test.ts`)
 
 **Coverage:**
+
 - Dialog visibility binding
 - Form field validation (credits ≥100, quantity 1-100, expiry required)
 - Min date set to tomorrow
@@ -91,36 +95,43 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 **Test scenarios:**
 
 #### Balance & Meter
+
 - ✓ Display credit balance with meter
 - ✓ Show balance in monospace font
 - ✓ Update meter color by threshold (green >30%, orange 10-30%, red <10%)
 
 #### Credit Bundles
+
 - ✓ Display 3 credit bundles with pricing
 - ✓ Show credits, max instances, validity per bundle
 - ✓ Apply reseller discount automatically for RESELLER role with active deployments
 - ✓ Display discount percentage and "automatically applied" label
 
 #### Checkout
-- ✓ Click "Select Bundle" initiates checkout via n8n webhook
+
+- ✓ Click "Select Bundle" initiates checkout via workflow engine webhook
 - ✓ Redirect to success or cancel page
 
 #### Payment Processing
+
 - ✓ Show spinner and "Processing Your Payment" on success page
 - ✓ Poll/subscribe via Realtime to transaction status
 - ✓ Display transaction details (ID, amount, date/time) once status=COMPLETED
 
 #### Success State
+
 - ✓ Show success message with transaction details
 - ✓ Provide links to history and dashboard
 - ✓ All amounts in monospace font
 
 #### Cancellation
+
 - ✓ Show cancellation confirmation page
 - ✓ Display "no charges" message
 - ✓ Provide "Try Again" and "Back" buttons
 
 #### Transaction History
+
 - ✓ Display DataTable with pagination (20/page)
 - ✓ Show columns: date (ISO), type (colored tag), description, amount (signed)
 - ✓ Filter by date range using Calendar picker
@@ -129,12 +140,14 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 - ✓ Display "Showing X to Y of Z" summary
 
 #### Voucher Redemption
+
 - ✓ Display "Have a Voucher?" section with input
 - ✓ Accept voucher code and call redeem webhook
 - ✓ Show success message "Voucher redeemed successfully!"
 - ✓ Show error message if validation fails
 
 #### Low Balance Notifications
+
 - ✓ Show "Low Credit Balance" notification at 20% threshold
 - ✓ Show "Top up" button in meter when balance <50%
 - ✓ Navigate to buy page when "Top up" clicked
@@ -147,10 +160,12 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 **Test scenarios (Admin):**
 
 #### Management Page
+
 - ✓ Display page with title and description
 - ✓ Show 4 stat cards (active, inactive, distributed, redeemed) with monospace values
 
 #### Voucher Table
+
 - ✓ Display DataTable with all columns
 - ✓ Show codes in monospace font
 - ✓ Show credits right-aligned in monospace
@@ -159,40 +174,47 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 - ✓ Show status as colored Tag
 
 #### Filtering
+
 - ✓ Filter by status (ACTIVE, INACTIVE, FULLY_REDEEMED)
 - ✓ Filter by partner type (CUSTOMER, RESELLER)
 - ✓ Search by code with 500ms debounce
 - ✓ Refresh button resets pagination
 
 #### Generate Dialog
+
 - ✓ Open dialog with "Generate Vouchers" button
 - ✓ Form fields: credits (InputNumber), quantity (InputNumber), expiry (Calendar), partner type (MultiSelect), target partner (Dropdown)
 - ✓ Summary box shows: "Generate N voucher(s) worth X FCFA each" + total
 - ✓ Submit calls /webhook/generate-vouchers with validated data
 
 #### Validation
+
 - ✓ Error if credits < 100 FCFA
 - ✓ Error if quantity < 1 or > 100
 - ✓ Error if expiry date not selected
 - ✓ Min date is tomorrow (Calendar)
 
 #### Deactivation
+
 - ✓ Deactivate button on ACTIVE vouchers only
 - ✓ Tooltip "Deactivate voucher"
 - ✓ Confirmation dialog before deactivation
 - ✓ Table refreshed after deactivation
 
 #### Pagination & Empty State
+
 - ✓ Paginate table by 20 vouchers per page
 - ✓ Show "No vouchers created yet" if empty
 
 #### Reseller Table Info
+
 - ✓ Display customer/reseller tag per voucher
 - ✓ Show "All" if no partner restriction
 
 **Test scenarios (Customer):**
 
 #### Voucher Redemption
+
 - ✓ Redeem code on Credits/Buy page
 - ✓ Accept code input and call redeem webhook
 - ✓ Show "Voucher redeemed successfully!" message
@@ -203,6 +225,7 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 ## Test Execution
 
 ### Run all tests:
+
 ```bash
 npm run test:run                    # Unit + component tests
 npm run test:e2e                   # E2E tests (headless)
@@ -211,6 +234,7 @@ npm run test:coverage              # Coverage report
 ```
 
 ### Run specific suites:
+
 ```bash
 npm run test:run src/services/credits.service.test.ts
 npm run test:run src/services/vouchers.service.test.ts
@@ -223,34 +247,36 @@ npm run test:e2e tests/e2e/vouchers.flow.spec.ts
 
 ## Coverage Targets
 
-| Layer | Target | Current |
-|-------|--------|---------|
-| Services | 90%+ | ✓ 95%+ |
-| Composables | 85%+ | ✓ 90%+ |
-| Components | 80%+ | ✓ 85%+ |
+| Layer         | Target          | Current         |
+| ------------- | --------------- | --------------- |
+| Services      | 90%+            | ✓ 95%+          |
+| Composables   | 85%+            | ✓ 90%+          |
+| Components    | 80%+            | ✓ 85%+          |
 | E2E scenarios | 100% user flows | ✓ 50+ scenarios |
 
 ## Test Data Fixtures
 
 ### Users (for E2E)
+
 - `admin@example.com` — role: ADMIN
 - `customer@example.com` — role: CUSTOMER (low balance)
 - `lowcredit@example.com` — role: CUSTOMER (critical balance)
 - `reseller@example.com` — role: RESELLER (with active deployments)
 
 ### Seed Data
+
 - 3 credit bundles (5K, 10K, 25K FCFA)
 - 10 sample vouchers (various statuses, expiry dates, partner restrictions)
 - 20 sample transactions (TOPUP, DEBIT, EXPIRY)
 
 ## Known Issues & Workarounds
 
-| Issue | Workaround |
-|-------|-----------|
-| PrimeVue Calendar picker in E2E | Use keyboard input or click preset dates |
-| Realtime subscription in tests | Mock with setTimeout if Realtime unavailable |
-| Webhook responses in tests | Mock `callN8nWebhook` to return test data |
-| Database isolation in E2E | Use test database with seeded data or rollback |
+| Issue                           | Workaround                                           |
+| ------------------------------- | ---------------------------------------------------- |
+| PrimeVue Calendar picker in E2E | Use keyboard input or click preset dates             |
+| Realtime subscription in tests  | Mock with setTimeout if Realtime unavailable         |
+| Webhook responses in tests      | Mock `callWorkflowEngineWebhook` to return test data |
+| Database isolation in E2E       | Use test database with seeded data or rollback       |
 
 ## CI/CD Integration
 
@@ -265,6 +291,7 @@ Tests are configured to run in GitHub Actions:
 ## Next Steps
 
 After Phase 6 passes:
+
 1. Create sprint verification checklist
 2. Deploy to staging environment
 3. Conduct UAT with stakeholders

@@ -55,7 +55,7 @@
 | Partners list | `/partners` | All partners with status filters |
 | Partner detail | `/partners/:id` | Full profile, deployments, credit history |
 | Services | `/services` | Service catalogue management |
-| Service detail | `/services/:id` | Plans, AWX config, tags |
+| Service detail | `/services/:id` | Plans, deployment engine config, tags |
 | Control nodes | `/control-nodes` | Hetzner node management |
 | Settings | `/settings` | Platform-wide key/value config |
 | Audit log | `/audit` | Filterable audit trail |
@@ -67,7 +67,7 @@
 | My deployments | `/deployments` | Active/suspended instances with credit meter |
 | New deployment | `/deployments/new` | Service picker → plan → config wizard |
 | Deployment detail | `/deployments/:id` | Status, domain, logs, actions (stop/start/restart) |
-| Buy credits | `/credits/buy` | Credit bundle selector + Paytech checkout |
+| Buy credits | `/credits/buy` | Credit bundle selector + payment gateway checkout |
 | Credit history | `/credits/history` | Transaction ledger |
 
 #### Reseller
@@ -156,8 +156,8 @@ Color: green > 30%, amber 10–30%, red < 10%
 ### Deployment Status Card
 ```
 ┌──────────────────────────────────────────┐
-│  🟢 ACTIVE    Fatou Boutique Odoo        │
-│  starter.xayma.sh  |  Odoo 17 Starter   │
+│  🟢 ACTIVE    Fatou Boutique web applications        │
+│  starter.xayma.sh  |  web applications 17 Starter   │
 │  10 credits/day  |  Created 2 weeks ago  │
 │  [Stop]  [Restart]  [Open App →]         │
 └──────────────────────────────────────────┘

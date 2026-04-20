@@ -20,7 +20,7 @@
 
 ### Composable: Realtime Notifications Manager
 - **`src/composables/useNotifications.ts`** (200 lines)
-  - Supabase Realtime subscription on `notifications` table
+  - database service Realtime subscription on `notifications` table
   - Auto-fetches and subscribes on mount
   - Proper cleanup on unmount
   - Computed properties: `unreadNotifications`, `groupedByDate`
@@ -106,7 +106,7 @@
 | `credit_low` | ⚠️ | Orange | Balance at 20% threshold |
 | `credit_critical` | 🚨 | Red | Balance at 10% threshold |
 | `deployment_created` | ✓ | Green | Deployment provisioned |
-| `deployment_failed` | ✗ | Red | AWX deployment error |
+| `deployment_failed` | ✗ | Red | deployment engine deployment error |
 | `deployment_suspended` | ⏸️ | Red | Suspended due to $0 credits |
 | `topup_success` | ✓ | Green | Payment completed |
 | `topup_failed` | ✗ | Red | Payment declined |
@@ -119,11 +119,11 @@
 
 ### Data Flow
 ```
-n8n Webhook
+workflow engine Webhook
     ↓
-PostgreSQL (xayma_app.notifications)
+relational database (xayma_app.notifications)
     ↓
-Supabase Realtime Channel
+database service Realtime Channel
     ↓
 useNotifications Composable
     ↓
@@ -137,18 +137,18 @@ NotificationBell + NotificationFeed + Notifications Page
 - Auto-cleanup on component unmount
 
 ### State Management
-- No Pinia store required (uses composable + Supabase Realtime)
+- No Pinia store required (uses composable + database service Realtime)
 - Reactive notifications array with computed properties
 - Automatic synchronization across browser tabs via Realtime
 
 ---
 
-## What's Deferred (Kafka/n8n)
+## What's Deferred (Kafka/workflow engine)
 
 These backend workflows are needed to complete the feature:
 - **5.3-5.4**: Credit deduction cron → publish `credit.debit` → consume to update balance + create transaction
-- **5.5-5.6**: Suspension/resumption triggers → publish `deployment.suspend/resume` → AWX integration
-- **5.7-5.11**: Notification fan-out → RapidPro (WhatsApp), Brevo (Email), Africa's Talking (SMS), Supabase insert
+- **5.5-5.6**: Suspension/resumption triggers → publish `deployment.suspend/resume` → deployment engine integration
+- **5.7-5.11**: Notification fan-out → RapidPro (WhatsApp), Brevo (Email), Africa's Talking (SMS), database service insert
 
 **Current state:** Frontend will subscribe to notifications but backend workflows need to populate the `notifications` table.
 
@@ -168,10 +168,10 @@ These backend workflows are needed to complete the feature:
 - [x] Design system tokens applied
 
 ⏳ **Awaiting Backend:**
-- [ ] n8n notification workflows (5.3-5.11)
+- [ ] workflow engine notification workflows (5.3-5.11)
 - [ ] Kafka topics for events
 - [ ] Database: `notifications` table schema + RLS
-- [ ] n8n integrations: RapidPro, Brevo, Africa's Talking
+- [ ] workflow engine integrations: RapidPro, Brevo, Africa's Talking
 
 ---
 
@@ -201,7 +201,7 @@ These backend workflows are needed to complete the feature:
 
 All notifications UI is production-ready. Waiting on:
 1. Kafka infrastructure deployment
-2. n8n workflows (credit deduction, suspension, fan-out)
+2. workflow engine workflows (credit deduction, suspension, fan-out)
 3. Database `notifications` table with RLS
 4. External service integrations (RapidPro, Brevo, Africa's Talking)
 
@@ -213,7 +213,7 @@ Once backend workflows are deployed, notifications will flow automatically:
 ---
 
 **Next Steps:**
-1. Deploy n8n workflows (5.3-5.11)
+1. Deploy workflow engine workflows (5.3-5.11)
 2. Configure Kafka topics
 3. Apply database migrations for `notifications` table
 4. Test end-to-end in staging

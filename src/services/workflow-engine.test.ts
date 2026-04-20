@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import * as n8nService from '@/services/n8n.ts'
+import * as workflowEngineService from '@/services/workflow-engine'
 
 // Mock fetch globally
 global.fetch = vi.fn()
 
-describe('n8n Service', () => {
+describe('Workflow Engine Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset environment
@@ -16,7 +16,7 @@ describe('n8n Service', () => {
     vi.useRealTimers()
   })
 
-  describe('callN8nWebhook', () => {
+  describe('callWorkflowEngineWebhook', () => {
     it('should successfully call webhook on 2xx response', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: true,
@@ -25,7 +25,7 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1, partnerId: 1 }
 
-      await n8nService.callN8nWebhook('/webhook/test', payload)
+      await workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/test'),
@@ -37,7 +37,7 @@ describe('n8n Service', () => {
       )
     })
 
-    it('should throw N8nError on 4xx client error (no retry)', async () => {
+    it('should throw WorkflowEngineError on 4xx client error (no retry)', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 400,
@@ -46,8 +46,8 @@ describe('n8n Service', () => {
 
       const payload = { invalid: 'data' }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        n8nService.N8nError
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow(
+        workflowEngineService.WorkflowEngineError
       )
 
       // Fetch should only be called once (no retry for 4xx)
@@ -80,7 +80,7 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      const successPromise = n8nService.callN8nWebhook('/webhook/test', payload)
+      const successPromise = workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
       await vi.runAllTimersAsync()
       await successPromise
 
@@ -88,7 +88,7 @@ describe('n8n Service', () => {
       expect(global.fetch).toHaveBeenCalledTimes(4)
     })
 
-    it('should throw N8nError after max retries exceeded', async () => {
+    it('should throw WorkflowEngineError after max retries exceeded', async () => {
       vi.useFakeTimers()
 
       ;(global.fetch as any).mockResolvedValue({
@@ -101,8 +101,8 @@ describe('n8n Service', () => {
 
       // Attach rejection handler immediately to prevent unhandled rejection during timer advancement
       const rejectAssertion = expect(
-        n8nService.callN8nWebhook('/webhook/test', payload)
-      ).rejects.toThrow(n8nService.N8nError)
+        workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
+      ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
       await vi.runAllTimersAsync()
       await rejectAssertion
 
@@ -119,8 +119,8 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        n8nService.N8nError
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow(
+        workflowEngineService.WorkflowEngineError
       )
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
@@ -131,7 +131,7 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow()
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow()
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -154,7 +154,7 @@ describe('n8n Service', () => {
         label: 'My Odoo Instance',
       }
 
-      await n8nService.createDeployment(payload)
+      await workflowEngineService.createDeployment(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/create-deployment'),
@@ -178,7 +178,7 @@ describe('n8n Service', () => {
         action: 'stop',
       }
 
-      await n8nService.performDeploymentAction(payload)
+      await workflowEngineService.performDeploymentAction(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/deployment-action'),
@@ -200,7 +200,7 @@ describe('n8n Service', () => {
         action: 'start',
       }
 
-      await n8nService.performDeploymentAction(payload)
+      await workflowEngineService.performDeploymentAction(payload)
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -216,7 +216,7 @@ describe('n8n Service', () => {
         action: 'restart',
       }
 
-      await n8nService.performDeploymentAction(payload)
+      await workflowEngineService.performDeploymentAction(payload)
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -233,7 +233,7 @@ describe('n8n Service', () => {
         deploymentId: 1,
       }
 
-      await n8nService.terminateDeployment(payload)
+      await workflowEngineService.terminateDeployment(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/terminate-deployment'),
@@ -245,9 +245,9 @@ describe('n8n Service', () => {
     })
   })
 
-  describe('N8nError', () => {
+  describe('WorkflowEngineError', () => {
     it('should create error with status code', () => {
-      const error = new n8nService.N8nError(500, 'Internal server error')
+      const error = new workflowEngineService.WorkflowEngineError(500, 'Internal server error')
 
       expect(error).toBeInstanceOf(Error)
       expect(error.statusCode).toBe(500)
@@ -256,7 +256,7 @@ describe('n8n Service', () => {
     })
 
     it('should create error without status code', () => {
-      const error = new n8nService.N8nError(undefined, new Error('Network failed'))
+      const error = new workflowEngineService.WorkflowEngineError(undefined, new Error('Network failed'))
 
       expect(error.statusCode).toBeUndefined()
       expect(error.originalError).toBeInstanceOf(Error)
@@ -264,15 +264,15 @@ describe('n8n Service', () => {
   })
 
   describe('Error handling', () => {
-    it('should normalize network errors to N8nError', async () => {
+    it('should normalize network errors to WorkflowEngineError', async () => {
       ;(global.fetch as any).mockRejectedValue(new TypeError('fetch failed'))
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', {})).rejects.toThrow(
-        n8nService.N8nError
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', {})).rejects.toThrow(
+        workflowEngineService.WorkflowEngineError
       )
     })
 
-    it('should preserve error details in N8nError', async () => {
+    it('should preserve error details in WorkflowEngineError', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 422,
@@ -280,10 +280,10 @@ describe('n8n Service', () => {
       })
 
       try {
-        await n8nService.callN8nWebhook('/webhook/test', {})
+        await workflowEngineService.callWorkflowEngineWebhook('/webhook/test', {})
       } catch (error) {
-        expect(error).toBeInstanceOf(n8nService.N8nError)
-        expect((error as n8nService.N8nError).statusCode).toBe(422)
+        expect(error).toBeInstanceOf(workflowEngineService.WorkflowEngineError)
+        expect((error as workflowEngineService.WorkflowEngineError).statusCode).toBe(422)
       }
     })
   })

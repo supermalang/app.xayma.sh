@@ -113,8 +113,8 @@
         </div>
       </TabPanel>
 
-      <!-- AWX Config tab -->
-      <TabPanel :header="$t('services.tabs.awx_config')">
+      <!-- Deployment Engine Config tab -->
+      <TabPanel :header="$t('services.tabs.deployment_engine_config')">
         <div class="space-y-4 max-w-lg">
           <div v-if="service.control_node_id">
             <p class="text-sm font-medium text-on-surface-variant mb-1">
@@ -123,17 +123,17 @@
             <p class="font-mono text-on-surface">{{ service.control_node_id }}</p>
           </div>
 
-          <div v-if="service.awxJobTemplateId">
+          <div v-if="service.deploymentEngineJobTemplateId">
             <p class="text-sm font-medium text-on-surface-variant mb-1">
-              {{ $t('services.awx.job_template_id') }}
+              {{ $t('services.deployment_engine.job_template_id') }}
             </p>
-            <p class="font-mono text-on-surface">{{ service.awxJobTemplateId }}</p>
+            <p class="font-mono text-on-surface">{{ service.deploymentEngineJobTemplateId }}</p>
           </div>
 
           <Message
-            v-if="!service.control_node_id && !service.awxJobTemplateId"
+            v-if="!service.control_node_id && !service.deploymentEngineJobTemplateId"
             severity="info"
-            :text="$t('services.awx.not_configured')"
+            :text="$t('services.deployment_engine.not_configured')"
           />
         </div>
       </TabPanel>

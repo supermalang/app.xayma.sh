@@ -6,10 +6,10 @@
 ## 1. Positioning
 
 **Target market:** West Africa (Senegal, Côte d'Ivoire, Mali, Cameroon — primarily Francophone)
-**Primary buyer:** SME owner or IT integrator who needs Odoo but can't afford to manage infrastructure
+**Primary buyer:** SME owner or IT integrator who needs web applications but can't afford to manage infrastructure
 **Core positioning statement:**
 
-> *"The simplest way to get Odoo running for your business in West Africa — pay as you go, in FCFA, with Wave or Orange Money."*
+> *"The simplest way to get web applications running for your business in West Africa — pay as you go, in FCFA, with Wave or Orange Money."*
 
 **Emotional hook:** You shouldn't need a server admin to run your business software. Xayma.sh handles everything so you can focus on your customers.
 
@@ -33,7 +33,7 @@
 | Company size | 1–10 person agency |
 | Services | IT support, ERP implementation, accounting software |
 | Location | All major West African cities |
-| Pain | Needs a managed infrastructure for client Odoo deployments; manual setup is expensive |
+| Pain | Needs a managed infrastructure for client web applications deployments; manual setup is expensive |
 | Budget | 100,000–500,000 FCFA/month (manages 10–50 instances) |
 | Decision | Agency founder or technical lead decides |
 
@@ -46,12 +46,12 @@
 | WhatsApp direct outreach | 🔴 #1 | Resellers, SME owners |
 | LinkedIn | 🔴 #1 | IT integrators, digital agencies, tech-forward SMEs |
 | Referral programme | 🟠 #2 | Existing customers → new customers |
-| Tech community events | 🟠 #2 | Developer meetups, Odoo user groups in West Africa |
+| Tech community events | 🟠 #2 | Developer meetups, web applications user groups in West Africa |
 | Cold email | 🟡 #3 | IT agencies, ERP consultants |
-| SEO / blog (Strapi + Nuxt) | 🟡 #3 | Long-term organic; "Odoo Sénégal", "logiciel gestion PME" |
+| SEO / blog (Strapi + Nuxt) | 🟡 #3 | Long-term organic; "web applications Sénégal", "logiciel gestion PME" |
 | WhatsApp groups | 🟡 #3 | SME owner WhatsApp groups in Dakar, Abidjan |
 | Paid ads (Facebook/Instagram) | 🔵 Future | Direct customers in West African cities |
-| YouTube / TikTok demos | 🔵 Future | Visual demos of one-click Odoo deploy |
+| YouTube / TikTok demos | 🔵 Future | Visual demos of one-click web applications deploy |
 
 ---
 
@@ -68,7 +68,7 @@ Retention → WhatsApp credit alerts, quick top-up via Wave
 
 ### Resellers (Outbound-first)
 ```
-Identification → LinkedIn search for "intégrateur Odoo Sénégal / Côte d'Ivoire"
+Identification → LinkedIn search for "intégrateur web applications Sénégal / Côte d'Ivoire"
 Outreach → Personalized LinkedIn message or WhatsApp intro (via sales consultant)
 Demo → 30-min screenshare: deploy an instance in real time, show reseller dashboard
 Trial → Onboard with Small Bundle (10 instances, 30 days)
@@ -104,7 +104,7 @@ Expansion → Upgrade to Medium/Large bundle within 60 days
 - [ ] "Coming soon" with WhatsApp signup CTA
 - [ ] Personal outreach to 20 IT integrators in Senegal + Côte d'Ivoire
 - [ ] Post teaser on LinkedIn (founder story + product preview)
-- [ ] Demo video recorded (screen capture: deploy Odoo in 3 minutes)
+- [ ] Demo video recorded (screen capture: deploy web applications in 3 minutes)
 
 ### Launch Week (April 1, 2026)
 - [ ] Platform goes live
@@ -126,16 +126,16 @@ Expansion → Upgrade to Medium/Large bundle within 60 days
 
 | Week | Content | Channel |
 |------|---------|---------|
-| 1 | "Comment déployer Odoo en 3 minutes" (demo video) | LinkedIn + WhatsApp |
+| 1 | "Comment déployer web applications en 3 minutes" (demo video) | LinkedIn + WhatsApp |
 | 2 | "Pourquoi les PME africaines ont besoin d'un ERP accessible" (blog) | Website + LinkedIn |
 | 3 | Customer story: "Comment [Company] a géré ses stocks avec Xayma" | LinkedIn |
-| 4 | "Guide revendeur: comment monétiser Odoo avec Xayma.sh" (PDF guide) | LinkedIn DM to integrators |
+| 4 | "Guide revendeur: comment monétiser web applications avec Xayma.sh" (PDF guide) | LinkedIn DM to integrators |
 | 5 | "Wave vs Orange Money: comment payer pour votre logiciel" | WhatsApp groups |
 | 6 | Feature spotlight: credit system explained | LinkedIn |
-| 7 | "5 modules Odoo Community indispensables pour une PME" | Blog + LinkedIn |
+| 7 | "5 modules pre-configured web applications indispensables pour une PME" | Blog + LinkedIn |
 | 8 | Reseller case study | LinkedIn |
 | 9 | Product update post | LinkedIn |
-| 10 | "Odoo vs Excel: pourquoi faire le saut?" | Blog + LinkedIn |
+| 10 | "web applications vs Excel: pourquoi faire le saut?" | Blog + LinkedIn |
 | 11 | Behind the scenes: "Solo founder building SaaS for West Africa" | LinkedIn |
 | 12 | 3-month metrics recap (transparent founder update) | LinkedIn |
 
@@ -149,7 +149,7 @@ Expansion → Upgrade to Medium/Large bundle within 60 days
 | Reseller refers another reseller | 1 free Small Bundle (10 instances, 30 days) |
 | Customer posts a testimonial | 5 credits bonus |
 
-Tracked via unique referral codes in partner record; credited automatically by n8n when referred partner pays first invoice.
+Tracked via unique referral codes in partner record; credited automatically by workflow engine when referred partner pays first invoice.
 
 ---
 
@@ -170,7 +170,7 @@ Tracked via unique referral codes in partner record; credited automatically by n
 
 ## 10. Competitive Positioning Summary
 
-| Feature | Xayma.sh | Odoo.sh | Local VPS |
+| Feature | Xayma.sh | web applications.sh | Local VPS |
 |---------|----------|---------|----------|
 | FCFA pricing | ✅ | ❌ | ❌ |
 | Wave/Orange Money | ✅ | ❌ | ❌ |
