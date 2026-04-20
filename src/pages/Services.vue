@@ -118,6 +118,8 @@
             :loading="creatingService"
             @click="handleCreateService"
           />
+          <!-- Hidden native submit button: catches Enter-key implicit submission
+               (PrimeVue 4 Button always renders type="button") -->
           <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">{{ $t('common.create') }}</button>
         </div>
       </form>

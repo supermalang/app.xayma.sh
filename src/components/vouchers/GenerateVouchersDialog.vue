@@ -134,6 +134,8 @@
           :loading="loading"
           @click="handleGenerate"
         />
+        <!-- Hidden native submit button: catches Enter-key implicit submission
+             (PrimeVue 4 Button always renders type="button") -->
         <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">{{ $t('vouchers.form.generate') }}</button>
       </div>
     </form>

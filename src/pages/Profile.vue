@@ -123,6 +123,8 @@
               :loading="isSubmitting"
               @click="(e: MouseEvent) => { e.preventDefault(); (e.currentTarget as HTMLElement).closest('form')?.requestSubmit() }"
             />
+            <!-- Hidden native submit button: catches Enter-key implicit submission
+                 (PrimeVue 4 Button always renders type="button") -->
             <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true"></button>
           </div>
         </div>
