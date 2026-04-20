@@ -37,7 +37,7 @@ describe('Workflow Engine Service', () => {
       )
     })
 
-    it('should throw N8nError on 4xx client error (no retry)', async () => {
+    it('should throw WorkflowEngineError on 4xx client error (no retry)', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 400,
@@ -47,7 +47,7 @@ describe('Workflow Engine Service', () => {
       const payload = { invalid: 'data' }
 
       await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        workflowEngineService.N8nError
+        workflowEngineService.WorkflowEngineError
       )
 
       // Fetch should only be called once (no retry for 4xx)
@@ -88,7 +88,7 @@ describe('Workflow Engine Service', () => {
       expect(global.fetch).toHaveBeenCalledTimes(4)
     })
 
-    it('should throw N8nError after max retries exceeded', async () => {
+    it('should throw WorkflowEngineError after max retries exceeded', async () => {
       vi.useFakeTimers()
 
       ;(global.fetch as any).mockResolvedValue({
@@ -102,7 +102,7 @@ describe('Workflow Engine Service', () => {
       // Attach rejection handler immediately to prevent unhandled rejection during timer advancement
       const rejectAssertion = expect(
         workflowEngineService.callN8nWebhook('/webhook/test', payload)
-      ).rejects.toThrow(workflowEngineService.N8nError)
+      ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
       await vi.runAllTimersAsync()
       await rejectAssertion
 
@@ -120,7 +120,7 @@ describe('Workflow Engine Service', () => {
       const payload = { deploymentId: 1 }
 
       await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        workflowEngineService.N8nError
+        workflowEngineService.WorkflowEngineError
       )
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
@@ -245,9 +245,9 @@ describe('Workflow Engine Service', () => {
     })
   })
 
-  describe('N8nError', () => {
+  describe('WorkflowEngineError', () => {
     it('should create error with status code', () => {
-      const error = new workflowEngineService.N8nError(500, 'Internal server error')
+      const error = new workflowEngineService.WorkflowEngineError(500, 'Internal server error')
 
       expect(error).toBeInstanceOf(Error)
       expect(error.statusCode).toBe(500)
@@ -256,7 +256,7 @@ describe('Workflow Engine Service', () => {
     })
 
     it('should create error without status code', () => {
-      const error = new workflowEngineService.N8nError(undefined, new Error('Network failed'))
+      const error = new workflowEngineService.WorkflowEngineError(undefined, new Error('Network failed'))
 
       expect(error.statusCode).toBeUndefined()
       expect(error.originalError).toBeInstanceOf(Error)
@@ -264,15 +264,15 @@ describe('Workflow Engine Service', () => {
   })
 
   describe('Error handling', () => {
-    it('should normalize network errors to N8nError', async () => {
+    it('should normalize network errors to WorkflowEngineError', async () => {
       ;(global.fetch as any).mockRejectedValue(new TypeError('fetch failed'))
 
       await expect(workflowEngineService.callN8nWebhook('/webhook/test', {})).rejects.toThrow(
-        workflowEngineService.N8nError
+        workflowEngineService.WorkflowEngineError
       )
     })
 
-    it('should preserve error details in N8nError', async () => {
+    it('should preserve error details in WorkflowEngineError', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 422,
@@ -282,8 +282,8 @@ describe('Workflow Engine Service', () => {
       try {
         await workflowEngineService.callN8nWebhook('/webhook/test', {})
       } catch (error) {
-        expect(error).toBeInstanceOf(workflowEngineService.N8nError)
-        expect((error as workflowEngineService.N8nError).statusCode).toBe(422)
+        expect(error).toBeInstanceOf(workflowEngineService.WorkflowEngineError)
+        expect((error as workflowEngineService.WorkflowEngineError).statusCode).toBe(422)
       }
     })
   })
