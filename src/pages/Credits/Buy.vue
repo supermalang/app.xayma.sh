@@ -184,7 +184,7 @@ async function handleSelectBundle(bundleId: string) {
       partnerId,
     })
 
-    // Redirect to Paytech payment URL
+    // Redirect to payment gateway URL
     if (result.paymentUrl) {
       // Store transaction ID in session for success page
       sessionStorage.setItem('pendingTransactionId', result.transactionId)

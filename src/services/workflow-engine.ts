@@ -169,7 +169,7 @@ interface InitiateCheckoutResponse {
 }
 
 /**
- * Initiate Paytech payment checkout
+ * Initiate payment gateway checkout
  * Returns payment URL and transaction ID
  */
 export async function initiateCheckout(payload: InitiateCheckoutPayload): Promise<InitiateCheckoutResponse> {

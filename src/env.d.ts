@@ -5,7 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY: string
   readonly VITE_WORKFLOW_ENGINE_BASE_URL: string
   readonly VITE_DEPLOYMENT_ENGINE_BASE_URL: string
-  readonly VITE_PAYTECH_API_KEY: string
+  readonly VITE_PAYMENT_GATEWAY_API_KEY: string
   readonly VITE_SENTRY_DSN: string
   readonly VITE_APP_ENV: 'development' | 'production'
 }
