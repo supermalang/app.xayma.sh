@@ -362,7 +362,7 @@ css-design → vue-specialist → n8n-specialist (if needed)
 | `/new-page <n>`     | Scaffold a new page with route, layout, i18n keys                        |
 | `/verify-task`      | Self-check after implementing a task — must pass before ✅               |
 | `/test-sprint`      | Full E2E acceptance gate at end of each sprint                           |
-| `/status`           | Read IMPLEMENTATION_PLAN.md and report current progress                  |
+| `/status`           | Read docs/IMPLEMENTATION_PLAN.md and report current progress              |
 | `/visual-check`     | Screenshot comparison vs mockup reference                                |
 | `/n8n-workflow <n>` | Scaffold n8n workflow with input/output contract                         |
 | `/db-migration <n>` | Generate a Supabase SQL migration file                                   |
