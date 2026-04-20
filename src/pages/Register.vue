@@ -91,8 +91,14 @@
             type="submit"
             class="w-full mt-6"
             :loading="isLoading"
-            label="Create Account"
+            :label="$t('auth.register')"
+            @click="handleSubmit"
           />
+          <!-- Hidden native submit button: catches Enter-key implicit submission
+               (PrimeVue 4 Button always renders type="button") -->
+          <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">
+            {{ $t('auth.register') }}
+          </button>
         </form>
 
         <!-- Login Link -->
