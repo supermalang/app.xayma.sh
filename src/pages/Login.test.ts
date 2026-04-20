@@ -111,4 +111,44 @@ describe('Login.vue', () => {
     const button = wrapper.findAll('button-stub').find((b) => b.attributes('type') === 'submit')
     expect(button?.attributes('loading')).toBe('true')
   })
+
+  it('invokes signIn when the visible Login button is clicked', async () => {
+    const i18n = createI18n({
+      legacy: false,
+      locale: 'en',
+      messages: { en: enMessages },
+    })
+
+    const wrapper = mount(Login, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          // Do NOT stub Button — we need the real PrimeVue Button rendered.
+          Card: { template: '<div><slot name="header" /><slot name="content" /></div>' },
+          InputText: {
+            props: ['modelValue'],
+            template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+          },
+          Password: {
+            props: ['modelValue'],
+            template: '<input type="password" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+          },
+          RouterLink: true,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as any
+    vm.form.email = 'admin@test.example.com'
+    vm.form.password = 'test123456'
+    await wrapper.vm.$nextTick()
+
+    const authStore = (await import('@/stores/auth.store')).useAuthStore()
+    const signInSpy = vi.spyOn(authStore, 'signIn').mockResolvedValue(undefined as any)
+
+    await wrapper.find('button.p-button').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(signInSpy).toHaveBeenCalledWith('admin@test.example.com', 'test123456')
+  })
 })
