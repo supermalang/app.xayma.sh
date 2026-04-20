@@ -68,7 +68,7 @@ describe('ServiceDetail', () => {
     description: 'Open-source ERP',
     status: 'active',
     control_node_id: 'node-1',
-    awxJobTemplateId: 'template-1',
+    deploymentEngineJobTemplateId: 'template-1',
   }
 
   const mockPlans = [
@@ -157,9 +157,9 @@ describe('ServiceDetail', () => {
     expect((wrapper.vm as any).error).toBeTruthy()
   })
 
-  it('shows "not configured" when AWX fields are null', async () => {
-    const serviceWithoutAwx = { ...mockService, control_node_id: null, awxJobTemplateId: null }
-    vi.mocked(serviceService.getService).mockResolvedValue(serviceWithoutAwx)
+  it('shows "not configured" when deployment engine fields are null', async () => {
+    const serviceWithoutDeploymentEngine = { ...mockService, control_node_id: null, deploymentEngineJobTemplateId: null }
+    vi.mocked(serviceService.getService).mockResolvedValue(serviceWithoutDeploymentEngine)
     vi.mocked(serviceService.getServicePlansByServiceId).mockResolvedValue([])
 
     const wrapper = mount(ServiceDetail, { global: { plugins: [i18n] } })
@@ -170,7 +170,7 @@ describe('ServiceDetail', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).service.control_node_id).toBeNull()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((wrapper.vm as any).service.awxJobTemplateId).toBeNull()
+    expect((wrapper.vm as any).service.deploymentEngineJobTemplateId).toBeNull()
   })
 
   it('computes statusSeverity as "success" for active status', async () => {
@@ -212,7 +212,7 @@ describe('ServiceDetail', () => {
     expect((wrapper.vm as any).statusSeverity).toBe('secondary')
   })
 
-  it('displays control_node_id and awxJobTemplateId when present', async () => {
+  it('displays control_node_id and deploymentEngineJobTemplateId when present', async () => {
     vi.mocked(serviceService.getService).mockResolvedValue(mockService)
     vi.mocked(serviceService.getServicePlansByServiceId).mockResolvedValue([])
 

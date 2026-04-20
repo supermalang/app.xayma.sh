@@ -16,7 +16,7 @@ describe('Workflow Engine Service', () => {
     vi.useRealTimers()
   })
 
-  describe('callN8nWebhook', () => {
+  describe('callWorkflowEngineWebhook', () => {
     it('should successfully call webhook on 2xx response', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: true,
@@ -25,7 +25,7 @@ describe('Workflow Engine Service', () => {
 
       const payload = { deploymentId: 1, partnerId: 1 }
 
-      await workflowEngineService.callN8nWebhook('/webhook/test', payload)
+      await workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/test'),
@@ -46,7 +46,7 @@ describe('Workflow Engine Service', () => {
 
       const payload = { invalid: 'data' }
 
-      await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow(
         workflowEngineService.WorkflowEngineError
       )
 
@@ -80,7 +80,7 @@ describe('Workflow Engine Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      const successPromise = workflowEngineService.callN8nWebhook('/webhook/test', payload)
+      const successPromise = workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
       await vi.runAllTimersAsync()
       await successPromise
 
@@ -101,7 +101,7 @@ describe('Workflow Engine Service', () => {
 
       // Attach rejection handler immediately to prevent unhandled rejection during timer advancement
       const rejectAssertion = expect(
-        workflowEngineService.callN8nWebhook('/webhook/test', payload)
+        workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
       ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
       await vi.runAllTimersAsync()
       await rejectAssertion
@@ -119,7 +119,7 @@ describe('Workflow Engine Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow(
         workflowEngineService.WorkflowEngineError
       )
 
@@ -131,7 +131,7 @@ describe('Workflow Engine Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow()
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow()
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -267,7 +267,7 @@ describe('Workflow Engine Service', () => {
     it('should normalize network errors to WorkflowEngineError', async () => {
       ;(global.fetch as any).mockRejectedValue(new TypeError('fetch failed'))
 
-      await expect(workflowEngineService.callN8nWebhook('/webhook/test', {})).rejects.toThrow(
+      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', {})).rejects.toThrow(
         workflowEngineService.WorkflowEngineError
       )
     })
@@ -280,7 +280,7 @@ describe('Workflow Engine Service', () => {
       })
 
       try {
-        await workflowEngineService.callN8nWebhook('/webhook/test', {})
+        await workflowEngineService.callWorkflowEngineWebhook('/webhook/test', {})
       } catch (error) {
         expect(error).toBeInstanceOf(workflowEngineService.WorkflowEngineError)
         expect((error as workflowEngineService.WorkflowEngineError).statusCode).toBe(422)

@@ -52,7 +52,7 @@ jobs:
         run: |
           if grep -r "service_role" dist/ 2>/dev/null; then
             echo "ERROR: Supabase service role key found in built bundle!"
-            echo "Service role keys must ONLY be in n8n environment variables, never in frontend code."
+            echo "Service role keys must ONLY be in workflow engine environment variables, never in frontend code."
             exit 1
           else
             echo "✓ No service role key found in bundle"

@@ -171,29 +171,11 @@ interface InitiateCheckoutResponse {
 /**
  * Initiate payment gateway checkout
  * Returns payment URL and transaction ID
+ * Includes retry logic for transient 5xx errors
  */
 export async function initiateCheckout(payload: InitiateCheckoutPayload): Promise<InitiateCheckoutResponse> {
-  try {
-    const response = await fetch(`${baseUrl}/webhook/initiate-checkout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    if (!response.ok) {
-      throw new WorkflowEngineError(response.status, await response.text())
-    }
-
-    return await response.json()
-  } catch (error) {
-    if (error instanceof WorkflowEngineError) {
-      throw error
-    }
-    console.error('workflow engine checkout error:', error)
-    throw new WorkflowEngineError(undefined, error)
-  }
+  const result = await callWorkflowEngineWebhook('/webhook/initiate-checkout', payload)
+  return result as InitiateCheckoutResponse
 }
 
 export async function handlePaymentCallback(reference: string, status: string): Promise<void> {
@@ -231,9 +213,3 @@ export async function sendNotification(
     message,
   })
 }
-
-/**
- * Backwards compatibility export for callN8nWebhook
- * @deprecated Use callWorkflowEngineWebhook instead
- */
-export const callN8nWebhook = callWorkflowEngineWebhook
