@@ -121,7 +121,9 @@
               type="submit"
               :label="$t('common.save')"
               :loading="isSubmitting"
+              @click="(e: MouseEvent) => { e.preventDefault(); (e.currentTarget as HTMLElement).closest('form')?.requestSubmit() }"
             />
+            <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true"></button>
           </div>
         </div>
       </Form>

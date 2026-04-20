@@ -116,7 +116,9 @@
             type="submit"
             :label="$t('common.create')"
             :loading="creatingService"
+            @click="handleCreateService"
           />
+          <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">{{ $t('common.create') }}</button>
         </div>
       </form>
     </Dialog>

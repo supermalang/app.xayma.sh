@@ -132,7 +132,9 @@
           class="p-button-primary"
           type="submit"
           :loading="loading"
+          @click="handleGenerate"
         />
+        <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">{{ $t('vouchers.form.generate') }}</button>
       </div>
     </form>
   </Dialog>

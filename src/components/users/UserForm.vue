@@ -125,7 +125,9 @@
           type="submit"
           :label="isEditMode ? $t('common.update') : $t('common.create')"
           :loading="isSubmitting"
+          @click="(e: MouseEvent) => { e.preventDefault(); (e.currentTarget as HTMLElement).closest('form')?.requestSubmit() }"
         />
+        <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true"></button>
       </div>
     </div>
   </Form>
