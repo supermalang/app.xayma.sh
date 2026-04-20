@@ -37,7 +37,7 @@ xayma/
 │   │   │   │   ├── DeploymentCard.vue      # Status card with actions
 │   │   │   │   ├── DeploymentStatusBadge.vue
 │   │   │   │   ├── DeploymentWizard.vue    # Multi-step new deployment
-│   │   │   │   └── DeploymentLogViewer.vue # AWX job log stream
+│   │   │   │   └── DeploymentLogViewer.vue # deployment engine job log stream
 │   │   │   │
 │   │   │   ├── partners/
 │   │   │   │   ├── PartnerForm.vue         # Create/edit partner form
@@ -135,7 +135,7 @@ xayma/
 │   │   │   ├── credits.service.ts
 │   │   │   ├── settings.service.ts
 │   │   │   ├── audit.service.ts
-│   │   │   └── n8n.service.ts              # n8n webhook calls
+│   │   │   └── workflow engine.service.ts              # workflow engine webhook calls
 │   │   │
 │   │   ├── types/
 │   │   │   ├── database.types.ts           # Auto-generated from Supabase
@@ -225,7 +225,7 @@ xayma/
 │   │   ├── traefik.yml                     # Static config
 │   │   └── dynamic/
 │   │       ├── xayma.yml                   # Platform routes
-│   │       └── customers/                  # Per-customer routes (Ansible-generated)
+│   │       └── customers/                  # Per-customer routes (deployment engine-generated)
 │   ├── ansible/
 │   │   ├── deploy_odoo.yml                 # Provision Odoo instance on CX52
 │   │   ├── stop_odoo.yml

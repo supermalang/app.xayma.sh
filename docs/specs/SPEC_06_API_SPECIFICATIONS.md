@@ -7,7 +7,7 @@
 
 Xayma.sh does **not** have a custom REST API backend. All data access goes through:
 1. **Supabase JS SDK** — direct database queries with RLS enforcing authorization
-2. **n8n webhooks** — for triggering async workflows (deploy, suspend, notify)
+2. **workflow engine webhooks** — for triggering async workflows (deploy, suspend, notify)
 3. **Payment Gateway REST API** — for payment initiation
 
 There is no public API exposed to third parties or resellers.
@@ -123,22 +123,22 @@ supabase.from('xayma_app.settings').select('value').eq('key', 'LowCreditThreshol
 |---------|-----------|
 | Vue SPA (app.xayma.sh) | Supabase JWT stored in `localStorage`; passed as `Authorization: Bearer <token>` header automatically by SDK |
 | Nuxt marketing (xayma.sh) | Server-side Supabase client with anon key for public content |
-| n8n workflows | Supabase service role key (never exposed to browser) |
+| workflow engine workflows | Supabase service role key (never exposed to browser) |
 | GitHub Actions | DockerHub credentials in GitHub Secrets |
 
 **Token refresh:** Supabase SDK handles token refresh automatically. App listens to `supabase.auth.onAuthStateChange` to update Pinia store.
 
 ---
 
-## 3. n8n Webhook Endpoints
+## 3. workflow engine Webhook Endpoints
 
-n8n exposes internal webhook URLs consumed only by the Vue app and Supabase triggers. These are not public APIs.
+workflow engine exposes internal webhook URLs consumed only by the Vue app and Supabase triggers. These are not public APIs.
 
 | Webhook | Method | Trigger | Purpose |
 |---------|--------|---------|---------|
-| `/webhook/deployment/create` | POST | Vue app on deployment insert | Trigger AWX job template |
-| `/webhook/deployment/stop` | POST | Credit = 0 event | Trigger AWX stop |
-| `/webhook/deployment/start` | POST | Credit topup event | Trigger AWX start |
+| `/webhook/deployment/create` | POST | Vue app on deployment insert | Trigger deployment engine job template |
+| `/webhook/deployment/stop` | POST | Credit = 0 event | Trigger deployment engine stop |
+| `/webhook/deployment/start` | POST | Credit topup event | Trigger deployment engine start |
 | `/webhook/payment/ipn` | POST | Payment Gateway IPN callback | Confirm payment, add credits |
 | `/webhook/notification/send` | POST | Any notification event | Fan-out to all channels |
 
@@ -162,12 +162,12 @@ n8n exposes internal webhook URLs consumed only by the Vue app and Supabase trig
 
 | Operation | Duration | Handling |
 |-----------|---------|---------|
-| Docker container provisioning | 2–5 minutes | AWX job; status polled via Supabase Realtime |
-| Payment confirmation | 30s–2 min | Payment Gateway IPN → n8n webhook → Supabase update → Realtime |
-| Credit batch deduction | 15 min cycle | Kafka cron → n8n → Supabase bulk update |
-| Notification fan-out | <2 min | n8n async; Supabase in-app notification immediate |
+| Docker container provisioning | 2–5 minutes | deployment engine job; status polled via Supabase Realtime |
+| Payment confirmation | 30s–2 min | Payment Gateway IPN → workflow engine webhook → Supabase update → Realtime |
+| Credit batch deduction | 15 min cycle | Kafka cron → workflow engine → Supabase bulk update |
+| Notification fan-out | <2 min | workflow engine async; Supabase in-app notification immediate |
 
-All long-running operations update `deployments.status` or `partners.remainingCredits` via n8n, which is then surfaced to the UI via Supabase Realtime WebSocket subscriptions without polling.
+All long-running operations update `deployments.status` or `partners.remainingCredits` via workflow engine, which is then surfaced to the UI via Supabase Realtime WebSocket subscriptions without polling.
 
 ---
 
@@ -176,10 +176,10 @@ All long-running operations update `deployments.status` or `partners.remainingCr
 | Resource | Limit | Enforcement |
 |----------|-------|------------|
 | Supabase queries | 500 req/s (Supabase free tier) | Supabase built-in |
-| Payment Gateway API | Per Payment Gateway agreement | n8n retry with backoff |
-| n8n webhooks | Internal; no external rate limit | n8n queue |
-| WhatsApp API | Per Meta/Twilio agreement | n8n queue with delay |
-| SMS (Africa's Talking) | Per account agreement | n8n queue |
+| Payment Gateway API | Per Payment Gateway agreement | workflow engine retry with backoff |
+| workflow engine webhooks | Internal; no external rate limit | workflow engine queue |
+| WhatsApp API | Per Meta/Twilio agreement | workflow engine queue with delay |
+| SMS (Africa's Talking) | Per account agreement | workflow engine queue |
 
 ---
 
@@ -188,7 +188,7 @@ All long-running operations update `deployments.status` or `partners.remainingCr
 No versioning strategy required at launch — the Supabase schema is the source of truth and the Vue app is the sole consumer. Breaking schema changes will be handled via:
 1. Non-destructive migrations first (add columns, don't remove)
 2. Deploy new app version before removing old columns
-3. n8n webhook URLs are internal — can be changed with coordinated deploy
+3. workflow engine webhook URLs are internal — can be changed with coordinated deploy
 
 ### Payment Gateway Integration Flow
 ```
@@ -200,14 +200,14 @@ No versioning strategy required at launch — the Supabase schema is the source 
 
 3. User completes payment on Payment Gateway
 
-4. Payment Gateway POSTs IPN to n8n webhook:
+4. Payment Gateway POSTs IPN to workflow engine webhook:
    POST /webhook/payment/ipn
    Body: { ref_command, token, payment_method, ... }
 
-5. n8n verifies token with Payment Gateway
-6. n8n updates credit_transaction status → 'completed'
-7. n8n updates partners.remainingCredits
-8. n8n publishes credit.topup to Kafka
-9. Kafka → n8n consumer → check if suspended deployments should resume
+5. workflow engine verifies token with Payment Gateway
+6. workflow engine updates credit_transaction status → 'completed'
+7. workflow engine updates partners.remainingCredits
+8. workflow engine publishes credit.topup to Kafka
+9. Kafka → workflow engine consumer → check if suspended deployments should resume
 10. Supabase Realtime → Vue UI updates credit balance
 ```

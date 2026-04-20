@@ -22,7 +22,7 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 ### 2.1 Admin — "Mamadou" (Platform Operator)
 - **Goal:** Manage the entire platform — onboard customers, monitor deployments, configure services, handle credits, review audit logs
 - **Frustrations:** Manual interventions when deployments fail, no visibility into credit burn rates, no automated alerts
-- **Needs:** Dashboard with real-time stats, deployment status monitoring, credit management, AWX integration, Kafka event monitoring
+- **Needs:** Dashboard with real-time stats, deployment status monitoring, credit management, deployment engine integration, Kafka event monitoring
 
 ### 2.2 Customer — "Fatou" (SME Owner)
 - **Goal:** Deploy Odoo for her clothing business, keep it running, top up credits before expiry
@@ -55,12 +55,12 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 7. Clicks "Buy Credits" →
 8. Selects credit bundle (10 credits = 10,000 FCFA) →
 9. Pays via Wave/Orange Money/Card (Payment Gateway) →
-10. Credits added to account (Kafka event → n8n → Supabase update) →
+10. Credits added to account (Kafka event → workflow engine → Supabase update) →
 11. Clicks "New Deployment" →
 12. Selects service (Odoo Community), version, plan (Starter/Pro/Enterprise) →
 13. Enters deployment label and domain →
 14. System checks credit balance (must cover ≥1 day of plan consumption) →
-15. AWX job triggered → Docker containers provisioned on CX52 node →
+15. deployment engine job triggered → Docker containers provisioned on CX52 node →
 16. Traefik route created → domain goes live →
 17. Customer receives WhatsApp + email notification with URL →
 18. Dashboard shows deployment as "active" with credit burn meter
@@ -69,19 +69,19 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 ### 3.2 Credit Depletion & Suspension Flow
 
 ```
-1. n8n cron runs every 15 minutes →
+1. workflow engine cron runs every 15 minutes →
 2. Kafka event published: credit.debit for each active deployment →
-3. n8n consumer updates partner.remainingCredits in Supabase →
+3. workflow engine consumer updates partner.remainingCredits in Supabase →
 4. Supabase Realtime pushes update to customer dashboard →
 5. At 20% credits remaining → WhatsApp + email + SMS warning sent →
 6. At 10% → second warning sent →
 7. At 0% credits → Kafka event: deployment.suspend →
-8. n8n triggers AWX to stop containers →
+8. workflow engine triggers deployment engine to stop containers →
 9. Deployment status → "suspended" →
 10. Customer receives suspension notification →
 11. Grace period starts (5 or 10 days depending on partner type) →
 12. Customer tops up credits → Kafka event: credit.topup →
-13. n8n triggers AWX to restart containers →
+13. workflow engine triggers deployment engine to restart containers →
 14. Deployment status → "active" again
 ```
 
@@ -103,7 +103,7 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 ```
 1. Admin logs in → navigates to Services →
 2. Creates new service (Odoo 17) →
-3. Links to control node (AWX instance on CX32) →
+3. Links to control node (deployment engine instance on CX32) →
 4. Configures job template name, deploy/stop/start/restart tags →
 5. Adds service plans (Starter: 10 credits/30d, Pro: 20, Enterprise: 50) →
 6. Sets isPubliclyAvailable = true →
@@ -119,7 +119,7 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 | Sales assigns customer | SALES + ADMIN | Sales creates customer account, ADMIN approves |
 | Reseller deploys for client | RESELLER + system | Reseller creates deployment, system bills their credit pool |
 | Admin suspends partner | ADMIN + CUSTOMER | Admin sets partner status → system suspends all deployments |
-| Credit expiry | System + CUSTOMER | Automated via Kafka/n8n, customer receives notifications |
+| Credit expiry | System + CUSTOMER | Automated via Kafka/workflow engine, customer receives notifications |
 
 ---
 
@@ -129,6 +129,6 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 |------|-----------|
 | Registration too complex | Keep form to 4 fields max; email verification non-blocking |
 | Credits expire without warning | Multi-channel alerts at 20% and 10% remaining |
-| Deployment takes too long | Show real-time AWX progress in deployment status card |
+| Deployment takes too long | Show real-time deployment engine progress in deployment status card |
 | Payment fails | Clear error message + retry + alternative payment method |
 | Reseller can't see client status | Consolidated multi-deployment dashboard with filters |

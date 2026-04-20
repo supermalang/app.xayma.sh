@@ -182,7 +182,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [x] **3.12** Build Deployment detail page (`/deployments/:id`) — status history (`Timeline`), domain(s), plan, action `ButtonGroup`
 - [ ] **3.13** Implement Supabase Realtime subscription for `deployments` — live status updates without page refresh
 - [x] **3.14** Build `DeploymentStatusBadge.vue` — PrimeVue `Tag` with correct severity per `deployment_status` enum
-- [ ] **3.15** Configure Ansible playbooks: `deploy_odoo.yml`, `stop_odoo.yml`, `start_odoo.yml`, `restart_odoo.yml`, `add_traefik_route.yml`
+- [ ] **3.15** Configure deployment engine playbooks: `deploy_odoo.yml`, `stop_odoo.yml`, `start_odoo.yml`, `restart_odoo.yml`, `add_traefik_route.yml`
 - [ ] **3.16** Implement deployment engine job call in workflow engine (HTTP node); update `deployments.status` on success/fail via Supabase
 - [x] **3.17** Implement RLS policies for `deployments` and `services`
 - [x] **3.18** Add i18n keys (EN + FR) for all new strings
@@ -453,7 +453,7 @@ Sprint 8 (Hardening) ───────────────────�
 | Dev Container configured (Node 20, Playwright deps) | ⬜ | Sprint 0 |
 | **SPRINT 3–8 (Parallel)** |
 | deployment engine installed on CX32 | ⬜ | Sprint 3 |
-| Ansible playbooks for Odoo Community written | ⬜ | Sprint 3 |
+| deployment engine playbooks for Odoo Community written | ⬜ | Sprint 3 |
 | Payment Gateway merchant account approved | ⬜ | Sprint 4 |
 | WhatsApp Business API (RapidPro) approved | ⬜ | Sprint 5 |
 | Africa's Talking SMS account active | ⬜ | Sprint 5 |

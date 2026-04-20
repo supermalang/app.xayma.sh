@@ -116,7 +116,7 @@ PostgreSQL (xayma_app schema)
     ↓
 [Kafka] — Credit events, deployments, notifications
     ↓
-[AWX] — Ansible for deployment orchestration
+[deployment engine] — deployment engine for deployment orchestration
 ```
 
 For detailed architecture rules, see [CLAUDE.md](CLAUDE.md).

@@ -42,7 +42,7 @@ Xayma.sh solves all three by providing a fully managed, credit-based, multi-tena
 | Sprint 2 — Partner & User management | Week 3–4 |
 | Sprint 3 — Services & Deployments | Week 5–6 |
 | Sprint 4 — Credits & Payments | Week 7–8 |
-| Sprint 5 — Kafka + n8n automation | Week 9–10 |
+| Sprint 5 — Kafka + workflow engine automation | Week 9–10 |
 | Sprint 6 — Customer & Reseller portals | Week 11–12 |
 | Sprint 7 — Marketing site (Strapi + Nuxt) | Week 13–14 |
 | Sprint 8 — Monitoring, CI/CD, hardening | Week 15–16 |
@@ -54,7 +54,7 @@ Xayma.sh solves all three by providing a fully managed, credit-based, multi-tena
 
 - **Team size:** Solo developer
 - **Frontend:** Vue 3 + TypeScript (SPA), Nuxt 3 (marketing site)
-- **Backend:** Supabase (PostgreSQL + Auth + Realtime), n8n (automation)
+- **Backend:** Supabase (PostgreSQL + Auth + Realtime), workflow engine (automation)
 - **Infrastructure:** Hetzner CX32 (management), CX52 nodes (customer instances)
 - **Tooling:** Claude Code (AI-assisted development), VSCode Dev Container, GitHub Actions
 
@@ -105,7 +105,7 @@ Everything in the 8-sprint implementation plan. Transactional notifications only
   - **Segmentation:** By partner type, plan, credit balance, deployment count, last activity, language
   - **Attribution:** Full funnel tracking from first ad click → registration → first deployment → first payment
   - Mautic replaces Brevo for marketing emails (Brevo stays for transactional)
-  - Integration: Mautic syncs contacts from Supabase via n8n (nightly or on key events like registration, first deployment, suspension)
+  - Integration: Mautic syncs contacts from Supabase via workflow engine (nightly or on key events like registration, first deployment, suspension)
 - Billing PDF generation (invoice per credit purchase)
 - Odoo module marketplace (curated list of installable modules per plan)
 

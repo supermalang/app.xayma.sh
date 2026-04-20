@@ -102,7 +102,7 @@ This document covers the comprehensive test suite for Sprint 4 Phase 6, which va
 - ✓ Display discount percentage and "automatically applied" label
 
 #### Checkout
-- ✓ Click "Select Bundle" initiates checkout via n8n webhook
+- ✓ Click "Select Bundle" initiates checkout via workflow engine webhook
 - ✓ Redirect to success or cancel page
 
 #### Payment Processing

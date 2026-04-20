@@ -16,7 +16,7 @@
 | Credit Transactions | `credit_transactions` | All credit purchases, deductions, and voucher redemptions |
 | Vouchers | `vouchers` | Admin-generated credit voucher codes |
 | Voucher Redemptions | `voucher_redemptions` | Tracks which partner redeemed which voucher |
-| Control Nodes | `control_nodes` | AWX nodes managing infrastructure |
+| Control Nodes | `control_nodes` | deployment engine nodes managing infrastructure |
 | Settings | `settings` | Platform-wide key/value configuration |
 | Role Permissions | `role_permissions` | Permission definitions per role |
 | Credit Purchase Options | `partner_credit_purchase_options` | Volume discount tiers per partner type |
@@ -286,8 +286,8 @@ CREATE UNIQUE INDEX idx_voucher_redemptions_unique ON xayma_app.voucher_redempti
 | Field | Table | Handling |
 |-------|-------|---------|
 | `authorizationToken` | `control_nodes` | Stored encrypted; never exposed to frontend |
-| `paymentApiKey` | `settings` | Server-side only (n8n); never in client queries |
-| `paymentSecretKey` | `settings` | Server-side only (n8n); never in client queries |
+| `paymentApiKey` | `settings` | Server-side only (workflow engine); never in client queries |
+| `paymentSecretKey` | `settings` | Server-side only (workflow engine); never in client queries |
 | `email` | `users` | Supabase Auth handles; GDPR-compliant |
 | `phone` | `partners` | PII — access restricted by RLS |
 | `amountPaid` | `credit_transactions` | MONEY type; audit-logged |

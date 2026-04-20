@@ -149,7 +149,7 @@ Expansion → Upgrade to Medium/Large bundle within 60 days
 | Reseller refers another reseller | 1 free Small Bundle (10 instances, 30 days) |
 | Customer posts a testimonial | 5 credits bonus |
 
-Tracked via unique referral codes in partner record; credited automatically by n8n when referred partner pays first invoice.
+Tracked via unique referral codes in partner record; credited automatically by workflow engine when referred partner pays first invoice.
 
 ---
 

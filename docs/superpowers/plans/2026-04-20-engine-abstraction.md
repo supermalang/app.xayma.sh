@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Decouple codebase from n8n/AWX/Ansible by abstracting behind "workflow engine" and "deployment engine" service layers and renaming all references throughout documentation, code, and configuration.
+**Goal:** Decouple codebase from workflow engine/deployment engine/deployment engine by abstracting behind "workflow engine" and "deployment engine" service layers and renaming all references throughout documentation, code, and configuration.
 
-**Architecture:** Replace `src/services/n8n.ts` with `src/services/workflow-engine.ts`, create new `src/services/deployment-engine.ts`, rename all environment variables and database settings keys, update all documentation to use generic terminology.
+**Architecture:** Replace `src/services/workflow engine.ts` with `src/services/workflow-engine.ts`, create new `src/services/deployment-engine.ts`, rename all environment variables and database settings keys, update all documentation to use generic terminology.
 
 **Tech Stack:** Vue 3 + TypeScript, Supabase, Vite environment variables
 
@@ -13,23 +13,23 @@
 ## File Structure
 
 **Service Layer:**
-- `src/services/workflow-engine.ts` (renamed from `n8n.ts`) — webhook wrapper for async operations
+- `src/services/workflow-engine.ts` (renamed from `workflow engine.ts`) — webhook wrapper for async operations
 - `src/services/deployment-engine.ts` (new) — wrapper for deployment operations
 - `src/services/settings.ts` (modified) — add typed getters for engine URLs
 
 **Configuration:**
-- `.env.example` (modified) — rename `VITE_N8N_WEBHOOK_BASE_URL` to `VITE_WORKFLOW_ENGINE_BASE_URL`, add `VITE_DEPLOYMENT_ENGINE_BASE_URL`
+- `.env.example` (modified) — rename `VITE_WORKFLOW_ENGINE_BASE_URL` to `VITE_WORKFLOW_ENGINE_BASE_URL`, add `VITE_DEPLOYMENT_ENGINE_BASE_URL`
 
 **Documentation:**
-- `CLAUDE.md` (modified) — replace all n8n/AWX/Ansible references
+- `CLAUDE.md` (modified) — replace all workflow engine/deployment engine/deployment engine references
 - `docs/specs/SPEC_04_TECHNICAL_ARCHITECTURE.md` (modified) — update backend section
 - `docs/specs/SPEC_08_DEPLOYMENT_INFRASTRUCTURE.md` (modified) — update infrastructure section
 - `docs/superpowers/migrations/` — Supabase migration to rename settings keys
 
 **Code:**
-- All `.ts` files importing `n8n.service` — update import paths
+- All `.ts` files importing `workflow engine.service` — update import paths
 - `src/i18n/en.ts`, `src/i18n/fr.ts` — verify and update any UI strings
-- `.claude/settings.json` (if referencing n8n) — update references
+- `.claude/settings.json` (if referencing workflow engine) — update references
 
 ---
 
@@ -49,10 +49,10 @@ touch supabase/migrations/20260420000000_rename_engine_settings_keys.sql
 - [ ] **Step 2: Write migration to rename settings keys**
 
 ```sql
--- Safely rename n8n and awx settings keys to generic engine names
+-- Safely rename workflow engine and awx settings keys to generic engine names
 -- Migration is idempotent: only updates if key exists
 
--- Rename n8n keys to workflow_engine keys
+-- Rename workflow engine keys to workflow_engine keys
 UPDATE xayma_app.settings 
 SET key = 'workflow_engine_webhook_base_url' 
 WHERE key = 'n8n_webhook_base_url';
@@ -87,7 +87,7 @@ Expected: File starts with the UPDATE statements above.
 
 ```bash
 git add supabase/migrations/20260420000000_rename_engine_settings_keys.sql
-git commit -m "migration: rename n8n/awx settings keys to generic engine names"
+git commit -m "migration: rename workflow engine/awx settings keys to generic engine names"
 ```
 
 ---
@@ -95,27 +95,27 @@ git commit -m "migration: rename n8n/awx settings keys to generic engine names"
 ### Task 2: Rename Service File and Update Internal References
 
 **Files:**
-- Move: `src/services/n8n.ts` → `src/services/workflow-engine.ts`
-- Modify: All `.ts` files that import from `n8n.service`
+- Move: `src/services/workflow engine.ts` → `src/services/workflow-engine.ts`
+- Modify: All `.ts` files that import from `workflow engine.service`
 
 - [ ] **Step 1: Rename the file**
 
 ```bash
 cd /workspaces/04\ Xayma\ 2.0
-mv src/services/n8n.ts src/services/workflow-engine.ts
+mv src/services/workflow engine.ts src/services/workflow-engine.ts
 ```
 
 - [ ] **Step 2: Find all imports of the old service**
 
 ```bash
-grep -r "from.*['\"].*n8n.service" src/ tests/ --include="*.ts" --include="*.vue"
+grep -r "from.*['\"].*workflow engine.service" src/ tests/ --include="*.ts" --include="*.vue"
 ```
 
-Expected: List all `.ts` and `.vue` files importing from n8n.service.
+Expected: List all `.ts` and `.vue` files importing from workflow engine.service.
 
 - [ ] **Step 3: Update import in workflow-engine.ts (if it exports itself)**
 
-Open `src/services/workflow-engine.ts` and verify exports are correct. No changes needed unless there are internal n8n references in comments.
+Open `src/services/workflow-engine.ts` and verify exports are correct. No changes needed unless there are internal workflow engine references in comments.
 
 ```typescript
 // Example export (unchanged)
@@ -134,7 +134,7 @@ For each file from Step 2, update imports. Example files:
 Replace:
 ```typescript
 // OLD
-import * as n8nService from '@/services/n8n.service'
+import * as n8nService from '@/services/workflow engine.service'
 // NEW
 import * as workflowEngineService from '@/services/workflow-engine.service'
 ```
@@ -149,7 +149,7 @@ workflowEngineService.triggerDeploymentCreation(...)
 
 - [ ] **Step 5: Update all imports in stores (if any)**
 
-Check `src/stores/` for any imports of n8n service. Apply same replacement pattern.
+Check `src/stores/` for any imports of workflow engine service. Apply same replacement pattern.
 
 - [ ] **Step 6: Verify no broken imports**
 
@@ -163,7 +163,7 @@ Expected: PASS with zero errors. If there are type errors unrelated to this rena
 
 ```bash
 git add src/services/workflow-engine.ts src/composables/ src/stores/ src/pages/
-git commit -m "refactor: rename n8n service to workflow-engine throughout codebase"
+git commit -m "refactor: rename workflow engine service to workflow-engine throughout codebase"
 ```
 
 ---
@@ -352,14 +352,14 @@ git commit -m "feat: add typed getters for workflow and deployment engine URLs"
 cat .env.example | head -20
 ```
 
-- [ ] **Step 2: Replace n8n variable with workflow engine variable**
+- [ ] **Step 2: Replace workflow engine variable with workflow engine variable**
 
 In `.env.example`, find and replace:
 
 ```bash
 # OLD:
-# n8n
-VITE_N8N_WEBHOOK_BASE_URL=
+# workflow engine
+VITE_WORKFLOW_ENGINE_BASE_URL=
 
 # NEW:
 # Workflow Engine
@@ -387,7 +387,7 @@ Expected: Both sections present.
 
 ```bash
 git add .env.example
-git commit -m "chore: rename n8n env var to workflow_engine, add deployment_engine var"
+git commit -m "chore: rename workflow engine env var to workflow_engine, add deployment_engine var"
 ```
 
 ---
@@ -397,37 +397,37 @@ git commit -m "chore: rename n8n env var to workflow_engine, add deployment_engi
 **Files:**
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: Find and replace all n8n references in architecture rules**
+- [ ] **Step 1: Find and replace all workflow engine references in architecture rules**
 
 In CLAUDE.md, find Rule #1 through Rule #6. Replace:
 
 Rule #1:
-- "All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **n8n webhooks** via `src/services/n8n.ts`."
+- "All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow engine.ts`."
 - Change to: "All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow-engine.ts`."
 
 Rule #2:
-- "All n8n calls go through `src/services/n8n.ts`."
+- "All workflow engine calls go through `src/services/workflow engine.ts`."
 - Change to: "All workflow engine calls go through `src/services/workflow-engine.ts`."
 
 Rule #3:
-- "n8n handles all async operations"
+- "workflow engine handles all async operations"
 - Change to: "Workflow engine handles all async operations"
-- "Anything involving AWX, Kafka, payments, or notifications goes through n8n."
+- "Anything involving deployment engine, Kafka, payments, or notifications goes through workflow engine."
 - Change to: "Anything involving deployment engine, Kafka, payments, or notifications goes through workflow engine."
-- "Flow: Vue → n8n webhook → Kafka → n8n consumer → Supabase update."
+- "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
 - Change to: "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
 
 Rule #5:
-- "The service role key lives **only** in n8n environment variables."
+- "The service role key lives **only** in workflow engine environment variables."
 - Change to: "The service role key lives **only** in workflow engine environment variables."
 
 Rule #6:
-- "Flow: Vue → n8n webhook → Kafka → n8n consumer → Supabase update."
+- "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
 - Change to: "Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update."
 
 - [ ] **Step 2: Update Platform Settings section**
 
-Find: "Platform-wide config (n8n base URL, webhook paths, credit thresholds, payment gateway keys) stored in `xayma_app.settings` table"
+Find: "Platform-wide config (workflow engine base URL, webhook paths, credit thresholds, payment gateway keys) stored in `xayma_app.settings` table"
 
 Replace with: "Platform-wide config (workflow engine base URL, webhook paths, deployment engine base URL, credit thresholds, payment gateway keys) stored in `xayma_app.settings` table"
 
@@ -436,15 +436,15 @@ Change: "Access via `src/services/settings.ts` or `src/composables/useSettings.t
 
 - [ ] **Step 3: Update Agent Team section**
 
-Find the line: "| Building any n8n workflow                   | `n8n-specialist` — contract, Kafka, error handling                          |"
+Find the line: "| Building any workflow engine workflow                   | `workflow engine-specialist` — contract, Kafka, error handling                          |"
 
 Replace with: "| Building any workflow engine automation     | `workflow-engine-specialist` — contract, Kafka, error handling                 |"
 
-(Or remove if n8n-specialist agent is no longer used)
+(Or remove if workflow engine-specialist agent is no longer used)
 
 - [ ] **Step 4: Update Slash Commands section**
 
-Find: "| `/n8n-workflow <n>` | Scaffold n8n workflow with input/output contract                         |"
+Find: "| `/workflow engine-workflow <n>` | Scaffold workflow engine workflow with input/output contract                         |"
 
 Replace with: "| `/workflow-engine <n>` | Scaffold workflow engine automation with input/output contract              |"
 
@@ -454,8 +454,8 @@ Replace with: "| `/workflow-engine <n>` | Scaffold workflow engine automation wi
 
 Find:
 ```
-# n8n
-VITE_N8N_WEBHOOK_BASE_URL=     # e.g. https://n8n.xayma.sh
+# workflow engine
+VITE_WORKFLOW_ENGINE_BASE_URL=     # e.g. https://workflow engine.xayma.sh
 ```
 
 Replace with:
@@ -469,14 +469,14 @@ VITE_DEPLOYMENT_ENGINE_BASE_URL=   # e.g. https://deployment-engine.xayma.sh
 
 - [ ] **Step 6: Update Gotchas section**
 
-Find: "| n8n webhook URLs must be static          | Never use dynamic paths; configure base URL in `settings` table           |"
+Find: "| workflow engine webhook URLs must be static          | Never use dynamic paths; configure base URL in `settings` table           |"
 
 Replace with: "| Workflow engine webhook URLs must be static | Never use dynamic paths; configure base URL in `settings` table           |"
 
 - [ ] **Step 7: Verify all replacements**
 
 ```bash
-grep -i "n8n\|awx\|ansible" CLAUDE.md | grep -v "git history\|commit"
+grep -i "workflow engine\|awx\|ansible" CLAUDE.md | grep -v "git history\|commit"
 ```
 
 Expected: No matches (except in code examples or git references).
@@ -485,7 +485,7 @@ Expected: No matches (except in code examples or git references).
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs: replace n8n/awx/ansible with generic engine terminology in CLAUDE.md"
+git commit -m "docs: replace workflow engine/awx/ansible with generic engine terminology in CLAUDE.md"
 ```
 
 ---
@@ -498,28 +498,28 @@ git commit -m "docs: replace n8n/awx/ansible with generic engine terminology in 
 - [ ] **Step 1: Find backend architecture section**
 
 ```bash
-grep -n "Backend\|n8n\|AWX" docs/specs/SPEC_04_TECHNICAL_ARCHITECTURE.md | head -20
+grep -n "Backend\|workflow engine\|deployment engine" docs/specs/SPEC_04_TECHNICAL_ARCHITECTURE.md | head -20
 ```
 
-- [ ] **Step 2: Replace n8n references**
+- [ ] **Step 2: Replace workflow engine references**
 
-Find sections mentioning "n8n" and replace with "workflow engine". Example:
-- "n8n orchestrates async operations" → "Workflow engine orchestrates async operations"
-- "n8n webhooks trigger" → "Workflow engine webhooks trigger"
+Find sections mentioning "workflow engine" and replace with "workflow engine". Example:
+- "workflow engine orchestrates async operations" → "Workflow engine orchestrates async operations"
+- "workflow engine webhooks trigger" → "Workflow engine webhooks trigger"
 
-Find sections mentioning "AWX" and replace with "deployment engine". Example:
-- "AWX provisions customer instances" → "Deployment engine provisions customer instances"
+Find sections mentioning "deployment engine" and replace with "deployment engine". Example:
+- "deployment engine provisions customer instances" → "Deployment engine provisions customer instances"
 
 - [ ] **Step 3: Update tech stack table (if present)**
 
 If there's a technology stack table, update:
-- "Backend: n8n webhooks" → "Backend: Workflow engine webhooks"
-- "Infrastructure: AWX" → "Infrastructure: Deployment engine"
+- "Backend: workflow engine webhooks" → "Backend: Workflow engine webhooks"
+- "Infrastructure: deployment engine" → "Infrastructure: Deployment engine"
 
 - [ ] **Step 4: Verify replacements**
 
 ```bash
-grep -i "n8n\|awx" docs/specs/SPEC_04_TECHNICAL_ARCHITECTURE.md
+grep -i "workflow engine\|awx" docs/specs/SPEC_04_TECHNICAL_ARCHITECTURE.md
 ```
 
 Expected: No matches.
@@ -541,18 +541,18 @@ git commit -m "docs: update SPEC_04 to use workflow/deployment engine terminolog
 - [ ] **Step 1: Find infrastructure/deployment section**
 
 ```bash
-grep -n "AWX\|Ansible\|Deployment\|n8n" docs/specs/SPEC_08_DEPLOYMENT_INFRASTRUCTURE.md | head -20
+grep -n "deployment engine\|deployment engine\|Deployment\|workflow engine" docs/specs/SPEC_08_DEPLOYMENT_INFRASTRUCTURE.md | head -20
 ```
 
-- [ ] **Step 2: Replace AWX/Ansible references**
+- [ ] **Step 2: Replace deployment engine/deployment engine references**
 
-Find sections mentioning "AWX" or "Ansible" and replace with "deployment engine". Example:
-- "AWX playbooks deploy instances" → "Deployment engine handles instance provisioning"
-- "Ansible-based provisioning" → "Deployment engine provisioning"
+Find sections mentioning "deployment engine" or "deployment engine" and replace with "deployment engine". Example:
+- "deployment engine playbooks deploy instances" → "Deployment engine handles instance provisioning"
+- "deployment engine-based provisioning" → "Deployment engine provisioning"
 
 - [ ] **Step 3: Update infrastructure diagrams (if ASCII)**
 
-If there are ASCII diagrams showing AWX, update labels to say "Deployment Engine".
+If there are ASCII diagrams showing deployment engine, update labels to say "Deployment Engine".
 
 - [ ] **Step 4: Verify replacements**
 
@@ -577,10 +577,10 @@ git commit -m "docs: update SPEC_08 to use deployment engine terminology"
 - Modify: `src/i18n/en.ts`
 - Modify: `src/i18n/fr.ts`
 
-- [ ] **Step 1: Search for n8n/AWX mentions in en.ts**
+- [ ] **Step 1: Search for workflow engine/deployment engine mentions in en.ts**
 
 ```bash
-grep -i "n8n\|awx\|ansible" src/i18n/en.ts
+grep -i "workflow engine\|awx\|ansible" src/i18n/en.ts
 ```
 
 Expected: Likely no matches (these tools are backend-only), but verify.
@@ -588,8 +588,8 @@ Expected: Likely no matches (these tools are backend-only), but verify.
 - [ ] **Step 2: If matches found, update en.ts**
 
 Replace any user-facing strings. Example (if present):
-- "n8n Error" → "Workflow Engine Error"
-- "Powered by n8n" → "Powered by Workflow Engine"
+- "workflow engine Error" → "Workflow Engine Error"
+- "Powered by workflow engine" → "Powered by Workflow Engine"
 
 - [ ] **Step 3: Update corresponding entries in fr.ts**
 
@@ -598,7 +598,7 @@ Make the same replacements in French translation.
 - [ ] **Step 4: Verify both files**
 
 ```bash
-grep -i "n8n\|awx\|ansible" src/i18n/en.ts src/i18n/fr.ts
+grep -i "workflow engine\|awx\|ansible" src/i18n/en.ts src/i18n/fr.ts
 ```
 
 Expected: No matches.
@@ -607,7 +607,7 @@ Expected: No matches.
 
 ```bash
 git add src/i18n/en.ts src/i18n/fr.ts
-git commit -m "chore: update i18n strings (no n8n/awx references found)"
+git commit -m "chore: update i18n strings (no workflow engine/awx references found)"
 ```
 
 ---
@@ -616,13 +616,13 @@ git commit -m "chore: update i18n strings (no n8n/awx references found)"
 
 **Files:**
 - Check: `.claude/settings.json`
-- Check: `.claude/agents/n8n-specialist.md` (if exists)
-- Check: `.claude/commands/n8n-workflow.md` (if exists)
+- Check: `.claude/agents/workflow engine-specialist.md` (if exists)
+- Check: `.claude/commands/workflow engine-workflow.md` (if exists)
 
-- [ ] **Step 1: Check .claude/settings.json for n8n references**
+- [ ] **Step 1: Check .claude/settings.json for workflow engine references**
 
 ```bash
-grep -i "n8n" .claude/settings.json
+grep -i "workflow engine" .claude/settings.json
 ```
 
 Expected: Likely no matches, but verify.
@@ -630,24 +630,24 @@ Expected: Likely no matches, but verify.
 - [ ] **Step 2: Check agents directory**
 
 ```bash
-ls -la .claude/agents/ | grep -i n8n
+ls -la .claude/agents/ | grep -i workflow engine
 ```
 
-If `n8n-specialist.md` exists, it was mentioned in the git status. Since the user said "I will do it separately," note this but don't delete it yet.
+If `workflow engine-specialist.md` exists, it was mentioned in the git status. Since the user said "I will do it separately," note this but don't delete it yet.
 
 - [ ] **Step 3: Check commands directory**
 
 ```bash
-ls -la .claude/commands/ | grep -i n8n
+ls -la .claude/commands/ | grep -i workflow engine
 ```
 
-If `n8n-workflow.md` exists, note it.
+If `workflow engine-workflow.md` exists, note it.
 
 - [ ] **Step 4: Note findings**
 
 These files are listed in the initial git status as deleted:
-- `.claude/agents/n8n-specialist.md`
-- `.claude/commands/n8n-workflow.md`
+- `.claude/agents/workflow engine-specialist.md`
+- `.claude/commands/workflow engine-workflow.md`
 
 They may already be deleted. Verify git status.
 
@@ -704,18 +704,18 @@ git log --oneline | head -5
 **Files:**
 - No files modified; final checks only
 
-- [ ] **Step 1: Search codebase for remaining n8n references**
+- [ ] **Step 1: Search codebase for remaining workflow engine references**
 
 ```bash
-grep -r "n8n" src/ tests/ --include="*.ts" --include="*.vue" | grep -v "workflow-engine\|workflow_engine"
+grep -r "workflow engine" src/ tests/ --include="*.ts" --include="*.vue" | grep -v "workflow-engine\|workflow_engine"
 ```
 
 Expected: Zero matches (or only in comments about history).
 
-- [ ] **Step 2: Search for remaining AWX/Ansible references**
+- [ ] **Step 2: Search for remaining deployment engine/deployment engine references**
 
 ```bash
-grep -r "AWX\|Ansible" docs/ src/ tests/ CLAUDE.md --include="*.ts" --include="*.vue" --include="*.md" | grep -v "deployment-engine\|deployment_engine\|git history"
+grep -r "deployment engine\|deployment engine" docs/ src/ tests/ CLAUDE.md --include="*.ts" --include="*.vue" --include="*.md" | grep -v "deployment-engine\|deployment_engine\|git history"
 ```
 
 Expected: Zero matches.
@@ -739,11 +739,11 @@ Expected: Both functions defined.
 - [ ] **Step 5: Final summary**
 
 All tasks complete. Refactor is done:
-- Services renamed: `n8n.ts` → `workflow-engine.ts`, new `deployment-engine.ts` created
+- Services renamed: `workflow engine.ts` → `workflow-engine.ts`, new `deployment-engine.ts` created
 - Config renamed: env vars and database settings keys updated
 - Documentation updated: CLAUDE.md, SPEC_04, SPEC_08, i18n verified
 - Tests pass: TypeScript check, unit tests, build all passing
-- Zero remaining references to n8n/AWX/Ansible in code (except git history)
+- Zero remaining references to workflow engine/deployment engine/deployment engine in code (except git history)
 
 ---
 

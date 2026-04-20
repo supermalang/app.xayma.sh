@@ -61,7 +61,7 @@ If a user queries data outside their scope, the result is **empty**, not an erro
 ✅ **Trust RLS:** Just query `SELECT *` — RLS handles filtering
 
 ❌ **Using anon key for admin operations**
-✅ **Use service role key** (n8n only) for admin mutations from backend
+✅ **Use service role key** (workflow engine only) for admin mutations from backend
 
 ---
 

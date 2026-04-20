@@ -55,7 +55,7 @@
 | Partners list | `/partners` | All partners with status filters |
 | Partner detail | `/partners/:id` | Full profile, deployments, credit history |
 | Services | `/services` | Service catalogue management |
-| Service detail | `/services/:id` | Plans, AWX config, tags |
+| Service detail | `/services/:id` | Plans, deployment engine config, tags |
 | Control nodes | `/control-nodes` | Hetzner node management |
 | Settings | `/settings` | Platform-wide key/value config |
 | Audit log | `/audit` | Filterable audit trail |

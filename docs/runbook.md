@@ -24,7 +24,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...  // PUBLIC — safe for frontend
 SUPABASE_SERVICE_ROLE_KEY=sbp_...  // PRIVATE — admin access only
 ```
 - Bypasses RLS policies
-- Must ONLY exist in n8n environment variables
+- Must ONLY exist in workflow engine environment variables
 - **Never commit to git, .env, .env.example, or bundle**
 - Build will FAIL if detected (security check in vite.config.ts)
 
@@ -33,8 +33,8 @@ SUPABASE_SERVICE_ROLE_KEY=sbp_...  // PRIVATE — admin access only
 // Public key in env (used on frontend for payment form)
 VITE_PAYMENT_GATEWAY_API_KEY=pk_live_...  // PUBLIC
 
-// Secret key in n8n environment only (webhook validation)
-PAYMENT_GATEWAY_SECRET_KEY=sk_live_...    // PRIVATE — n8n only
+// Secret key in workflow engine environment only (webhook validation)
+PAYMENT_GATEWAY_SECRET_KEY=sk_live_...    // PRIVATE — workflow engine only
 ```
 
 #### ✅ Sentry DSN
@@ -49,10 +49,10 @@ VITE_SENTRY_DSN=https://...@sentry.io/...
 |----------|-----|------|---------|-------|
 | `VITE_SUPABASE_URL` | ✅ | ✅ | Yes | Project URL, public |
 | `VITE_SUPABASE_ANON_KEY` | ✅ | ✅ | Yes | Public key, RLS enforced |
-| `SUPABASE_SERVICE_ROLE_KEY` | ❌ | ❌ | Never | n8n environment only |
-| `VITE_N8N_WEBHOOK_BASE_URL` | ✅ | ✅ | Yes | Webhook endpoint URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | ❌ | ❌ | Never | workflow engine environment only |
+| `VITE_WORKFLOW_ENGINE_BASE_URL` | ✅ | ✅ | Yes | Webhook endpoint URL |
 | `VITE_PAYMENT_GATEWAY_API_KEY` | ✅ | ✅ | Yes | Public key only |
-| `PAYMENT_GATEWAY_SECRET_KEY` | ❌ | ❌ | Never | n8n environment only |
+| `PAYMENT_GATEWAY_SECRET_KEY` | ❌ | ❌ | Never | workflow engine environment only |
 | `VITE_SENTRY_DSN` | ✅ | ✅ | Yes | Scoped to error reporting |
 | `VITE_APP_ENV` | `development` | `production` | Yes | Feature flags, error detail |
 
@@ -171,8 +171,8 @@ docker-compose up -d xayma-app
 4. Check auth.users table for user records
 
 ### Payment Failures
-1. Check n8n workflow logs (credit webhooks)
-2. Verify payment gateway API credentials (n8n env only)
+1. Check workflow engine workflow logs (credit webhooks)
+2. Verify payment gateway API credentials (workflow engine env only)
 3. Check xayma_app.transactions table for errors
 4. Verify Kafka event publishing
 
@@ -194,7 +194,7 @@ docker-compose up -d xayma-app
 | Error rate spike | >5% for 1 min | Investigate; consider rollback |
 | High latency | P95 >2s | Check database queries |
 | Supabase down | Any outage | Wait for status page; notify users if >15 min |
-| Payment webhook failures | >10 in 5 min | Check n8n; page payment team |
+| Payment webhook failures | >10 in 5 min | Check workflow engine; page payment team |
 
 ### Logging
 All application logs go to **Sentry** (errors) + **Datadog** (traces):
@@ -248,7 +248,7 @@ psql $DATABASE_URL < backup-20260326.sql
 
 ### Disaster Recovery
 1. **Database lost**: Restore from Supabase backup (Dashboard → Backups)
-2. **App secrets lost**: Regenerate from n8n environment settings
+2. **App secrets lost**: Regenerate from workflow engine environment settings
 3. **Full outage**: Re-deploy to new Hetzner instance with same code/data
 
 ---
