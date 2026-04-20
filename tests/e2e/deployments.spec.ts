@@ -260,7 +260,7 @@ test.describe('Deployments - Full E2E Flow', () => {
           const initialStatus = await statusBadge.textContent()
 
           // Set timeout to wait for potential status change
-          // (in real scenario, n8n would update this)
+          // (in real scenario, workflow engine would update this)
           await page.waitForTimeout(2000)
 
           // Status might have updated via Realtime
@@ -394,8 +394,8 @@ test.describe('Deployments - Full E2E Flow', () => {
   })
 
   test.describe('Error Handling', () => {
-    test('shows error when n8n webhook fails', async ({ page }) => {
-      // This test would require mocking the n8n webhook to fail
+    test('shows error when workflow engine webhook fails', async ({ page }) => {
+      // This test would require mocking the workflow engine webhook to fail
       // For now, we test that error messages can be displayed
       await page.goto('http://localhost:5173/')
 

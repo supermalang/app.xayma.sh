@@ -1,13 +1,13 @@
 /**
  * useCreditAlerts composable
  * Monitors credit balance and triggers alerts at 20% and 10% thresholds
- * Publishes notification.send events to n8n for backend notification delivery
+ * Publishes notification.send events to the workflow engine for backend notification delivery
  */
 
 import { watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePartnerCredits } from './usePartnerCredits'
-import { callN8nWebhook } from '@/services/workflow-engine'
+import { callWorkflowEngineWebhook } from '@/services/workflow-engine'
 
 interface AlertThreshold {
   percentage: number
@@ -25,12 +25,12 @@ export function useCreditAlerts(partnerId: string, userId: string) {
   })
 
   /**
-   * Send alert notification via n8n webhook
-   * This triggers an n8n workflow that publishes to Kafka and sends notifications
+   * Send alert notification via workflow engine webhook
+   * This triggers a workflow engine that publishes to Kafka and sends notifications
    */
   async function sendAlert(type: 'LOW_BALANCE' | 'CRITICAL_BALANCE') {
     try {
-      await callN8nWebhook('/webhook/send-notification', {
+      await callWorkflowEngineWebhook('/webhook/send-notification', {
         userId,
         type,
         title:

@@ -27,6 +27,7 @@ vi.mock('@/services/deployments.service', () => ({
 vi.mock('@/services/workflow-engine', () => ({
   createDeployment: vi.fn(),
   performDeploymentAction: vi.fn(),
+  callWorkflowEngineWebhook: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({

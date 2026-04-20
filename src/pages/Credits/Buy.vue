@@ -178,7 +178,7 @@ async function handleSelectBundle(bundleId: string) {
     // TODO: Implement proper partner ID from useAuth/store
     const partnerId = 'temp-partner-id'
 
-    // Call n8n webhook to initiate checkout
+    // Call workflow engine webhook to initiate checkout
     const result = await initiateCheckout({
       bundleId,
       partnerId,

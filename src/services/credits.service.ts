@@ -40,6 +40,11 @@ export interface ListTransactionsOptions extends ListTransactionsFilter {
 }
 
 /**
+ * NOTE: Topup/debit/refund/expiry events are primarily published by workflow engine
+ * The frontend should call workflow engine webhooks, not directly update credits
+ */
+
+/**
  * List credit transactions with filtering and pagination
  */
 export async function listTransactions(options: ListTransactionsOptions = {}) {
@@ -117,8 +122,8 @@ export async function getTransaction(id: string) {
 
 /**
  * Create a new credit transaction
- * NOTE: This is called primarily by n8n workflows
- * The frontend should call n8n webhooks, not this directly
+ * NOTE: This is called primarily by workflow engine
+ * The frontend should call workflow engine webhooks, not this directly
  */
 export async function createTransaction(
   partnerId: string,
