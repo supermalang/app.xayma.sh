@@ -54,7 +54,7 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 6. Sees empty deployments list + credit balance = 0 →
 7. Clicks "Buy Credits" →
 8. Selects credit bundle (10 credits = 10,000 FCFA) →
-9. Pays via Wave/Orange Money/Card (Paytech) →
+9. Pays via Wave/Orange Money/Card (Payment Gateway) →
 10. Credits added to account (Kafka event → n8n → Supabase update) →
 11. Clicks "New Deployment" →
 12. Selects service (Odoo Community), version, plan (Starter/Pro/Enterprise) →
@@ -91,7 +91,7 @@ Role is stored on the `users.user_role` field and enforced via Supabase RLS poli
 1. Reseller logs in → sees consolidated dashboard →
 2. Clicks "Buy Credits" → selects bundle (10/20/40 instances) →
 3. System applies volume discount automatically →
-4. Pays upfront via Paytech →
+4. Pays upfront via Payment Gateway →
 5. Credits added with expiry timer (30/45/60 days per bundle) →
 6. Reseller deploys instances for each client from their dashboard →
 7. Each deployment debits from reseller credit pool →

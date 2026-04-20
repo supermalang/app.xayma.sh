@@ -37,7 +37,7 @@
   - Auto-calculate and apply reseller volume discount
   - Integrate voucher redemption section
   - Call `initiateCheckout()` webhook on bundle selection
-  - Redirect to Paytech payment URL
+  - Redirect to payment gateway URL
 
 - **4.4** `src/components/credits/CreditBundleCard.vue`
   - Card layout: icon header, credits (monospace), pricing section
@@ -45,7 +45,7 @@
   - "Select Bundle" button with @select event emission
   - Responsive to discount application
 
-### Phase 3: Paytech Payment Integration ✅
+### Phase 3: Payment Gateway Payment Integration ✅
 - **4.5** Checkout flow integrated
   - n8n webhook: `/webhook/initiate-checkout`
   - Returns: `{ paymentUrl, transactionId, reference }`
@@ -161,7 +161,7 @@ These require n8n instance setup and are outside frontend scope:
 
 | Task | Description | Status |
 |------|-------------|--------|
-| 4.7-4.8 | Paytech IPN webhook handler (idempotent status update) | Pending n8n |
+| 4.7-4.8 | Payment Gateway IPN webhook handler (idempotent status update) | Pending n8n |
 | 4.14-4.15 | Credit expiry cron + debt suspension logic | Pending n8n |
 | 4.18 | Voucher bulk generation workflow | Pending n8n |
 | 4.20 | Voucher redemption + credit debit workflow | Pending n8n |
@@ -205,7 +205,7 @@ These require n8n instance setup and are outside frontend scope:
 - [ ] Backend n8n workflows deployed
 - [ ] Database migrations applied
 - [ ] RLS policies configured
-- [ ] Paytech API credentials configured
+- [ ] Payment Gateway API credentials configured
 - [ ] Staging environment testing
 
 ---

@@ -18,7 +18,7 @@ SMEs in West Africa that want to adopt Odoo face three hard blockers:
 - **No affordable managed option** — international Odoo SaaS providers (Odoo.sh) are priced for European/North American markets
 - **No reseller-friendly model** — IT integrators and digital agencies have no white-label, multi-tenant platform to resell Odoo to their clients
 
-Xayma.sh solves all three by providing a fully managed, credit-based, multi-tenant Odoo deployment platform built for the West African market, with pricing in FCFA, payments via Wave/Orange Money/Paytech, and a reseller programme with volume discounts.
+Xayma.sh solves all three by providing a fully managed, credit-based, multi-tenant Odoo deployment platform built for the West African market, with pricing in FCFA, payments via Wave/Orange Money/Payment Gateway, and a reseller programme with volume discounts.
 
 ---
 

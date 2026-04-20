@@ -254,7 +254,7 @@ No exceptions. Dangling subscriptions cause memory leaks.
 
 ## Platform Settings
 
-- Platform-wide config (workflow engine base URL, webhook paths, deployment engine base URL, credit thresholds, Paytech keys) stored in `xayma_app.settings` table (key/value)
+- Platform-wide config (workflow engine base URL, webhook paths, deployment engine base URL, credit thresholds, payment gateway keys) stored in `xayma_app.settings` table (key/value)
 - Access via `src/services/settings.ts` or `src/composables/useSettings.ts`
 - Admin-only write access enforced by RLS
 - Never hardcode webhook URLs, thresholds, or API keys in components
@@ -460,7 +460,7 @@ VITE_WORKFLOW_ENGINE_BASE_URL=     # e.g. https://workflow-engine.xayma.sh
 VITE_DEPLOYMENT_ENGINE_BASE_URL=   # e.g. https://deployment-engine.xayma.sh
 
 # Payments
-VITE_PAYTECH_API_KEY=          # Public key only — secret lives in workflow engine
+VITE_PAYMENT_GATEWAY_API_KEY=          # Public key only — secret lives in workflow engine
 
 # Monitoring
 VITE_SENTRY_DSN=
@@ -480,7 +480,7 @@ Never commit `.env`. Use `.env.example` for documentation.
 | Supabase Realtime requires RLS enabled   | All realtime tables must have RLS; realtime respects it                   |
 | Kafka KRaft needs `KAFKA_NODE_ID` env    | Set in docker-compose; see `infra/kafka/README.md`                        |
 | Workflow engine webhook URLs must be static | Never use dynamic paths; configure base URL in `settings` table           |
-| Paytech IPN arrives before UI redirect   | Credit update must be idempotent — check status before processing         |
+| Payment Gateway IPN arrives before UI redirect   | Credit update must be idempotent — check status before processing         |
 | Domain regex for deployments             | Uses PostgreSQL function `valid_domain_array()` — don't replicate in JS   |
 | `useRoute()` outside `setup()`           | Only call inside `setup()` or composables used within `setup()`           |
 | PrimeVue DataTable + sticky header       | Use `scrollHeight="flex"` + parent `height: calc(100vh - Xpx)`            |

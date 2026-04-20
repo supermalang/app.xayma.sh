@@ -28,13 +28,13 @@ SUPABASE_SERVICE_ROLE_KEY=sbp_...  // PRIVATE — admin access only
 - **Never commit to git, .env, .env.example, or bundle**
 - Build will FAIL if detected (security check in vite.config.ts)
 
-#### ✅ Paytech API Keys (Split)
+#### ✅ Payment Gateway API Keys (Split)
 ```typescript
 // Public key in env (used on frontend for payment form)
-VITE_PAYTECH_API_KEY=pk_live_...  // PUBLIC
+VITE_PAYMENT_GATEWAY_API_KEY=pk_live_...  // PUBLIC
 
 // Secret key in n8n environment only (webhook validation)
-PAYTECH_SECRET_KEY=sk_live_...    // PRIVATE — n8n only
+PAYMENT_GATEWAY_SECRET_KEY=sk_live_...    // PRIVATE — n8n only
 ```
 
 #### ✅ Sentry DSN
@@ -51,8 +51,8 @@ VITE_SENTRY_DSN=https://...@sentry.io/...
 | `VITE_SUPABASE_ANON_KEY` | ✅ | ✅ | Yes | Public key, RLS enforced |
 | `SUPABASE_SERVICE_ROLE_KEY` | ❌ | ❌ | Never | n8n environment only |
 | `VITE_N8N_WEBHOOK_BASE_URL` | ✅ | ✅ | Yes | Webhook endpoint URL |
-| `VITE_PAYTECH_API_KEY` | ✅ | ✅ | Yes | Public key only |
-| `PAYTECH_SECRET_KEY` | ❌ | ❌ | Never | n8n environment only |
+| `VITE_PAYMENT_GATEWAY_API_KEY` | ✅ | ✅ | Yes | Public key only |
+| `PAYMENT_GATEWAY_SECRET_KEY` | ❌ | ❌ | Never | n8n environment only |
 | `VITE_SENTRY_DSN` | ✅ | ✅ | Yes | Scoped to error reporting |
 | `VITE_APP_ENV` | `development` | `production` | Yes | Feature flags, error detail |
 
@@ -172,7 +172,7 @@ docker-compose up -d xayma-app
 
 ### Payment Failures
 1. Check n8n workflow logs (credit webhooks)
-2. Verify Paytech API credentials (n8n env only)
+2. Verify payment gateway API credentials (n8n env only)
 3. Check xayma_app.transactions table for errors
 4. Verify Kafka event publishing
 
@@ -278,7 +278,7 @@ const { data: darkModeEnabled } = await getSettingValue('feature_dark_mode')
 |------|---------|----------------|
 | **On-call Eng** | [PagerDuty] | 5 min |
 | **Supabase Support** | support@supabase.io | 1–4 hours |
-| **Paytech Support** | support@paytech.sn | 2–24 hours |
+| **Payment Gateway Support** | support@paytech.sn | 2–24 hours |
 
 ---
 

@@ -8,7 +8,7 @@
 Xayma.sh does **not** have a custom REST API backend. All data access goes through:
 1. **Supabase JS SDK** — direct database queries with RLS enforcing authorization
 2. **n8n webhooks** — for triggering async workflows (deploy, suspend, notify)
-3. **Paytech REST API** — for payment initiation
+3. **Payment Gateway REST API** — for payment initiation
 
 There is no public API exposed to third parties or resellers.
 
@@ -139,7 +139,7 @@ n8n exposes internal webhook URLs consumed only by the Vue app and Supabase trig
 | `/webhook/deployment/create` | POST | Vue app on deployment insert | Trigger AWX job template |
 | `/webhook/deployment/stop` | POST | Credit = 0 event | Trigger AWX stop |
 | `/webhook/deployment/start` | POST | Credit topup event | Trigger AWX start |
-| `/webhook/payment/ipn` | POST | Paytech IPN callback | Confirm payment, add credits |
+| `/webhook/payment/ipn` | POST | Payment Gateway IPN callback | Confirm payment, add credits |
 | `/webhook/notification/send` | POST | Any notification event | Fan-out to all channels |
 
 ### Example payload — deployment create
@@ -163,7 +163,7 @@ n8n exposes internal webhook URLs consumed only by the Vue app and Supabase trig
 | Operation | Duration | Handling |
 |-----------|---------|---------|
 | Docker container provisioning | 2–5 minutes | AWX job; status polled via Supabase Realtime |
-| Payment confirmation | 30s–2 min | Paytech IPN → n8n webhook → Supabase update → Realtime |
+| Payment confirmation | 30s–2 min | Payment Gateway IPN → n8n webhook → Supabase update → Realtime |
 | Credit batch deduction | 15 min cycle | Kafka cron → n8n → Supabase bulk update |
 | Notification fan-out | <2 min | n8n async; Supabase in-app notification immediate |
 
@@ -176,7 +176,7 @@ All long-running operations update `deployments.status` or `partners.remainingCr
 | Resource | Limit | Enforcement |
 |----------|-------|------------|
 | Supabase queries | 500 req/s (Supabase free tier) | Supabase built-in |
-| Paytech API | Per Paytech agreement | n8n retry with backoff |
+| Payment Gateway API | Per Payment Gateway agreement | n8n retry with backoff |
 | n8n webhooks | Internal; no external rate limit | n8n queue |
 | WhatsApp API | Per Meta/Twilio agreement | n8n queue with delay |
 | SMS (Africa's Talking) | Per account agreement | n8n queue |
@@ -190,21 +190,21 @@ No versioning strategy required at launch — the Supabase schema is the source 
 2. Deploy new app version before removing old columns
 3. n8n webhook URLs are internal — can be changed with coordinated deploy
 
-### Paytech Integration Flow
+### Payment Gateway Integration Flow
 ```
-1. Vue app calls Paytech checkout endpoint
+1. Vue app calls payment gateway checkout endpoint
    POST https://paytech.sn/api/payment/request-payment
    Body: { item_name, item_price, currency, ref_command, ipn_url, success_url, cancel_url }
 
-2. Paytech returns payment_url → Vue redirects user
+2. Payment Gateway returns payment_url → Vue redirects user
 
-3. User completes payment on Paytech
+3. User completes payment on Payment Gateway
 
-4. Paytech POSTs IPN to n8n webhook:
+4. Payment Gateway POSTs IPN to n8n webhook:
    POST /webhook/payment/ipn
    Body: { ref_command, token, payment_method, ... }
 
-5. n8n verifies token with Paytech
+5. n8n verifies token with Payment Gateway
 6. n8n updates credit_transaction status → 'completed'
 7. n8n updates partners.remainingCredits
 8. n8n publishes credit.topup to Kafka

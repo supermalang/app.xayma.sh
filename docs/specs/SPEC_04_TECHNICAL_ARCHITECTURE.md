@@ -51,7 +51,7 @@
 
 | Service | Purpose | Integration method |
 |---------|---------|-------------------|
-| **Paytech** | Payment processing (Wave, Orange Money, card) | REST API from frontend → workflow engine webhook for IPN |
+| **Payment Gateway** | Payment processing (Wave, Orange Money, card) | REST API from frontend → workflow engine webhook for IPN |
 | **RapidPro + Twilio** | WhatsApp notifications | Workflow engine HTTP node → RapidPro API → Twilio → WhatsApp |
 | **Brevo** | Transactional email notifications (FR + EN templates) | Workflow engine Brevo node (native) |
 | **Africa's Talking** | SMS notifications (West Africa) | Workflow engine HTTP node |
@@ -116,7 +116,7 @@ FOR SELECT USING (
          ▼                    ▼           ▼
 ┌─────────────┐    ┌──────────────┐   ┌──────────────────────┐
 │  Supabase   │    │  Hetzner     │   │  External Services   │
-│  (Cloud EU) │    │  CX52 Nodes  │   │  Paytech, Brevo,     │
+│  (Cloud EU) │    │  CX52 Nodes  │   │  Payment Gateway, Brevo, │
 │  DB+Auth+RT │    │  (Customer   │   │  RapidPro+Twilio,    │
 │             │    │  containers) │   │  Africa's Talking,   │
 │             │    │              │   │  DockerHub           │
@@ -144,7 +144,7 @@ FOR SELECT USING (
 | User login | Vue → Supabase Auth → JWT → Pinia store |
 | Deploy instance | Vue → Supabase insert (deployment) → workflow engine webhook → deployment engine job → Docker on CX52 → Traefik route |
 | Credit deduction | Kafka topic (credit.debit) → workflow engine consumer → Supabase update → Realtime → Vue UI |
-| Payment | Vue → Paytech API → Paytech IPN → workflow engine webhook → Supabase credit update → Kafka |
+| Payment | Vue → Payment Gateway API → Payment Gateway IPN → workflow engine webhook → Supabase credit update → Kafka |
 | Notification | Workflow engine → RapidPro+Twilio (WhatsApp) / Brevo (email) / Africa's Talking (SMS) / Supabase Realtime (in-app) |
 | Marketing content | Nuxt → Strapi REST API → rendered SSR page |
 
@@ -155,7 +155,7 @@ FOR SELECT USING (
 | Topic | Producer | Consumer | Purpose |
 |-------|---------|---------|---------|
 | `credit.debit` | Workflow engine (cron every 15min) | Workflow engine | Deduct credits per active deployment |
-| `credit.topup` | Workflow engine (Paytech IPN) | Workflow engine | Add credits on payment |
+| `credit.topup` | Workflow engine (Payment Gateway IPN) | Workflow engine | Add credits on payment |
 | `credit.expiry` | Workflow engine (cron daily) | Workflow engine | Mark expired credits |
 | `deployment.created` | Supabase trigger | Workflow engine | Trigger deployment engine deploy job |
 | `deployment.suspend` | Workflow engine (credit=0) | Workflow engine | Trigger deployment engine stop job |

@@ -62,12 +62,12 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **0.4** Hetzner CX32 (management) + CX52 (first customer node) provisioned; SSH access verified
 - [ ] **0.5** Domain `blog.xayma.net` registered + DNS control verified; set up `my.xayma.net` and `strapi-cms.xayma.net` CNAME records
 - [ ] **0.6** Datadog account created (or similar monitoring SaaS); install agent skeleton
-- [ ] **0.7** Paytech merchant account submitted for approval (parallel with dev work)
+- [ ] **0.7** Payment Gateway merchant account submitted for approval (parallel with dev work)
 - [ ] **0.8** Sentry project created; DSN saved to `.env.example`
 
 ### Local Dev Setup
 - [x] **0.9** Dev Container configured: Node 20 Bookworm, Docker, Playwright dependencies (see Sprint 1.9 contingency)
-- [x] **0.10** `.env.example` created with all vars (Supabase URL/anon key, n8n base URL, Paytech keys, Sentry DSN, Datadog API key)
+- [x] **0.10** `.env.example` created with all vars (Supabase URL/anon key, n8n base URL, payment gateway keys, Sentry DSN, Datadog API key)
 - [x] **0.11** Confirm design system tokens from `docs/mockups/DESIGN-SYSTEM.md` are finalized; no changes to design during sprints
 
 **Sprint 0 blocking gate:** All checklist items ✅ before Sprint 1 day 1.
@@ -206,16 +206,16 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 ---
 
 ## Sprint 4 — Credits & Payments
-**Goal:** Paytech payment flow works; credits add correctly; suspension/resumption automated.
+**Goal:** Payment Gateway payment flow works; credits add correctly; suspension/resumption automated.
 
 ### Tasks
 - [x] **4.1** Build `src/services/credits.service.ts` — credit transaction CRUD, balance helpers
 - [x] **4.2** Build `useCurrency.ts` composable — format amounts in FCFA/USD/EUR based on user preference; use `Intl.NumberFormat`; **ALL numeric output wrapped in `<span class="font-mono">` (IBM Plex Mono)**
 - [x] **4.3** Build Credit Buy page (`/credits/buy`) — PrimeVue `DataView` grid of `CreditBundleCard.vue` per partner type with discount tiers; check `docs/mockups/` for design
 - [x] **4.4** Build `CreditBundleCard.vue` — PrimeVue `Card`, price in FCFA (IBM Plex Mono), discount `Badge`, expiry duration, instance count, `Button` select; check `docs/mockups/` for reference
-- [ ] **4.5** Implement Paytech checkout — frontend calls n8n webhook → n8n POSTs to Paytech API → returns `payment_url` → frontend redirects user
+- [ ] **4.5** Implement payment gateway checkout — frontend calls n8n webhook → n8n POSTs to Payment Gateway API → returns `payment_url` → frontend redirects user
 - [x] **4.6** Build payment return pages — `/credits/success` (PrimeVue `ProgressSpinner` while waiting for IPN) and `/credits/cancel`
-- [ ] **4.7** Implement n8n Paytech IPN workflow — receive callback, verify token, update `credit_transactions.status → completed`, update `partners.remainingCredits`, publish `credit.topup` to Kafka
+- [ ] **4.7** Implement n8n Payment Gateway IPN workflow — receive callback, verify token, update `credit_transactions.status → completed`, update `partners.remainingCredits`, publish `credit.topup` to Kafka
 - [ ] **4.8** Implement idempotency in IPN handler — skip processing if transaction `status` already `completed`
 - [x] **4.9** Build Credit History page (`/credits/history`) — `DataTable` with type `Tag`, amount (IBM Plex Mono), date (ISO 8601), status; `Calendar` date range filter; paginated; check `docs/mockups/` for reference
 - [x] **4.10** Build `CreditMeter.vue` — PrimeVue `ProgressBar` with dynamic color (green >30%, amber 10–30%, red <10%); days-remaining estimate in IBM Plex Mono; expiry date `Tag`; check `docs/mockups/` for design
@@ -237,7 +237,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **4.T3** Unit: `useCurrency.ts` — FCFA formatting (no decimals, space separator), USD/EUR (2 decimals)
 - [ ] **4.T4** Unit: IPN idempotency — calling handler twice with same `ref_command` credits once only
 - [x] **4.T5** E2E sprint gate: `tests/e2e/credits.spec.ts`
-  - Customer clicks Buy Credits → Paytech redirect initiated (mock)
+  - Customer clicks Buy Credits → payment gateway redirect initiated (mock)
   - IPN received → credit balance updates in UI via Realtime (no page refresh)
   - Credit meter color changes at correct thresholds
   - Reseller sees correct discount per bundle size
@@ -339,7 +339,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 - [ ] **7.2** Deploy Strapi on CX32 at `strapi-cms.xayma.net` (Traefik route, separate container from app); create content types: Blog, Feature, Testimonial, PricingFAQ; Nuxt fetches via HTTP to `strapi-cms.xayma.net/api`
 - [ ] **7.3** Build Home page — hero (headline + "Get Started" CTA), features grid (6 cards), pricing comparison table (Starter/Pro/Enterprise + Reseller bundles), testimonials carousel, footer CTA
 - [ ] **7.4** Build Pricing page — detailed plan table, reseller bundle section with discount tiers, FAQ accordion
-- [ ] **7.5** Build Features page — "How it works" (3-step diagram), infrastructure highlights, payment method logos (Wave, Orange Money, Paytech)
+- [ ] **7.5** Build Features page — "How it works" (3-step diagram), infrastructure highlights, payment method logos (Wave, Orange Money, Payment Gateway)
 - [ ] **7.6** Build Blog index + post pages — Strapi content; date, reading time, category
 - [ ] **7.7** Build Contact page — form (name, email, company, message) + WhatsApp direct link
 - [ ] **7.8** Build About page — founder story, West Africa focus, mission
@@ -377,7 +377,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
   - n8n workflow failure → immediate
   - CX52 memory > 85% → warning (add node)
   - Failed deployment rate > 10% → alert
-  - Paytech IPN not received within 5 min of initiation → alert
+  - Payment Gateway IPN not received within 5 min of initiation → alert
 - [ ] **8.4** Set up Datadog Synthetic monitors for `my.xayma.net` and `blog.xayma.net` (every 5 min)
 - [ ] **8.5** Configure GitHub Actions `ci.yml` — on every PR: lint → type-check → `test:run` → build
 - [ ] **8.6** Configure GitHub Actions `deploy.yml` — on merge to `main`: build Docker images → push DockerHub → SSH to CX32 → pull + redeploy → health check → Datadog event
@@ -393,7 +393,7 @@ If a blocking bug is found, drop lowest-priority features in order: Reseller com
 ### Sprint 8 Tests
 - [ ] **8.T1** E2E sprint gate: `tests/e2e/production-smoke.spec.ts` (runs against `my.xayma.net`):
   - Login/logout per role
-  - Create deployment (Paytech sandbox)
+  - Create deployment (payment gateway sandbox)
   - Credit meter updates in real time
   - Notification received on credit threshold
 - [ ] **8.T2** CI: GitHub Actions `ci.yml` runs green on a test PR (lint + type-check + unit tests + build)
@@ -454,7 +454,7 @@ Sprint 8 (Hardening) ───────────────────�
 | **SPRINT 3–8 (Parallel)** |
 | AWX installed on CX32 | ⬜ | Sprint 3 |
 | Ansible playbooks for Odoo Community written | ⬜ | Sprint 3 |
-| Paytech merchant account approved | ⬜ | Sprint 4 |
+| Payment Gateway merchant account approved | ⬜ | Sprint 4 |
 | WhatsApp Business API (RapidPro) approved | ⬜ | Sprint 5 |
 | Africa's Talking SMS account active | ⬜ | Sprint 5 |
 | Brevo (SendGrid alternative) account + domain verified | ⬜ | Sprint 5 |

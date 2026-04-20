@@ -67,7 +67,7 @@
 | My deployments | `/deployments` | Active/suspended instances with credit meter |
 | New deployment | `/deployments/new` | Service picker → plan → config wizard |
 | Deployment detail | `/deployments/:id` | Status, domain, logs, actions (stop/start/restart) |
-| Buy credits | `/credits/buy` | Credit bundle selector + Paytech checkout |
+| Buy credits | `/credits/buy` | Credit bundle selector + payment gateway checkout |
 | Credit history | `/credits/history` | Transaction ledger |
 
 #### Reseller

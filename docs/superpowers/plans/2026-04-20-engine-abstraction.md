@@ -427,9 +427,9 @@ Rule #6:
 
 - [ ] **Step 2: Update Platform Settings section**
 
-Find: "Platform-wide config (n8n base URL, webhook paths, credit thresholds, Paytech keys) stored in `xayma_app.settings` table"
+Find: "Platform-wide config (n8n base URL, webhook paths, credit thresholds, payment gateway keys) stored in `xayma_app.settings` table"
 
-Replace with: "Platform-wide config (workflow engine base URL, webhook paths, deployment engine base URL, credit thresholds, Paytech keys) stored in `xayma_app.settings` table"
+Replace with: "Platform-wide config (workflow engine base URL, webhook paths, deployment engine base URL, credit thresholds, payment gateway keys) stored in `xayma_app.settings` table"
 
 Change: "Access via `src/services/settings.ts` or `src/composables/useSettings.ts`"
 (no change needed, but verify the functions support the new engine URLs)

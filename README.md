@@ -153,7 +153,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 VITE_N8N_WEBHOOK_BASE_URL=https://n8n.your-domain.com
 
 # Required: Payments
-VITE_PAYTECH_API_KEY=your_paytech_public_key
+VITE_PAYMENT_GATEWAY_API_KEY=your_payment_gateway_public_key
 
 # Optional: Monitoring
 VITE_SENTRY_DSN=https://...
