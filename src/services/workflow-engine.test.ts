@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import * as n8nService from '@/services/n8n.ts'
+import * as workflowEngineService from '@/services/workflow-engine'
 
 // Mock fetch globally
 global.fetch = vi.fn()
 
-describe('n8n Service', () => {
+describe('Workflow Engine Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset environment
@@ -25,7 +25,7 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1, partnerId: 1 }
 
-      await n8nService.callN8nWebhook('/webhook/test', payload)
+      await workflowEngineService.callN8nWebhook('/webhook/test', payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/test'),
@@ -46,8 +46,8 @@ describe('n8n Service', () => {
 
       const payload = { invalid: 'data' }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        n8nService.N8nError
+      await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
+        workflowEngineService.N8nError
       )
 
       // Fetch should only be called once (no retry for 4xx)
@@ -80,7 +80,7 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      const successPromise = n8nService.callN8nWebhook('/webhook/test', payload)
+      const successPromise = workflowEngineService.callN8nWebhook('/webhook/test', payload)
       await vi.runAllTimersAsync()
       await successPromise
 
@@ -101,8 +101,8 @@ describe('n8n Service', () => {
 
       // Attach rejection handler immediately to prevent unhandled rejection during timer advancement
       const rejectAssertion = expect(
-        n8nService.callN8nWebhook('/webhook/test', payload)
-      ).rejects.toThrow(n8nService.N8nError)
+        workflowEngineService.callN8nWebhook('/webhook/test', payload)
+      ).rejects.toThrow(workflowEngineService.N8nError)
       await vi.runAllTimersAsync()
       await rejectAssertion
 
@@ -119,8 +119,8 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
-        n8nService.N8nError
+      await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow(
+        workflowEngineService.N8nError
       )
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
@@ -131,7 +131,7 @@ describe('n8n Service', () => {
 
       const payload = { deploymentId: 1 }
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow()
+      await expect(workflowEngineService.callN8nWebhook('/webhook/test', payload)).rejects.toThrow()
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -154,7 +154,7 @@ describe('n8n Service', () => {
         label: 'My Odoo Instance',
       }
 
-      await n8nService.createDeployment(payload)
+      await workflowEngineService.createDeployment(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/create-deployment'),
@@ -178,7 +178,7 @@ describe('n8n Service', () => {
         action: 'stop',
       }
 
-      await n8nService.performDeploymentAction(payload)
+      await workflowEngineService.performDeploymentAction(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/deployment-action'),
@@ -200,7 +200,7 @@ describe('n8n Service', () => {
         action: 'start',
       }
 
-      await n8nService.performDeploymentAction(payload)
+      await workflowEngineService.performDeploymentAction(payload)
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -216,7 +216,7 @@ describe('n8n Service', () => {
         action: 'restart',
       }
 
-      await n8nService.performDeploymentAction(payload)
+      await workflowEngineService.performDeploymentAction(payload)
 
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
@@ -233,7 +233,7 @@ describe('n8n Service', () => {
         deploymentId: 1,
       }
 
-      await n8nService.terminateDeployment(payload)
+      await workflowEngineService.terminateDeployment(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/webhook/terminate-deployment'),
@@ -247,7 +247,7 @@ describe('n8n Service', () => {
 
   describe('N8nError', () => {
     it('should create error with status code', () => {
-      const error = new n8nService.N8nError(500, 'Internal server error')
+      const error = new workflowEngineService.N8nError(500, 'Internal server error')
 
       expect(error).toBeInstanceOf(Error)
       expect(error.statusCode).toBe(500)
@@ -256,7 +256,7 @@ describe('n8n Service', () => {
     })
 
     it('should create error without status code', () => {
-      const error = new n8nService.N8nError(undefined, new Error('Network failed'))
+      const error = new workflowEngineService.N8nError(undefined, new Error('Network failed'))
 
       expect(error.statusCode).toBeUndefined()
       expect(error.originalError).toBeInstanceOf(Error)
@@ -267,8 +267,8 @@ describe('n8n Service', () => {
     it('should normalize network errors to N8nError', async () => {
       ;(global.fetch as any).mockRejectedValue(new TypeError('fetch failed'))
 
-      await expect(n8nService.callN8nWebhook('/webhook/test', {})).rejects.toThrow(
-        n8nService.N8nError
+      await expect(workflowEngineService.callN8nWebhook('/webhook/test', {})).rejects.toThrow(
+        workflowEngineService.N8nError
       )
     })
 
@@ -280,10 +280,10 @@ describe('n8n Service', () => {
       })
 
       try {
-        await n8nService.callN8nWebhook('/webhook/test', {})
+        await workflowEngineService.callN8nWebhook('/webhook/test', {})
       } catch (error) {
-        expect(error).toBeInstanceOf(n8nService.N8nError)
-        expect((error as n8nService.N8nError).statusCode).toBe(422)
+        expect(error).toBeInstanceOf(workflowEngineService.N8nError)
+        expect((error as workflowEngineService.N8nError).statusCode).toBe(422)
       }
     })
   })

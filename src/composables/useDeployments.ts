@@ -7,7 +7,7 @@ import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@/services/supabase'
 import * as deploymentService from '@/services/deployments.service'
-import * as n8nService from '@/services/n8n'
+import * as workflowEngineService from '@/services/workflow-engine'
 import { useNotificationStore } from '@/stores/notifications.store'
 
 export interface DeploymentFormData {
@@ -134,7 +134,7 @@ export function useDeployments() {
 
       // Step 3: Call n8n webhook to trigger deployment
       try {
-        await n8nService.createDeployment({
+        await workflowEngineService.createDeployment({
           deploymentId: newDeployment.id,
           partnerId,
           serviceId: formData.serviceId!,
@@ -174,7 +174,7 @@ export function useDeployments() {
     isLoading.value = true
     try {
       // Call n8n webhook
-      await n8nService.performDeploymentAction({
+      await workflowEngineService.performDeploymentAction({
         deploymentId,
         action,
       })
@@ -201,7 +201,7 @@ export function useDeployments() {
     isLoading.value = true
     try {
       // Call n8n webhook
-      await n8nService.terminateDeployment({ deploymentId })
+      await workflowEngineService.terminateDeployment({ deploymentId })
 
       // Update local state optimistically
       const deployment = deployments.value.find((d) => d.id === deploymentId)

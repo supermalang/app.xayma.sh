@@ -24,7 +24,7 @@ vi.mock('@/services/deployments.service', () => ({
   getPartnerTotalMonthlyConsumption: vi.fn(),
 }))
 
-vi.mock('@/services/n8n', () => ({
+vi.mock('@/services/workflow-engine', () => ({
   createDeployment: vi.fn(),
   performDeploymentAction: vi.fn(),
 }))
@@ -39,7 +39,7 @@ vi.mock('vue-router', () => ({
 }))
 
 import * as deploymentService from '@/services/deployments.service'
-import * as n8nService from '@/services/n8n'
+import * as workflowEngineService from '@/services/workflow-engine'
 
 describe('DeploymentWizard - Step 4 Credit Validation', () => {
   beforeEach(() => {
@@ -263,7 +263,7 @@ describe('DeploymentWizard - Deployment Creation on Step 4', () => {
   })
 
   it('calls n8n webhook when deploy button clicked with valid form', async () => {
-    const createSpy = vi.mocked(n8nService.createDeployment)
+    const createSpy = vi.mocked(workflowEngineService.createDeployment)
 
     const payload = {
       deploymentId: 1,
@@ -275,7 +275,7 @@ describe('DeploymentWizard - Deployment Creation on Step 4', () => {
       label: 'Test Deployment',
     }
 
-    await n8nService.createDeployment(payload as any)
+    await workflowEngineService.createDeployment(payload as any)
 
     expect(createSpy).toHaveBeenCalledWith(expect.objectContaining(payload))
   })

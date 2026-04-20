@@ -7,7 +7,7 @@
 import { watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePartnerCredits } from './usePartnerCredits'
-import { callN8nWebhook } from '@/services/n8n'
+import { callN8nWebhook } from '@/services/workflow-engine'
 
 interface AlertThreshold {
   percentage: number

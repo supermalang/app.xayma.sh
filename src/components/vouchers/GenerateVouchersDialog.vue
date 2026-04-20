@@ -153,7 +153,7 @@ import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import { supabaseFrom } from '@/services/supabase'
-import { callN8nWebhook } from '@/services/n8n'
+import { callN8nWebhook } from '@/services/workflow-engine'
 
 interface Props {
   visible: boolean

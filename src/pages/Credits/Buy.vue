@@ -78,7 +78,7 @@ import InputText from 'primevue/inputtext'
 import CreditBundleCard from '@/components/credits/CreditBundleCard.vue'
 import { supabaseFrom } from '@/services/supabase'
 import { getApplicableDiscount, calculateDiscountedPrice } from '@/services/credits.service'
-import { initiateCheckout, redeemVoucher as callRedeemVoucher } from '@/services/n8n'
+import { initiateCheckout, redeemVoucher as callRedeemVoucher } from '@/services/workflow-engine'
 
 interface CreditBundle {
   id: string
