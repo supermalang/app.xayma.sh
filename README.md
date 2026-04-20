@@ -2,12 +2,12 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com/)
+[![Database](https://img.shields.io/badge/Database-Service-3ECF8E)](https://)
 [![License](https://img.shields.io/badge/License-Proprietary-red)](#license)
 
 ## Overview
 
-Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for Odoo Community instances and custom Docker applications. Built on a modern Vue 3 frontend, serverless workflow engine automation, and PostgreSQL with Supabase.
+Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, manage, and bill for Odoo Community instances and custom Docker applications. Built on a modern Vue 3 frontend, serverless workflow engine automation, and a managed relational database service.
 
 **Key Value:** Businesses in Senegal, Mali, and neighboring countries can launch enterprise-grade Odoo deployments in minutes with flexible credit-based billing via Wave and Orange Money.
 
@@ -16,10 +16,10 @@ Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, mana
 - 🚀 **One-Click Deployments** — Launch Odoo Community or custom Docker apps with pre-configured sizing
 - 💳 **Flexible Billing** — Credit-based pricing with micropayments via Wave/Orange Money  
 - 👥 **Multi-Role Access** — Admin, Reseller, Customer, and Sales roles with fine-grained permissions
-- 🔒 **Enterprise Security** — Row-level security (RLS) via Supabase, encrypted credentials, audit logging
+- 🔒 **Enterprise Security** — Row-level security (RLS), encrypted credentials, audit logging
 - 🌍 **Localized UX** — Full English/French UI with West African payment integration
 - 📊 **Real-Time Dashboards** — Live deployment status, credit consumption, and billing insights
-- 🔗 **No Custom Backend** — Serverless architecture: workflow engine for automation, Supabase for data
+- 🔗 **No Custom Backend** — Serverless architecture: workflow engine for automation, database service for data
 - 📱 **Responsive Design** — Desktop, tablet, and mobile support
 
 ## Tech Stack
@@ -31,9 +31,9 @@ Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, mana
 | **State** | Pinia |
 | **Forms** | VeeValidate + Zod |
 | **i18n** | vue-i18n (EN/FR) |
-| **Database** | Supabase (PostgreSQL) |
-| **Auth** | Supabase Auth |
-| **Realtime** | Supabase WebSockets |
+| **Database** | Managed relational database service |
+| **Auth** | Database-integrated authentication |
+| **Realtime** | WebSocket-based real-time subscriptions |
 | **Automation** | workflow engine webhooks |
 | **Events** | Kafka (KRaft) |
 | **Testing** | Vitest + Playwright |
@@ -44,7 +44,7 @@ Xayma.sh is a multi-tenant SaaS platform for SMEs in West Africa to deploy, mana
 ### Prerequisites
 
 - Node.js 18+ and npm/pnpm
-- Supabase project (local or hosted)
+- Relational database service instance (local or hosted)
 - workflow engine instance for webhook automation (optional for dev)
 
 ### Installation
@@ -60,9 +60,9 @@ npm install
 # Copy environment template
 cp .env.example .env.local
 
-# Add your Supabase credentials to .env.local
-# VITE_SUPABASE_URL=https://...
-# VITE_SUPABASE_ANON_KEY=...
+# Add your database service credentials to .env.local
+# VITE_DB_URL=https://...
+# VITE_DB_ANON_KEY=...
 ```
 
 ### Running Locally
@@ -95,22 +95,22 @@ npm run test:run # Run all tests once
 
 ### Core Principles
 
-**No Custom REST API** — All database reads use Supabase JS SDK. All writes and async operations trigger workflow engine webhooks.
+**No Custom REST API** — All database reads use database service SDK. All writes and async operations trigger workflow engine webhooks.
 
-**RLS is the Security Layer** — Row-level security in PostgreSQL enforces multi-tenancy. Frontend never filters by role.
+**RLS is the Security Layer** — Row-level security in the database enforces multi-tenancy. Frontend never filters by role.
 
-**Kafka for Credit Events** — Credit debits, topups, expirations flow through Kafka → workflow engine consumers → Supabase updates.
+**Kafka for Credit Events** — Credit debits, topups, expirations flow through Kafka → workflow engine consumers → database updates.
 
-**Schema Prefix on All Queries** — All Supabase queries target `xayma_app.*` schema, never the public schema.
+**Schema Prefix on All Queries** — All database queries target `xayma_app.*` schema, never the public schema.
 
 ### Data Flow
 
 ```
 Vue 3 App
     ↓
-[Supabase JS SDK] — Read operations (RLS enforced)
+[Database SDK] — Read operations (RLS enforced)
     ↓
-PostgreSQL (xayma_app schema)
+Relational Database (xayma_app schema)
     ↓
 [Workflow Engine Webhooks] — Write/async operations
     ↓
@@ -134,8 +134,8 @@ src/
 ├── pages/              # Vue Router page components
 ├── stores/             # Pinia state management (auth, partners, deployments)
 ├── composables/        # Reusable composition API logic
-├── services/           # Supabase client, workflow engine service, settings
-├── types/              # TypeScript types (domain + auto-generated from Supabase)
+├── services/           # Database client, workflow engine service, settings
+├── types/              # TypeScript types (domain + auto-generated from database)
 ├── i18n/               # English (en.ts) and French (fr.ts) translations
 ├── lib/                # Utilities (formatters, validators, fixtures)
 ├── design-system/      # tokens.json (single source of truth for colors, spacing, etc.)
@@ -145,9 +145,9 @@ src/
 ## Environment Variables
 
 ```bash
-# Required: Supabase
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# Required: Database Service
+VITE_DB_URL=https://your-database-service-url
+VITE_DB_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Required: Workflow Engine
 VITE_WORKFLOW_ENGINE_BASE_URL=https://workflow-engine.your-domain.com
@@ -203,11 +203,11 @@ npm run lint:fix    # Auto-fix issues
 npm run type-check  # TypeScript strict check
 ```
 
-### Supabase Migrations
+### Database Migrations
 
 ```bash
-npm run supabase:types  # Regenerate TypeScript types from schema
-npm run supabase:push   # Push migrations to remote database
+npm run db:types  # Regenerate TypeScript types from schema
+npm run db:push   # Push migrations to remote database
 ```
 
 ### Slash Commands
@@ -231,9 +231,9 @@ npm run visual-check            # Screenshot comparison vs mockup
 
 ## Multi-Tenancy & Security
 
-- **RLS by Company ID** — Every user belongs to one partner (company). Supabase RLS uses `auth.uid()` and `users.company_id` to enforce data isolation.
+- **RLS by Company ID** — Every user belongs to one partner (company). RLS uses `auth.uid()` and `users.company_id` to enforce data isolation.
 - **No Frontend Filtering** — If data appears missing, check RLS policies first. Never manually filter by role on the frontend.
-- **Audit Trail** — All INSERT/UPDATE/DELETE on core tables flow through PostgreSQL audit triggers → `general_audit` table
+- **Audit Trail** — All INSERT/UPDATE/DELETE on core tables flow through database audit triggers → `general_audit` table
 - **Encrypted Credentials** — API keys and tokens are encrypted at rest, never logged or exposed
 
 ## Deployment
@@ -254,7 +254,7 @@ See [docs/DEPLOYMENT_INFRASTRUCTURE.md](docs/specs/SPEC_08_DEPLOYMENT_INFRASTRUC
 
 | Issue | Workaround |
 |-------|-----------|
-| Supabase queries must use `xayma_app.` prefix | Always prefix table names: `supabase.from("xayma_app.partners")` |
+| Database queries must use `xayma_app.` prefix | Always prefix table names: `db.from("xayma_app.partners")` |
 | Phone validation is West Africa specific | Use regex: `^(70\|75\|76\|77\|78)[0-9]{7}$` for Senegal |
 | PrimeVue DataTable sticky header | Use `scrollHeight="flex"` + parent `height: calc(100vh - Xpx)` |
 | `useRoute()` outside `setup()` | Only call inside `setup()` or composables |
