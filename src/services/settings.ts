@@ -93,27 +93,3 @@ export function invalidateSettingCache(key?: string): void {
     cacheTimestamps.clear()
   }
 }
-
-/**
- * Get the workflow engine (async operations, webhooks) base URL.
- * Used by src/services/workflow-engine.ts
- */
-export const getWorkflowEngineUrl = async (): Promise<string> => {
-  const url = await getSetting('workflow_engine_webhook_base_url')
-  if (!url) {
-    throw new Error('workflow_engine_webhook_base_url not configured in xayma_app.settings')
-  }
-  return url as string
-}
-
-/**
- * Get the deployment engine (provisioning, updates) base URL.
- * Used by src/services/deployment-engine.ts
- */
-export const getDeploymentEngineUrl = async (): Promise<string> => {
-  const url = await getSetting('deployment_engine_base_url')
-  if (!url) {
-    throw new Error('deployment_engine_base_url not configured in xayma_app.settings')
-  }
-  return url as string
-}

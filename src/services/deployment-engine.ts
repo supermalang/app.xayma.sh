@@ -1,80 +1,53 @@
-import { getDeploymentEngineUrl } from './settings'
+const baseUrl = import.meta.env.VITE_DEPLOYMENT_ENGINE_BASE_URL
 
-let deploymentEngineUrl = ''
-
-// Load URL on app startup
-export const initDeploymentEngine = async () => {
-  deploymentEngineUrl = await getDeploymentEngineUrl()
+if (!baseUrl) {
+  console.warn('VITE_DEPLOYMENT_ENGINE_BASE_URL not configured')
 }
 
-/**
- * Trigger provisioning of a new customer instance.
- * Fire-and-forget. Status tracked via Supabase Realtime (deployment_status table).
- */
+interface WebhookPayload {
+  [key: string]: unknown
+}
+
+export class DeploymentEngineError extends Error {
+  constructor(
+    public statusCode?: number,
+    public originalError?: unknown
+  ) {
+    super(`deployment engine error: ${statusCode || 'unknown'}`)
+  }
+}
+
+async function callDeploymentEngine(
+  endpoint: string,
+  payload: WebhookPayload
+): Promise<unknown> {
+  if (!baseUrl) {
+    throw new DeploymentEngineError(undefined, 'Deployment engine URL not configured')
+  }
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new DeploymentEngineError(response.status, errorText)
+  }
+
+  return response.json()
+}
+
 export const provisionInstance = async (payload: {
   serverId: string
-  instanceConfig: any
-}) => {
-  if (!deploymentEngineUrl) {
-    throw new Error('Deployment engine URL not configured')
-  }
+  instanceConfig: Record<string, unknown>
+}): Promise<unknown> => callDeploymentEngine('/provision', payload)
 
-  const response = await fetch(`${deploymentEngineUrl}/provision`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Deployment engine error: ${response.statusText}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Trigger update of an existing customer instance.
- * Fire-and-forget. Status tracked via Supabase Realtime.
- */
 export const updateInstance = async (payload: {
   serverId: string
-  updates: any
-}) => {
-  if (!deploymentEngineUrl) {
-    throw new Error('Deployment engine URL not configured')
-  }
+  updates: Record<string, unknown>
+}): Promise<unknown> => callDeploymentEngine('/update', payload)
 
-  const response = await fetch(`${deploymentEngineUrl}/update`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Deployment engine error: ${response.statusText}`)
-  }
-
-  return response.json()
-}
-
-/**
- * Trigger deletion of a customer instance.
- * Fire-and-forget. Status tracked via Supabase Realtime.
- */
-export const deleteInstance = async (payload: { serverId: string }) => {
-  if (!deploymentEngineUrl) {
-    throw new Error('Deployment engine URL not configured')
-  }
-
-  const response = await fetch(`${deploymentEngineUrl}/delete`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Deployment engine error: ${response.statusText}`)
-  }
-
-  return response.json()
-}
+export const deleteInstance = async (payload: { serverId: string }): Promise<unknown> =>
+  callDeploymentEngine('/delete', payload)
