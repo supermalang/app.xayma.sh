@@ -34,8 +34,8 @@ vi.mock('@/services/supabase', () => ({
   }
 }))
 
-// Mock n8n service if used
-vi.mock('@/services/n8n', () => ({
+// Mock workflow engine service if used
+vi.mock('@/services/workflow engine', () => ({
   triggerWebhook: vi.fn()
 }))
 
@@ -254,7 +254,7 @@ npm run test:e2e:ui        # Playwright interactive UI
 - [ ] E2E tests for full workflows
 - [ ] Error cases covered (invalid input, network failure, etc.)
 - [ ] Async operations properly awaited
-- [ ] Mocks used for external services (supabase, n8n)
+- [ ] Mocks used for external services (supabase, workflow engine)
 - [ ] Screenshots committed for visual regression
 - [ ] All tests pass locally before submitting
 - [ ] Coverage ≥ 80% on core logic

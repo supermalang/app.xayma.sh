@@ -18,7 +18,7 @@
 
 ### Architecture Compliance (CLAUDE.md)
 - [ ] Supabase queries prefixed with `xayma_app.`
-- [ ] All n8n calls go through `src/services/n8n.ts`
+- [ ] All workflow engine calls go through `src/services/workflow-engine.ts`
 - [ ] RLS policies checked (not manual role filtering)
 - [ ] Realtime subscriptions cleaned up in `onUnmounted`
 - [ ] No Supabase service role key in frontend code
@@ -38,7 +38,7 @@
 
 ### Testing (Per-Task)
 - [ ] Unit tests pass: `npm run test:run`
-  - All Supabase, n8n calls mocked via `vi.mock()`
+  - All Supabase, workflow engine calls mocked via `vi.mock()`
   - Use typed fixtures from `tests/fixtures/`
 - [ ] Unit test coverage ≥80% on business logic
 - [ ] Coverage report: `npm run test:coverage`
@@ -61,7 +61,7 @@
 
 ## Architecture
 ✅ Supabase schema prefix: PASS
-✅ n8n service usage: PASS
+✅ workflow engine service usage: PASS
 ✅ RLS policies: PASS
 
 ## Testing (Per-Task)

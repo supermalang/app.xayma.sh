@@ -10,13 +10,13 @@
 ## 8-Layer Review Checklist
 
 ### 1. Architecture & Rules (CLAUDE.md)
-- ✅ No custom REST API backend (all DB via Supabase, logic via n8n)
-- ✅ All n8n calls go through `src/services/n8n.ts`
+- ✅ No custom REST API backend (all DB via Supabase, logic via workflow engine)
+- ✅ All workflow engine calls go through `src/services/workflow-engine.ts`
 - ✅ RLS is authorization layer (no manual role filtering)
 - ✅ Kafka for all credit events
 - ✅ Schema prefix in all Supabase queries: `xayma_app.table`
 - ✅ No `any` types (zero `any`, use `unknown` + type guards)
-- ✅ Supabase service role key only in n8n environment variables
+- ✅ Supabase service role key only in workflow engine environment variables
 
 ### 2. Code Quality
 - ✅ No hardcoded hex colors or pixel values
@@ -32,7 +32,7 @@
 - ✅ RLS policies enforced (Supabase)
 - ✅ No client-side authorization checks that bypass RLS
 - ✅ Supabase service key not in build output
-- ✅ n8n webhook URLs from `xayma_app.settings` table, not hardcoded
+- ✅ workflow engine webhook URLs from `xayma_app.settings` table, not hardcoded
 - ✅ Sensitive data not in logs/console
 
 ### 4. Testing
