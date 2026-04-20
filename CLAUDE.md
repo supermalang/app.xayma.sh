@@ -78,8 +78,8 @@ Run `/verify-task` after every task. Evidence before assertions — always.
 
 - **Management app:** Vue 3 + TypeScript SPA → `app.xayma.sh`
 - **Marketing site:** Nuxt 3 + Strapi → `xayma.sh`
-- **Backend:** Supabase (PostgreSQL + Auth + Realtime), n8n (automation), Kafka (events)
-- **Infrastructure:** Hetzner CX32 (management) + CX52 (customer nodes), Docker, AWX, Traefik
+- **Backend:** Supabase (PostgreSQL + Auth + Realtime), workflow engine (automation), Kafka (events)
+- **Infrastructure:** Hetzner CX32 (management) + CX52 (customer nodes), Docker, deployment engine, Traefik
 
 ---
 
@@ -101,8 +101,8 @@ src/
 ├── pages/              # Vue Router pages (auth, dashboard, deployments, credits, partners…)
 ├── services/
 │   ├── supabase.ts     # Supabase client singleton + typed queries
-│   ├── n8n.ts          # n8n webhook wrappers — NEVER call n8n URLs directly elsewhere
-│   └── settings.ts     # Platform-wide settings (n8n URLs, webhook paths, thresholds)
+│   ├── workflow-engine.ts # Workflow engine webhook wrappers — NEVER call workflow engine URLs directly elsewhere
+│   └── settings.ts     # Platform-wide settings (workflow engine URLs, webhook paths, thresholds)
 ├── stores/             # Pinia stores (auth, partner, deployments, notifications)
 └── types/              # index.ts (domain types) + supabase.ts (auto-generated — never edit)
 docs/
@@ -110,9 +110,9 @@ docs/
 ├── design-system.md    # Component patterns, layout rules, interaction behaviors
 └── mockups/            # Page/component mockup screenshots — source of truth for UI
 .claude/
-├── agents/             # css-design, vue-specialist, n8n-specialist, test-writer, pr-reviewer, lead
+├── agents/             # css-design, vue-specialist, workflow-engine-specialist, test-writer, pr-reviewer, lead
 ├── commands/           # new-feature, new-page, verify-task, test-sprint, status,
-│                       # visual-check, n8n-workflow, db-migration
+│                       # visual-check, workflow-engine, db-migration
 └── settings.json
 ```
 
@@ -130,7 +130,7 @@ docs/
 | Forms         | VeeValidate + Zod                                 |
 | Charts        | Apache ECharts (vue-echarts)                      |
 | i18n          | vue-i18n v11                                      |
-| Backend       | n8n webhooks (no custom REST server)              |
+| Backend       | Workflow engine webhooks (no custom REST server)  |
 | Database      | Supabase (PostgreSQL + RLS)                       |
 | Auth          | Supabase Auth                                     |
 | Realtime      | Supabase Realtime WebSockets                      |
@@ -182,15 +182,15 @@ npm run supabase:push     # Push schema migrations to remote
 
 ### 1. No custom REST API backend
 
-All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **n8n webhooks** via `src/services/n8n.ts`. Never build an Express/Fastify/etc. server.
+All DB reads go through **Supabase JS SDK** directly. All write operations and business logic trigger **workflow engine webhooks** via `src/services/workflow-engine.ts`. Never build an Express/Fastify/etc. server.
 
-### 2. Never call n8n URLs directly
+### 2. Never call workflow engine URLs directly
 
-All n8n calls go through `src/services/n8n.ts`. Never use `fetch()` to n8n URLs in components, stores, or composables — always the service wrapper.
+All workflow engine calls go through `src/services/workflow-engine.ts`. Never use `fetch()` to workflow engine URLs in components, stores, or composables — always the service wrapper.
 
-### 3. n8n handles all async operations
+### 3. Workflow engine handles all async operations
 
-Anything involving AWX, Kafka, payments, or notifications goes through n8n. The Vue app fires and forgets — status is tracked via Supabase Realtime. Never await long operations synchronously.
+Anything involving deployment engine, Kafka, payments, or notifications goes through workflow engine. The Vue app fires and forgets — status is tracked via Supabase Realtime. Never await long operations synchronously.
 
 ### 4. RLS is the authorization layer
 
@@ -198,12 +198,12 @@ RLS policies in Supabase enforce what each role can access. Never filter by role
 
 ### 5. Supabase service role key = server-side only
 
-The service role key lives **only** in n8n environment variables. It must never appear in any frontend code, committed `.env`, or Vite build output.
+The service role key lives **only** in workflow engine environment variables. It must never appear in any frontend code, committed `.env`, or Vite build output.
 
 ### 6. Kafka for all credit events
 
 Credit debit, topup, expiry, and suspension events **must** flow through Kafka. Never update `partners.remainingCredits` directly from the Vue app.
-Flow: Vue → n8n webhook → Kafka → n8n consumer → Supabase update.
+Flow: Vue → workflow engine webhook → Kafka → workflow engine consumer → Supabase update.
 
 ### 7. Schema prefix in all Supabase queries
 
@@ -254,7 +254,7 @@ No exceptions. Dangling subscriptions cause memory leaks.
 
 ## Platform Settings
 
-- Platform-wide config (n8n base URL, webhook paths, credit thresholds, Paytech keys) stored in `xayma_app.settings` table (key/value)
+- Platform-wide config (workflow engine base URL, webhook paths, deployment engine base URL, credit thresholds, Paytech keys) stored in `xayma_app.settings` table (key/value)
 - Access via `src/services/settings.ts` or `src/composables/useSettings.ts`
 - Admin-only write access enforced by RLS
 - Never hardcode webhook URLs, thresholds, or API keys in components
@@ -325,7 +325,7 @@ Server runs automatically at `http://127.0.0.1:3846` (started by devcontainer `p
 | ------------------------------------------- | --------------------------------------------------------------------------- |
 | Starting any UI work                        | `css-design` — token mapping + PrimeVue component selection before any code |
 | Building Vue component / store / composable | `vue-specialist` — pattern validation                                       |
-| Building any n8n workflow                   | `n8n-specialist` — contract, Kafka, error handling                          |
+| Building any workflow engine automation     | `workflow-engine-specialist` — contract, Kafka, error handling              |
 | After implementation                        | `test-writer` — Vitest unit tests + Playwright E2E + screenshots            |
 | Before every commit                         | `pr-reviewer` — nothing commits without APPROVE                             |
 
@@ -340,7 +340,7 @@ Server runs automatically at `http://127.0.0.1:3846` (started by devcontainer `p
 ### Full task flow
 
 ```
-css-design → vue-specialist → n8n-specialist (if needed)
+css-design → vue-specialist → workflow-engine-specialist (if needed)
                 ↓ [implementation] ↓
            test-writer (unit tests + E2E + screenshots)
                 ↓
@@ -364,7 +364,7 @@ css-design → vue-specialist → n8n-specialist (if needed)
 | `/test-sprint`      | Full E2E acceptance gate at end of each sprint                           |
 | `/status`           | Read docs/IMPLEMENTATION_PLAN.md and report current progress              |
 | `/visual-check`     | Screenshot comparison vs mockup reference                                |
-| `/n8n-workflow <n>` | Scaffold n8n workflow with input/output contract                         |
+| `/workflow-engine <n>` | Scaffold workflow engine automation with input/output contract           |
 | `/db-migration <n>` | Generate a Supabase SQL migration file                                   |
 
 ---
@@ -453,11 +453,14 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 SUPABASE_PROJECT_ID=           # Required for: npm run supabase:types
 
-# n8n
-VITE_N8N_WEBHOOK_BASE_URL=     # e.g. https://n8n.xayma.sh
+# Workflow Engine
+VITE_WORKFLOW_ENGINE_BASE_URL=     # e.g. https://workflow-engine.xayma.sh
+
+# Deployment Engine
+VITE_DEPLOYMENT_ENGINE_BASE_URL=   # e.g. https://deployment-engine.xayma.sh
 
 # Payments
-VITE_PAYTECH_API_KEY=          # Public key only — secret lives in n8n
+VITE_PAYTECH_API_KEY=          # Public key only — secret lives in workflow engine
 
 # Monitoring
 VITE_SENTRY_DSN=
@@ -476,7 +479,7 @@ Never commit `.env`. Use `.env.example` for documentation.
 | Phone validation is West Africa specific | Regex: `^(70\|75\|76\|77\|78)[0-9]{7}$`                                   |
 | Supabase Realtime requires RLS enabled   | All realtime tables must have RLS; realtime respects it                   |
 | Kafka KRaft needs `KAFKA_NODE_ID` env    | Set in docker-compose; see `infra/kafka/README.md`                        |
-| n8n webhook URLs must be static          | Never use dynamic paths; configure base URL in `settings` table           |
+| Workflow engine webhook URLs must be static | Never use dynamic paths; configure base URL in `settings` table           |
 | Paytech IPN arrives before UI redirect   | Credit update must be idempotent — check status before processing         |
 | Domain regex for deployments             | Uses PostgreSQL function `valid_domain_array()` — don't replicate in JS   |
 | `useRoute()` outside `setup()`           | Only call inside `setup()` or composables used within `setup()`           |
