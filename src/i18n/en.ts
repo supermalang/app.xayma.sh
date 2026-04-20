@@ -419,14 +419,14 @@ export default {
     },
     tabs: {
       plans: 'Plans',
-      awx_config: 'Deployment Configuration',
+      deployment_engine_config: 'Deployment Configuration',
     },
     plans: {
       add: 'Add Plan',
       empty: 'No plans configured for this service',
       credits_per_month: 'credits/month',
     },
-    awx: {
+    deployment_engine: {
       job_template_id: 'Deployment Engine Job Template ID',
       not_configured: 'Deployment engine configuration not set for this service',
     },

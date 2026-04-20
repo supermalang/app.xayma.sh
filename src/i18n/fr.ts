@@ -419,14 +419,14 @@ export default {
     },
     tabs: {
       plans: 'Formules',
-      awx_config: 'Configuration du déploiement',
+      deployment_engine_config: 'Configuration du déploiement',
     },
     plans: {
       add: 'Ajouter une formule',
       empty: 'Aucune formule configurée pour ce service',
       credits_per_month: 'crédits/mois',
     },
-    awx: {
+    deployment_engine: {
       job_template_id: 'ID du modèle de job du moteur de déploiement',
       not_configured: 'Configuration du moteur de déploiement non définie pour ce service',
     },
