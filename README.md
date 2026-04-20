@@ -149,8 +149,8 @@ src/
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Required: n8n Webhooks
-VITE_WORKFLOW_ENGINE_BASE_URL=https://n8n.your-domain.com
+# Required: Workflow Engine
+VITE_WORKFLOW_ENGINE_BASE_URL=https://workflow-engine.your-domain.com
 
 # Required: Payments
 VITE_PAYMENT_GATEWAY_API_KEY=your_payment_gateway_public_key
