@@ -71,6 +71,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth.store'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'
@@ -78,7 +79,7 @@ import InputText from 'primevue/inputtext'
 import CreditBundleCard from '@/components/credits/CreditBundleCard.vue'
 import { supabaseFrom } from '@/services/supabase'
 import { getApplicableDiscount, calculateDiscountedPrice } from '@/services/credits.service'
-import { initiateCheckout, redeemVoucher as callRedeemVoucher } from '@/services/workflow-engine'
+import { initiateCheckout, redeemVoucher as callRedeemVoucher, WorkflowEngineError } from '@/services/workflow-engine'
 
 interface CreditBundle {
   id: string
@@ -96,6 +97,7 @@ interface CreditBundle {
 const router = useRouter()
 const { t } = useI18n()
 const { userRole } = useAuth()
+const authStore = useAuthStore()
 
 const bundles = ref<CreditBundle[]>([])
 const loading = ref(true)
@@ -116,6 +118,11 @@ async function fetchBundles() {
     loading.value = true
     error.value = null
 
+    if (!authStore.profile?.company_id) {
+      error.value = t('errors.unauthorized')
+      return
+    }
+
     const { data, error: fetchError } = await supabaseFrom('credit_bundles')
       .select('*')
       .eq('status', 'ACTIVE')
@@ -128,8 +135,7 @@ async function fetchBundles() {
     // Apply reseller discount if applicable
     if (isReseller.value) {
       // Fetch active deployment count for this partner
-      // TODO: Get actual partner ID from auth context
-      const partnerId = 'temp-partner-id'
+      const partnerId = String(authStore.profile.company_id)
       const { data: deployments } = await supabaseFrom('deployments')
         .select('id')
         .eq('partner_id', partnerId)
@@ -174,9 +180,12 @@ async function fetchBundles() {
 // Handle bundle selection
 async function handleSelectBundle(bundleId: string) {
   try {
-    // Get current partner ID from auth context
-    // TODO: Implement proper partner ID from useAuth/store
-    const partnerId = 'temp-partner-id'
+    if (!authStore.profile?.company_id) {
+      error.value = t('errors.unauthorized')
+      return
+    }
+
+    const partnerId = String(authStore.profile.company_id)
 
     // Call workflow engine webhook to initiate checkout
     const result = await initiateCheckout({
@@ -210,8 +219,12 @@ async function redeemVoucher() {
     voucherError.value = null
     voucherSuccess.value = null
 
-    // TODO: Get current partner ID from auth context
-    const partnerId = 'temp-partner-id'
+    if (!authStore.profile?.company_id) {
+      voucherError.value = t('errors.unauthorized')
+      return
+    }
+
+    const partnerId = String(authStore.profile.company_id)
 
     await callRedeemVoucher({
       voucherCode: voucherCode.value.trim(),
@@ -223,8 +236,23 @@ async function redeemVoucher() {
 
     // Refresh partner credit balance via Realtime
   } catch (err) {
+    if (err instanceof WorkflowEngineError && err.originalError) {
+      const raw = typeof err.originalError === 'string' ? err.originalError : ''
+      if (raw.includes('VOUCHER_INVALID') || raw.includes('not found')) {
+        voucherError.value = t('credits.voucher_invalid')
+      } else if (raw.includes('VOUCHER_EXPIRED') || raw.includes('expired')) {
+        voucherError.value = t('credits.voucher_expired')
+      } else if (raw.includes('VOUCHER_ALREADY_REDEEMED') || raw.includes('fully redeemed')) {
+        voucherError.value = t('credits.voucher_already_redeemed')
+      } else if (raw.includes('VOUCHER_WRONG_TYPE') || raw.includes('restricted')) {
+        voucherError.value = t('credits.voucher_wrong_type')
+      } else {
+        voucherError.value = t('errors.webhook_failed')
+      }
+    } else {
+      voucherError.value = t('errors.webhook_failed')
+    }
     console.error('Error redeeming voucher:', err)
-    voucherError.value = t('errors.webhook_failed')
   } finally {
     voucherLoading.value = false
   }

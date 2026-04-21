@@ -27,6 +27,11 @@ export function usePartnerCredits(partnerId: string) {
    * Fetch partner credits from database
    */
   async function fetchCredits() {
+    if (!partnerId) {
+      loading.value = false
+      return
+    }
+
     try {
       loading.value = true
       error.value = null
@@ -52,6 +57,8 @@ export function usePartnerCredits(partnerId: string) {
    * Automatically updates local state when database changes
    */
   function subscribeToCredits() {
+    if (!partnerId) return
+
     channel = supabase
       .channel(`partner-credits-${partnerId}`)
       .on(

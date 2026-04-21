@@ -185,6 +185,14 @@ describe('Credits Service', () => {
   describe('updateTransactionStatus', () => {
     it('should update transaction status', async () => {
       const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', status: 'PENDING' },
+          error: null,
+        }),
+      }
+
+      const mockUpdateQuery = {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({
@@ -193,11 +201,13 @@ describe('Credits Service', () => {
         }),
       }
 
-      vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
+      vi.mocked(supabaseFrom).mockReturnValueOnce({
+        select: vi.fn().mockReturnValue(mockQuery),
+      } as any).mockReturnValueOnce(mockUpdateQuery as any)
 
       const result = await updateTransactionStatus('1', 'COMPLETED')
 
-      expect(mockQuery.update).toHaveBeenCalledWith(
+      expect(mockUpdateQuery.update).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'COMPLETED' })
       )
       expect(result).toBeDefined()
@@ -205,6 +215,14 @@ describe('Credits Service', () => {
 
     it('should throw on update error', async () => {
       const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', status: 'PENDING' },
+          error: null,
+        }),
+      }
+
+      const mockUpdateQuery = {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         select: vi.fn().mockResolvedValue({
@@ -213,9 +231,84 @@ describe('Credits Service', () => {
         }),
       }
 
-      vi.mocked(supabaseFrom).mockReturnValue(mockQuery as any)
+      vi.mocked(supabaseFrom).mockReturnValueOnce({
+        select: vi.fn().mockReturnValue(mockQuery),
+      } as any).mockReturnValueOnce(mockUpdateQuery as any)
 
       await expect(updateTransactionStatus('1', 'COMPLETED')).rejects.toThrow()
+    })
+  })
+
+  describe('IPN idempotency', () => {
+    it('updateTransactionStatus to COMPLETED succeeds and returns updated row', async () => {
+      const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', status: 'PENDING' },
+          error: null,
+        }),
+      }
+
+      const mockUpdateQuery = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: '1', status: 'COMPLETED', amount: 5000 }],
+          error: null,
+        }),
+      }
+
+      vi.mocked(supabaseFrom).mockReturnValueOnce({
+        select: vi.fn().mockReturnValue(mockQuery),
+      } as any).mockReturnValueOnce(mockUpdateQuery as any)
+
+      const result = await updateTransactionStatus('1', 'COMPLETED')
+
+      expect(result.status).toBe('COMPLETED')
+      expect(result.amount).toBe(5000)
+    })
+
+    it('second call with COMPLETED on already-COMPLETED row succeeds (idempotent no-op)', async () => {
+      const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', status: 'COMPLETED' },
+          error: null,
+        }),
+      }
+
+      const mockUpdateQuery = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: '1', status: 'COMPLETED', amount: 5000 }],
+          error: null,
+        }),
+      }
+
+      vi.mocked(supabaseFrom).mockReturnValueOnce({
+        select: vi.fn().mockReturnValue(mockQuery),
+      } as any).mockReturnValueOnce(mockUpdateQuery as any)
+
+      const result = await updateTransactionStatus('1', 'COMPLETED')
+
+      expect(result.status).toBe('COMPLETED')
+    })
+
+    it('call with FAILED on already-COMPLETED row throws "Transaction already completed"', async () => {
+      const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', status: 'COMPLETED' },
+          error: null,
+        }),
+      }
+
+      vi.mocked(supabaseFrom).mockReturnValue({
+        select: vi.fn().mockReturnValue(mockQuery),
+      } as any)
+
+      await expect(updateTransactionStatus('1', 'FAILED')).rejects.toThrow('Transaction already completed')
     })
   })
 

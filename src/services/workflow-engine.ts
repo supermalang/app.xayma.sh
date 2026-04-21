@@ -92,6 +92,66 @@ export async function callWorkflowEngineWebhook(
 }
 
 /**
+ * Webhook call that returns JSON response
+ * Same retry logic as callWorkflowEngineWebhook, but parses and returns JSON on success
+ */
+async function callWorkflowEngineWebhookWithResponse<T>(
+  path: string,
+  payload: WebhookPayload,
+  retryCount = 0
+): Promise<T> {
+  try {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    // 2xx success — parse and return JSON
+    if (response.ok) {
+      return (await response.json()) as T
+    }
+
+    // 4xx client errors — do not retry
+    if (response.status >= 400 && response.status < 500) {
+      const errorText = await response.text()
+      console.error(`workflow engine client error (${response.status}):`, errorText)
+      throw new WorkflowEngineError(response.status, errorText)
+    }
+
+    // 5xx server errors — retry
+    if (response.status >= 500) {
+      if (retryCount < MAX_RETRIES) {
+        console.warn(
+          `workflow engine server error (${response.status}), retrying (${retryCount + 1}/${MAX_RETRIES})...`
+        )
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+        return callWorkflowEngineWebhookWithResponse<T>(path, payload, retryCount + 1)
+      }
+
+      const errorText = await response.text()
+      console.error(`workflow engine server error (${response.status}) after ${MAX_RETRIES} retries:`, errorText)
+      throw new WorkflowEngineError(response.status, errorText)
+    }
+
+    // Other status codes
+    const errorText = await response.text()
+    throw new WorkflowEngineError(response.status, errorText)
+  } catch (error) {
+    // Re-throw WorkflowEngineError as-is
+    if (error instanceof WorkflowEngineError) {
+      throw error
+    }
+
+    // Network errors, JSON errors, etc.
+    console.error('workflow engine webhook error:', error)
+    throw new WorkflowEngineError(undefined, error)
+  }
+}
+
+/**
  * Deployment webhook payloads (typed)
  */
 interface CreateDeploymentPayload extends WebhookPayload {
@@ -174,8 +234,10 @@ interface InitiateCheckoutResponse {
  * Includes retry logic for transient 5xx errors
  */
 export async function initiateCheckout(payload: InitiateCheckoutPayload): Promise<InitiateCheckoutResponse> {
-  const result = await callWorkflowEngineWebhook('/webhook/initiate-checkout', payload)
-  return result as InitiateCheckoutResponse
+  return callWorkflowEngineWebhookWithResponse<InitiateCheckoutResponse>(
+    '/webhook/initiate-checkout',
+    payload
+  )
 }
 
 export async function handlePaymentCallback(reference: string, status: string): Promise<void> {

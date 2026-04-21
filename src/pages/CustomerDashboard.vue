@@ -17,7 +17,12 @@
 
       <div class="space-y-6">
         <!-- Credit Meter -->
-        <CreditMeter @topup="navigateToTopUp" />
+        <CreditMeter
+          :balance="credits?.remainingCredits ?? 0"
+          :total-credits-earned="credits?.totalCreditsEarned ?? 0"
+          :expiry-date="credits?.creditExpiryDate"
+          @topup="navigateToTopUp"
+        />
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-outline-variant">
@@ -107,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
@@ -115,9 +120,17 @@ import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { useAuthStore } from '@/stores/auth.store'
 
 const router = useRouter()
-const { isHealthy } = usePartnerCredits()
+const authStore = useAuthStore()
+const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
+const { credits, refresh } = usePartnerCredits(partnerId.value)
+
+// Re-fetch when auth profile loads
+watch(() => authStore.profile?.company_id, (id) => {
+  if (id) refresh()
+})
 
 /**
  * Active deployments (would be fetched from API)

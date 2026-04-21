@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import { useCurrency } from './useCurrency'
 
 describe('useCurrency', () => {
   let formatter: ReturnType<typeof useCurrency>
 
   beforeEach(() => {
+    setActivePinia(createPinia())
     formatter = useCurrency()
   })
 
@@ -105,6 +107,11 @@ describe('useCurrency', () => {
       const result = formatter.parse('', 'XOF')
       expect(result).toBe(0)
     })
+
+    it('should handle negative string value', () => {
+      const result = formatter.parse('-5000', 'XOF')
+      expect(result).toBeLessThan(0)
+    })
   })
 
   describe('getCurrencySymbol', () => {
@@ -159,6 +166,24 @@ describe('useCurrency', () => {
     it('should handle same currency conversion', () => {
       const result = formatter.convert(100, 'USD', 'USD')
       expect(result).toBe(100)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should format large FCFA number without crash', () => {
+      const result = formatter.formatSymbol(10000000, 'XOF')
+      expect(result).toBeDefined()
+      expect(result).toContain('10')
+    })
+
+    it('formatSymbol with XOF uses narrow no-break space separator', () => {
+      const result = formatter.formatSymbol(10000, 'XOF')
+      expect(result).toContain(' ')
+    })
+
+    it('parse with negative string value', () => {
+      const result = formatter.parse('-10000', 'XOF')
+      expect(result).toBeLessThan(0)
     })
   })
 })

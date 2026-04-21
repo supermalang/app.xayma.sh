@@ -17,7 +17,11 @@
         </div>
       </template>
 
-      <CreditMeter @topup="navigateToTopUp" />
+      <CreditMeter
+        :balance="credits?.remainingCredits ?? 0"
+        :expiry-date="credits?.creditExpiryDate"
+        @topup="navigateToTopUp"
+      />
     </Card>
 
     <!-- This Month's Spend -->
@@ -156,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
@@ -165,8 +169,18 @@ import Tag from 'primevue/tag'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import StatCard from '@/components/charts/StatCard.vue'
+import { useAuthStore } from '@/stores/auth.store'
+import { usePartnerCredits } from '@/composables/usePartnerCredits'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
+const { credits, refresh } = usePartnerCredits(partnerId.value)
+
+// Re-fetch when auth profile loads
+watch(() => authStore.profile?.company_id, (id) => {
+  if (id) refresh()
+})
 
 /**
  * Monthly spend

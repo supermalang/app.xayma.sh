@@ -161,11 +161,28 @@ export async function createTransaction(
 /**
  * Update transaction status
  * Used for marking transactions as COMPLETED after IPN confirmation
+ * IPN idempotency: prevents changing COMPLETED transactions to FAILED
  */
 export async function updateTransactionStatus(
   id: string,
   status: 'COMPLETED' | 'PENDING' | 'FAILED'
 ) {
+  // Fetch current status before updating
+  const { data: current, error: fetchError } = await supabaseFrom('credit_transactions')
+    .select('status')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    console.error('Error fetching credit transaction status:', fetchError)
+    throw fetchError
+  }
+
+  // Prevent transitioning from COMPLETED to FAILED (IPN idempotency)
+  if (current?.status === 'COMPLETED' && status !== 'COMPLETED') {
+    throw new Error('Transaction already completed')
+  }
+
   const { data, error } = await supabaseFrom('credit_transactions')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)

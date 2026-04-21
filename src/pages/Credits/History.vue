@@ -137,6 +137,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth.store'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
@@ -250,8 +251,13 @@ async function loadTransactions() {
     loading.value = true
     error.value = null
 
-    // TODO: Get current partner ID from auth context
-    const partnerId = 'temp-partner-id'
+    const authStore = useAuthStore()
+    if (!authStore.profile?.company_id) {
+      error.value = t('errors.unauthorized')
+      return
+    }
+
+    const partnerId = String(authStore.profile.company_id)
 
     const result = await listTransactions({
       partnerId,
