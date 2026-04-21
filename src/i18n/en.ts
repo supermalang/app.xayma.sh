@@ -182,6 +182,10 @@ export default {
     low_credit_message: 'Your remaining credits are running low ({remaining} FCFA). Consider topping up soon.',
     critical_credit_title: 'Critical Credit Balance',
     critical_credit_message: 'Your remaining credits are critically low ({remaining} FCFA). Top up immediately to avoid service suspension.',
+    title: 'Notifications',
+    empty: 'No notifications yet',
+    mark_all_read: 'Mark all as read',
+    view_all: 'View all',
   },
 
   // Credits

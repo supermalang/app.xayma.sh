@@ -182,6 +182,10 @@ export default {
     low_credit_message: 'Vos crédits restants sont faibles ({remaining} FCFA). Envisagez de faire une recharge bientôt.',
     critical_credit_title: 'Solde de crédit critique',
     critical_credit_message: 'Vos crédits restants sont critiquement bas ({remaining} FCFA). Rechargez immédiatement pour éviter la suspension du service.',
+    title: 'Notifications',
+    empty: 'Pas encore de notifications',
+    mark_all_read: 'Tout marquer comme lu',
+    view_all: 'Voir tout',
   },
 
   // Credits
