@@ -31,15 +31,15 @@ export class WorkflowEngineError extends Error {
 }
 
 /**
- * Fire-and-forget webhook call with retry logic
- * Retries automatically on 5xx errors (server errors)
- * Does NOT retry on 4xx errors (client errors)
+ * Internal implementation of webhook call with optional JSON response parsing
+ * Handles retry logic for 5xx errors, throws on 4xx errors
  */
-export async function callWorkflowEngineWebhook(
+async function callWorkflowEngineWebhookInternal<T = void>(
   path: string,
   payload: WebhookPayload,
+  parseResponse = false,
   retryCount = 0
-): Promise<void> {
+): Promise<T> {
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
@@ -51,7 +51,7 @@ export async function callWorkflowEngineWebhook(
 
     // 2xx success
     if (response.ok) {
-      return
+      return (parseResponse ? (await response.json()) : undefined) as T
     }
 
     // 4xx client errors — do not retry
@@ -68,7 +68,7 @@ export async function callWorkflowEngineWebhook(
           `workflow engine server error (${response.status}), retrying (${retryCount + 1}/${MAX_RETRIES})...`
         )
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
-        return callWorkflowEngineWebhook(path, payload, retryCount + 1)
+        return callWorkflowEngineWebhookInternal<T>(path, payload, parseResponse, retryCount + 1)
       }
 
       const errorText = await response.text()
@@ -92,63 +92,26 @@ export async function callWorkflowEngineWebhook(
 }
 
 /**
+ * Fire-and-forget webhook call with retry logic
+ * Retries automatically on 5xx errors (server errors)
+ * Does NOT retry on 4xx errors (client errors)
+ */
+export async function callWorkflowEngineWebhook(
+  path: string,
+  payload: WebhookPayload
+): Promise<void> {
+  return callWorkflowEngineWebhookInternal<void>(path, payload, false)
+}
+
+/**
  * Webhook call that returns JSON response
  * Same retry logic as callWorkflowEngineWebhook, but parses and returns JSON on success
  */
 async function callWorkflowEngineWebhookWithResponse<T>(
   path: string,
-  payload: WebhookPayload,
-  retryCount = 0
+  payload: WebhookPayload
 ): Promise<T> {
-  try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    // 2xx success — parse and return JSON
-    if (response.ok) {
-      return (await response.json()) as T
-    }
-
-    // 4xx client errors — do not retry
-    if (response.status >= 400 && response.status < 500) {
-      const errorText = await response.text()
-      console.error(`workflow engine client error (${response.status}):`, errorText)
-      throw new WorkflowEngineError(response.status, errorText)
-    }
-
-    // 5xx server errors — retry
-    if (response.status >= 500) {
-      if (retryCount < MAX_RETRIES) {
-        console.warn(
-          `workflow engine server error (${response.status}), retrying (${retryCount + 1}/${MAX_RETRIES})...`
-        )
-        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
-        return callWorkflowEngineWebhookWithResponse<T>(path, payload, retryCount + 1)
-      }
-
-      const errorText = await response.text()
-      console.error(`workflow engine server error (${response.status}) after ${MAX_RETRIES} retries:`, errorText)
-      throw new WorkflowEngineError(response.status, errorText)
-    }
-
-    // Other status codes
-    const errorText = await response.text()
-    throw new WorkflowEngineError(response.status, errorText)
-  } catch (error) {
-    // Re-throw WorkflowEngineError as-is
-    if (error instanceof WorkflowEngineError) {
-      throw error
-    }
-
-    // Network errors, JSON errors, etc.
-    console.error('workflow engine webhook error:', error)
-    throw new WorkflowEngineError(undefined, error)
-  }
+  return callWorkflowEngineWebhookInternal<T>(path, payload, true)
 }
 
 /**

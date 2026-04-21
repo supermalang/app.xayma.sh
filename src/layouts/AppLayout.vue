@@ -19,8 +19,11 @@ import { useCreditAlerts } from '@/composables/useCreditAlerts'
 const authStore = useAuthStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 const userId = computed(() => authStore.user?.id ?? '')
+const userRole = computed(() => authStore.user?.user_metadata?.role ?? '')
 
-// Activate credit alerts for credit-bearing roles
-// The null guards in usePartnerCredits make this safe for all roles
-useCreditAlerts(partnerId.value, userId.value)
+// Activate credit alerts only for credit-bearing roles (CUSTOMER, RESELLER)
+// Admin and Sales users have no partner_id, so alerts would be wasteful
+if (userRole.value === 'CUSTOMER' || userRole.value === 'RESELLER') {
+  useCreditAlerts(partnerId.value, userId.value)
+}
 </script>

@@ -258,9 +258,9 @@ describe('Credits Service', () => {
         }),
       }
 
-      vi.mocked(supabaseFrom).mockReturnValueOnce({
-        select: vi.fn().mockReturnValue(mockQuery),
-      } as any).mockReturnValueOnce(mockUpdateQuery as any)
+      vi.mocked(supabaseFrom)
+        .mockReturnValueOnce({ select: vi.fn().mockReturnValue(mockQuery) } as any)
+        .mockReturnValueOnce(mockUpdateQuery as any)
 
       const result = await updateTransactionStatus('1', 'COMPLETED')
 
@@ -286,9 +286,9 @@ describe('Credits Service', () => {
         }),
       }
 
-      vi.mocked(supabaseFrom).mockReturnValueOnce({
-        select: vi.fn().mockReturnValue(mockQuery),
-      } as any).mockReturnValueOnce(mockUpdateQuery as any)
+      vi.mocked(supabaseFrom)
+        .mockReturnValueOnce({ select: vi.fn().mockReturnValue(mockQuery) } as any)
+        .mockReturnValueOnce(mockUpdateQuery as any)
 
       const result = await updateTransactionStatus('1', 'COMPLETED')
 
@@ -304,9 +304,7 @@ describe('Credits Service', () => {
         }),
       }
 
-      vi.mocked(supabaseFrom).mockReturnValue({
-        select: vi.fn().mockReturnValue(mockQuery),
-      } as any)
+      vi.mocked(supabaseFrom).mockReturnValue({ select: vi.fn().mockReturnValue(mockQuery) } as any)
 
       await expect(updateTransactionStatus('1', 'FAILED')).rejects.toThrow('Transaction already completed')
     })

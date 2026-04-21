@@ -9,14 +9,9 @@ import { useI18n } from 'vue-i18n'
 import { usePartnerCredits } from './usePartnerCredits'
 import { callWorkflowEngineWebhook } from '@/services/workflow-engine'
 
-interface AlertThreshold {
-  percentage: number
-  triggered: boolean
-}
-
 export function useCreditAlerts(partnerId: string, userId: string) {
   const { t } = useI18n()
-  const { credits, percentageRemaining } = usePartnerCredits(partnerId)
+  const { credits } = usePartnerCredits(partnerId)
 
   // Track which alerts have been triggered to avoid duplicates
   const alertsTriggered = ref({
@@ -55,10 +50,16 @@ export function useCreditAlerts(partnerId: string, userId: string) {
 
   /**
    * Watch credit balance and trigger alerts at thresholds
+   * Watch raw credits value (not computed percentage) to avoid extra reactivity cycles
    */
   watch(
-    () => percentageRemaining.value,
-    (newPercentage) => {
+    () => credits.value?.remainingCredits,
+    (newBalance) => {
+      if (!newBalance) return
+
+      // Compute percentage once in this handler
+      const newPercentage = Math.round((newBalance / 100000) * 100)
+
       // Alert at 20% threshold
       if (newPercentage <= 20 && newPercentage > 10 && !alertsTriggered.value.threshold20) {
         alertsTriggered.value.threshold20 = true
