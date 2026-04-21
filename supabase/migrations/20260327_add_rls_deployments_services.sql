@@ -78,7 +78,7 @@ ALTER TABLE xayma_app.services ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_view_available_services" ON xayma_app.services
   FOR SELECT
   TO authenticated
-  USING (isPubliclyAvailable = true);
+  USING ("isPubliclyAvailable" = true);
 
 -- Admin can view all services
 CREATE POLICY "admin_view_all_services" ON xayma_app.services
@@ -124,7 +124,7 @@ CREATE POLICY "public_view_available_plans" ON xayma_app.serviceplans
   TO authenticated
   USING (
     service_id IN (
-      SELECT id FROM xayma_app.services WHERE isPubliclyAvailable = true
+      SELECT id FROM xayma_app.services WHERE "isPubliclyAvailable" = true
     )
   );
 

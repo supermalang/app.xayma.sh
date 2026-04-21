@@ -10,7 +10,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  throw new Error('Missing Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)')
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -20,10 +20,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 })
 
+const xayma = supabase.schema('xayma_app')
+
 /**
  * Helper to ensure all queries use the xayma_app schema
  * Usage: supabaseFrom('partners') → xayma_app.partners
  */
-export function supabaseFrom(table: string) {
-  return supabase.from(`xayma_app.${table}`)
+export function supabaseFrom<T extends Parameters<typeof xayma.from>[0]>(table: T) {
+  return xayma.from(table)
 }

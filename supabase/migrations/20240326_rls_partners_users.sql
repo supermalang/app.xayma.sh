@@ -167,7 +167,7 @@ DECLARE
   v_user_email VARCHAR;
   v_user_firstname VARCHAR;
   v_user_lastname VARCHAR;
-  v_user_role VARCHAR;
+  v_user_role xayma_app.user_role;
   v_company_id INTEGER;
 BEGIN
   -- Get current user info from auth context
@@ -229,7 +229,7 @@ DECLARE
   v_user_email VARCHAR;
   v_user_firstname VARCHAR;
   v_user_lastname VARCHAR;
-  v_user_role VARCHAR;
+  v_user_role xayma_app.user_role;
   v_company_id INTEGER;
 BEGIN
   -- Get current user info

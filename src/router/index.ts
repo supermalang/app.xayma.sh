@@ -236,12 +236,11 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   // Check role
-  const userRole = authStore.user?.user_metadata?.user_role as UserRole | undefined
+  const userRole = authStore.userRole as UserRole | undefined
   if (userRole && requiredRoles.includes(userRole)) {
     next()
   } else {
-    // Unauthorized - redirect to dashboard
-    next({ path: '/', replace: true })
+    next('/auth/login')
   }
 })
 

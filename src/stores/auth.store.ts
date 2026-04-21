@@ -64,12 +64,13 @@ const MOCK_USERS = {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const profile = ref<{ user_role: string; firstname: string; lastname: string | null; company_id: number } | null>(null)
   const isInitialized = ref(false)
   const isLoading = ref(false)
 
   // Computed
   const isAuthenticated = computed(() => !!user.value)
-  const userRole = computed(() => user.value?.user_metadata?.user_role)
+  const userRole = computed(() => profile.value?.user_role ?? user.value?.user_metadata?.user_role)
 
   // Initialize auth state
   async function initialize() {
@@ -87,7 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
             first_name: 'Test',
             last_name: 'User',
           },
-        } as User
+        } as unknown as User
         return
       }
 
@@ -103,6 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (error) throw error
       user.value = data.session?.user || null
+      if (user.value) await fetchProfile(user.value.id)
     } catch (error) {
       // Auth failed (timeout, network error, etc.) — allow app to proceed
       console.warn('Auth initialization failed:', error instanceof Error ? error.message : error)
@@ -111,6 +113,16 @@ export const useAuthStore = defineStore('auth', () => {
       isLoading.value = false
       isInitialized.value = true
     }
+  }
+
+  async function fetchProfile(userId: string) {
+    const { data } = await supabase
+      .schema('xayma_app')
+      .from('users')
+      .select('user_role, firstname, lastname, company_id')
+      .eq('id', userId)
+      .single()
+    profile.value = (data as typeof profile.value) ?? null
   }
 
   // Sign in with email/password
@@ -122,7 +134,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (import.meta.env.VITE_MOCK_AUTH === 'true') {
         const mockUser = MOCK_USERS[email as keyof typeof MOCK_USERS]
         if (mockUser && mockUser.password === password) {
-          user.value = mockUser as User
+          user.value = mockUser as unknown as User
           console.log(`✅ Logged in as ${mockUser.user_metadata.user_role}: ${email}`)
           return
         } else {
@@ -130,9 +142,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
-      await initialize()
+      user.value = data.user
+      await fetchProfile(data.user.id)
     } finally {
       isLoading.value = false
     }
@@ -155,6 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
       isLoading.value = true
       await supabase.auth.signOut()
       user.value = null
+      profile.value = null
     } finally {
       isLoading.value = false
     }
@@ -170,6 +184,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
+    profile,
     isInitialized,
     isLoading,
     isAuthenticated,
