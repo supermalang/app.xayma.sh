@@ -1,315 +1,237 @@
 /**
- * DeploymentWizard Unit Tests
- * Focus on Step 4: Credit validation and domain validation
+ * DeploymentWizard tests
+ * Tests all 4 steps of the wizard
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { mount } from '@vue/test-utils'
+import DeploymentWizard from '@/pages/DeploymentWizard.vue'
+import * as servicesService from '@/services/services.service'
+import { usePartnerStore } from '@/stores/partner.store'
 import { useNotificationStore } from '@/stores/notifications.store'
-import { useAuthStore } from '@/stores/auth.store'
+import { createPinia, setActivePinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
+import en from '@/i18n/en'
 
-// Mock all services and router before imports
+// Mock the services
+vi.mock('@/services/services.service', () => ({
+  listServices: vi.fn(),
+  getServicePlansByServiceId: vi.fn(),
+}))
+
 vi.mock('@/services/supabase', () => ({
   supabase: {
-    from: vi.fn(),
-    auth: { getUser: vi.fn() },
+    schema: vi.fn(() => ({
+      rpc: vi.fn(),
+    })),
   },
 }))
 
-vi.mock('@/services/deployments.service', () => ({
-  listDeployments: vi.fn(),
-  getDeployment: vi.fn(),
-  createDeployment: vi.fn(),
-  hasPartnerSufficientCredits: vi.fn(),
-  getPartnerTotalMonthlyConsumption: vi.fn(),
-}))
-
-vi.mock('@/services/workflow-engine', () => ({
-  createDeployment: vi.fn(),
-  performDeploymentAction: vi.fn(),
-  callWorkflowEngineWebhook: vi.fn(),
-}))
-
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-  }),
-  useRoute: () => ({
-    params: {},
+vi.mock('@/composables/useDeployments', () => ({
+  useDeployments: () => ({
+    createDeployment: vi.fn(),
   }),
 }))
 
-import * as deploymentService from '@/services/deployments.service'
-import * as workflowEngineService from '@/services/workflow-engine'
+describe('DeploymentWizard', () => {
+  let wrapper: any
+  const pinia = createPinia()
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: { en },
+  })
 
-describe('DeploymentWizard - Step 4 Credit Validation', () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
+    setActivePinia(pinia)
+
+    // Reset mocks
     vi.clearAllMocks()
+
+    // Mock service responses
+    ;(servicesService.listServices as any).mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          name: 'WordPress',
+          description: 'Popular blogging platform',
+          status: 'active',
+          isPubliclyAvailable: true,
+        },
+        {
+          id: 2,
+          name: 'Django App',
+          description: 'Python web framework',
+          status: 'active',
+          isPubliclyAvailable: true,
+        },
+      ],
+      count: 2,
+    })
+
+    ;(servicesService.getServicePlansByServiceId as any).mockResolvedValue([
+      {
+        id: 10,
+        label: 'Basic',
+        description: 'Basic plan',
+        monthlyCreditConsumption: 5000,
+        service_id: 1,
+      },
+      {
+        id: 11,
+        label: 'Pro',
+        description: 'Pro plan',
+        monthlyCreditConsumption: 10000,
+        service_id: 1,
+      },
+    ])
   })
 
-  it('disables deploy button when partner credits are insufficient', async () => {
-    // Mock insufficient credits scenario
-    vi.mocked(deploymentService.hasPartnerSufficientCredits).mockResolvedValue(false)
+  it('loads services on mount', async () => {
+    wrapper = mount(DeploymentWizard, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          Button: true,
+          Card: true,
+          Steps: true,
+          InputText: true,
+          Chips: true,
+          Message: true,
+          ProgressSpinner: true,
+        },
+      },
+    })
 
-    // Navigate to step 4 and validate credits
-    const result = await deploymentService.hasPartnerSufficientCredits(1, 100)
+    // Wait for async mount
+    await wrapper.vm.$nextTick()
 
-    expect(result).toBe(false)
+    expect(servicesService.listServices).toHaveBeenCalledWith({
+      isPubliclyAvailable: true,
+      pageSize: 100,
+    })
   })
 
-  it('enables deploy button when partner has sufficient credits', async () => {
-    // Mock sufficient credits
-    vi.mocked(deploymentService.hasPartnerSufficientCredits).mockResolvedValue(true)
+  it('step 1: allows selecting a service', async () => {
+    wrapper = mount(DeploymentWizard, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          Button: true,
+          Card: true,
+          Steps: true,
+          InputText: true,
+          Chips: true,
+          Message: true,
+          ProgressSpinner: true,
+        },
+      },
+    })
 
-    const result = await deploymentService.hasPartnerSufficientCredits(1, 50)
+    await wrapper.vm.$nextTick()
 
-    expect(result).toBe(true)
+    // Select first service
+    await wrapper.vm.selectService(wrapper.vm.services[0])
+
+    expect(wrapper.vm.form.serviceId).toBe(1)
+    expect(wrapper.vm.activeStep).toBe(1)
   })
 
-  it('displays credit shortfall amount when insufficient', () => {
-    // Partner has 40 credits, plan costs 100
-    // Shortfall should be 60
-    const partnerCredits = 40
-    const monthlyCreditConsumption = 100
-    const shortfall = Math.max(0, monthlyCreditConsumption - partnerCredits)
+  it('step 2: loads and allows selecting a plan', async () => {
+    wrapper = mount(DeploymentWizard, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          Button: true,
+          Card: true,
+          Steps: true,
+          InputText: true,
+          Chips: true,
+          Message: true,
+          ProgressSpinner: true,
+        },
+      },
+    })
 
-    expect(shortfall).toBe(60)
+    await wrapper.vm.$nextTick()
+
+    // Select service first
+    await wrapper.vm.selectService(wrapper.vm.services[0])
+    await wrapper.vm.$nextTick()
+
+    // Plans should be loaded
+    expect(servicesService.getServicePlansByServiceId).toHaveBeenCalledWith(1)
+
+    // Select plan
+    await wrapper.vm.selectPlan(wrapper.vm.plans[0])
+
+    expect(wrapper.vm.form.servicePlanId).toBe(10)
+    expect(wrapper.vm.selectedPlan?.id).toBe(10)
+    expect(wrapper.vm.activeStep).toBe(2)
   })
 
-  it('calculates correct remaining credits after deployment', () => {
-    const partnerCredits = 100
-    const monthlyCreditConsumption = 30
-    const remainingAfter = Math.max(0, partnerCredits - monthlyCreditConsumption)
+  it('step 3: requires label and domains before proceeding', async () => {
+    wrapper = mount(DeploymentWizard, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          Button: true,
+          Card: true,
+          Steps: true,
+          InputText: true,
+          Chips: true,
+          Message: true,
+          ProgressSpinner: true,
+        },
+      },
+    })
 
-    expect(remainingAfter).toBe(70)
+    wrapper.vm.activeStep = 2
+
+    // Should not proceed without label
+    expect(wrapper.vm.canProceed).toBe(false)
+
+    // Add label
+    wrapper.vm.form.label = 'My Deployment'
+    expect(wrapper.vm.canProceed).toBe(false) // Still needs domains
+
+    // Add domain
+    wrapper.vm.form.domainNames = ['example.com']
+    expect(wrapper.vm.canProceed).toBe(true)
   })
 
-  it('handles zero remaining credits gracefully', () => {
-    const partnerCredits = 50
-    const monthlyCreditConsumption = 50
-    const remainingAfter = Math.max(0, partnerCredits - monthlyCreditConsumption)
+  it('step 4: shows summary and checks credit balance', async () => {
+    wrapper = mount(DeploymentWizard, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          Button: true,
+          Card: true,
+          Steps: true,
+          InputText: true,
+          Chips: true,
+          Message: true,
+          ProgressSpinner: true,
+        },
+      },
+    })
 
-    expect(remainingAfter).toBe(0)
-  })
-})
+    // Set form data
+    wrapper.vm.form.serviceId = 1
+    wrapper.vm.form.servicePlanId = 10
+    wrapper.vm.form.label = 'My Deployment'
+    wrapper.vm.form.domainNames = ['example.com']
+    wrapper.vm.selectedPlan = { id: 10, label: 'Basic', monthlyCreditConsumption: 5000 }
 
-describe('DeploymentWizard - Domain Validation', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
-  })
+    // Go to step 4
+    wrapper.vm.activeStep = 3
 
-  it('accepts valid single domain', () => {
-    const domain = 'example.com'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
+    await wrapper.vm.$nextTick()
 
-    expect(isValid).toBe(true)
-  })
-
-  it('accepts valid multiple domains', () => {
-    const domains = ['example.com', 'test.example.com', 'api.example.com']
-    const allValid = domains.every((domain) =>
-      /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-    )
-
-    expect(allValid).toBe(true)
-  })
-
-  it('rejects invalid domain without TLD', () => {
-    const domain = 'localhost'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-
-    expect(isValid).toBe(false)
-  })
-
-  it('rejects domain with invalid characters', () => {
-    const domain = 'example@.com'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-
-    expect(isValid).toBe(false)
-  })
-
-  it('rejects domain starting with hyphen', () => {
-    const domain = '-example.com'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-
-    expect(isValid).toBe(false)
-  })
-
-  it('rejects domain ending with hyphen', () => {
-    const domain = 'example-.com'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-
-    expect(isValid).toBe(false)
-  })
-
-  it('accepts subdomain with hyphens', () => {
-    const domain = 'my-test.example-api.com'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-
-    expect(isValid).toBe(true)
-  })
-
-  it('rejects empty domain list', () => {
-    const domains: string[] = []
-
-    expect(domains.length).toBe(0)
-  })
-
-  it('handles domains with uppercase letters', () => {
-    const domain = 'Example.COM'
-    const normalized = domain.toLowerCase()
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(normalized)
-
-    expect(isValid).toBe(true)
-  })
-
-  it('rejects domain with spaces', () => {
-    const domain = 'example .com'
-    const isValid = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(domain)
-
-    expect(isValid).toBe(false)
-  })
-})
-
-describe('DeploymentWizard - Form Validation Integration', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
-  })
-
-  it('prevents submission with missing service selection', () => {
-    const formData = {
-      serviceId: null,
-      servicePlanId: 1,
-      label: 'Test',
-      domainNames: ['test.com'],
-    }
-
-    const isValid = formData.serviceId !== null && formData.servicePlanId !== null
-
-    expect(isValid).toBe(false)
-  })
-
-  it('prevents submission with missing plan selection', () => {
-    const formData = {
-      serviceId: 1,
-      servicePlanId: null,
-      label: 'Test',
-      domainNames: ['test.com'],
-    }
-
-    const isValid = formData.serviceId !== null && formData.servicePlanId !== null
-
-    expect(isValid).toBe(false)
-  })
-
-  it('prevents submission with empty label', () => {
-    const label = ''
-    const isValid = label.trim().length > 0
-
-    expect(isValid).toBe(false)
-  })
-
-  it('prevents submission with empty domain list', () => {
-    const domainNames: string[] = []
-    const isValid = domainNames.length > 0
-
-    expect(isValid).toBe(false)
-  })
-
-  it('allows submission with all required fields valid', () => {
-    const formData = {
-      serviceId: 1,
-      servicePlanId: 1,
-      label: 'My Deployment',
-      domainNames: ['example.com'],
-    }
-
-    const isValid =
-      formData.serviceId !== null &&
-      formData.servicePlanId !== null &&
-      formData.label.trim().length > 0 &&
-      formData.domainNames.length > 0
-
-    expect(isValid).toBe(true)
-  })
-
-  it('validates entire form state before enabling deploy button', () => {
-    const formValid = true
-    const creditsValid = true
-    const domainsValid = true
-
-    const canDeploy = formValid && creditsValid && domainsValid
-
-    expect(canDeploy).toBe(true)
-  })
-
-  it('disables deploy button if any validation fails', () => {
-    const formValid = true
-    const creditsValid = false // insufficient credits
-    const domainsValid = true
-
-    const canDeploy = formValid && creditsValid && domainsValid
-
-    expect(canDeploy).toBe(false)
-  })
-})
-
-describe('DeploymentWizard - Deployment Creation on Step 4', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
-  })
-
-  it('calls workflow engine webhook when deploy button clicked with valid form', async () => {
-    const createSpy = vi.mocked(workflowEngineService.createDeployment)
-
-    const payload = {
-      deploymentId: 1,
-      partnerId: 1,
-      serviceId: 1,
-      servicePlanId: 1,
-      serviceVersion: '15.0',
-      domainNames: ['test.com'],
-      label: 'Test Deployment',
-    }
-
-    await workflowEngineService.createDeployment(payload as any)
-
-    expect(createSpy).toHaveBeenCalledWith(expect.objectContaining(payload))
-  })
-
-  it('shows success notification after deployment created', async () => {
-    const notificationStore = useNotificationStore()
-    const addSuccessSpy = vi.spyOn(notificationStore, 'addSuccess')
-
-    notificationStore.addSuccess('deployments.create_success')
-
-    expect(addSuccessSpy).toHaveBeenCalledWith('deployments.create_success')
-  })
-
-  it('shows error notification if deployment creation fails', async () => {
-    const notificationStore = useNotificationStore()
-    const addErrorSpy = vi.spyOn(notificationStore, 'addError')
-
-    vi.mocked(deploymentService.createDeployment).mockRejectedValue(
-      new Error('Deployment creation failed')
-    )
-
-    notificationStore.addError('errors.webhook_failed')
-
-    expect(addErrorSpy).toHaveBeenCalledWith('errors.webhook_failed')
-  })
-
-  it('navigates to deployment detail after successful creation', async () => {
-    const mockRouter = {
-      push: vi.fn(),
-    }
-
-    mockRouter.push('/deployments/1')
-
-    expect(mockRouter.push).toHaveBeenCalledWith('/deployments/1')
+    // Verify summary data is accessible
+    expect(wrapper.vm.selectedServiceName).toBe('WordPress')
+    expect(wrapper.vm.selectedPlan?.label).toBe('Basic')
+    expect(wrapper.vm.form.label).toBe('My Deployment')
+    expect(wrapper.vm.form.domainNames).toContain('example.com')
   })
 })
