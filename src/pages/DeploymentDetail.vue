@@ -58,16 +58,19 @@
           </div>
         </Card>
 
-        <!-- Timeline/Logs -->
+        <!-- Timeline/Status -->
         <Card>
           <template #title>
-            Status History
+            {{ $t('common.status') }}
           </template>
-          <!-- TODO: Implement Timeline component -->
-          <Message
-            severity="info"
-            text="Timeline coming soon"
-          />
+          <div class="text-center py-4">
+            <p class="text-on-surface-variant text-sm mb-2">
+              {{ $t('deployments.form.created') }}
+            </p>
+            <p class="text-on-surface font-medium">
+              {{ deployment.created ? new Date(deployment.created).toLocaleString() : '—' }}
+            </p>
+          </div>
         </Card>
       </div>
 
@@ -108,41 +111,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
+import { useDeployments } from '@/composables/useDeployments'
+import { useNotificationStore } from '@/stores/notifications.store'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
+const { loadDeployment, performDeploymentAction, terminateDeployment, subscribeToDeploymentUpdates, selectedDeployment } = useDeployments()
+const notificationStore = useNotificationStore()
 
-const deployment = ref<any>(null)
-const isActive = ref(false)
+const isLoading = ref(false)
+const deployment = computed(() => selectedDeployment.value)
+const isActive = computed(() => deployment.value?.status === 'active')
 
 function goBack() {
   router.push('/deployments')
 }
 
-function stopDeployment() {
-  // TODO: Implement
-  console.log('Stop deployment')
+async function stopDeployment() {
+  if (!deployment.value) return
+  isLoading.value = true
+  try {
+    await performDeploymentAction(deployment.value.id, 'stop')
+  } finally {
+    isLoading.value = false
+  }
 }
 
-function restartDeployment() {
-  // TODO: Implement
-  console.log('Restart deployment')
+async function restartDeployment() {
+  if (!deployment.value) return
+  isLoading.value = true
+  try {
+    await performDeploymentAction(deployment.value.id, 'restart')
+  } finally {
+    isLoading.value = false
+  }
 }
 
-function deleteDeployment() {
-  // TODO: Implement
-  console.log('Delete deployment')
+async function deleteDeployment() {
+  if (!deployment.value) return
+  isLoading.value = true
+  try {
+    await terminateDeployment(deployment.value.id)
+    router.push('/deployments')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(async () => {
-  // TODO: Load deployment by ID
-  const deploymentId = route.params.id
-  console.log('Load deployment:', deploymentId)
+  const deploymentId = Number(route.params.id)
+  if (!isNaN(deploymentId)) {
+    isLoading.value = true
+    try {
+      await loadDeployment(deploymentId)
+      if (deployment.value?.partner_id) {
+        subscribeToDeploymentUpdates(deployment.value.partner_id)
+      }
+    } catch (error) {
+      notificationStore.addError(t('errors.fetch_failed'))
+    } finally {
+      isLoading.value = false
+    }
+  }
 })
 </script>

@@ -90,21 +90,33 @@ import AppDataTable from '@/components/common/AppDataTable.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import StatCard from '@/components/common/StatCard.vue'
 import { useAuth } from '@/composables/useAuth'
+import { useDeployments } from '@/composables/useDeployments'
+import { usePartnerStore } from '@/stores/partner.store'
+import { useNotificationStore } from '@/stores/notifications.store'
 
 const router = useRouter()
 const { t } = useI18n()
 const { isAdmin } = useAuth()
+const { loadDeployments, deployments, isLoading, subscribeToDeploymentUpdates } = useDeployments()
+const partnerStore = usePartnerStore()
+const notificationStore = useNotificationStore()
 
-const deployments = ref([])
-const isLoading = ref(false)
 const totalRecords = ref(0)
 const pageSize = ref(20)
 const currentPage = ref(1)
 const selectedStatus = ref(null)
-const activeCount = ref(0)
-const monthlyCost = ref(0)
 
 const canCreateDeployment = computed(() => !isAdmin)
+
+const activeCount = computed(() => {
+  return deployments.value.filter((d: any) => d.status === 'active').length
+})
+
+const monthlyCost = computed(() => {
+  return deployments.value.reduce((total: number, d: any) => {
+    return total + (d.serviceplan?.monthlyCreditConsumption || 0)
+  }, 0)
+})
 
 const tableColumns = computed(() => [
   { field: 'service_name', header: t('deployments.form.service') },
@@ -131,25 +143,54 @@ function navigateToDetail(id: number) {
 }
 
 function applyFilters() {
-  // TODO: Reload deployments with new filter
+  currentPage.value = 1
+  loadDeploymentsList()
 }
 
 function handlePageChange(event: any) {
   currentPage.value = event.page + 1
   pageSize.value = event.rows
-  // TODO: Fetch deployments with pagination based on selectedStatus
+  loadDeploymentsList()
 }
 
-function handleSearch(query: string) {
-  // TODO: Implement search
+function handleSearch() {
+  currentPage.value = 1
+  loadDeploymentsList()
 }
 
 async function deleteDeployment(id: number) {
-  // TODO: Implement delete
-  console.log('Delete deployment:', id)
+  const confirmed = window.confirm(t('common.confirm_delete'))
+  if (!confirmed) return
+
+  try {
+    const { deleteDeployment: deleteDeploymentFn } = useDeployments()
+    await deleteDeploymentFn(id)
+  } catch (error) {
+    notificationStore.addError(t('deployments.delete_error'))
+  }
 }
 
-onMounted(() => {
-  // TODO: Load deployments
+async function loadDeploymentsList() {
+  try {
+    const partnerId = partnerStore.selectedPartner?.id
+    if (!partnerId) {
+      notificationStore.addError(t('errors.fetch_failed'))
+      return
+    }
+
+    await loadDeployments(partnerId)
+    // Deployments are loaded via the composable, which updates the deployments ref
+    totalRecords.value = deployments.value.length
+  } catch (error) {
+    notificationStore.addError(t('errors.fetch_failed'))
+  }
+}
+
+onMounted(async () => {
+  // Load initial deployments for current partner
+  if (partnerStore.selectedPartner?.id) {
+    await loadDeploymentsList()
+    subscribeToDeploymentUpdates(partnerStore.selectedPartner.id)
+  }
 })
 </script>

@@ -7,6 +7,12 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
 
 // Mock Supabase
+const mockQueryChain = {
+  eq: vi.fn().mockReturnValue({
+    single: vi.fn().mockResolvedValue({ data: null, error: null }),
+  }),
+}
+
 vi.mock('@/services/supabase', () => ({
   supabase: {
     auth: {
@@ -16,6 +22,11 @@ vi.mock('@/services/supabase', () => ({
       signOut: vi.fn(),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
     },
+    schema: vi.fn(() => ({
+      from: vi.fn(() => ({
+        select: vi.fn().mockReturnValue(mockQueryChain),
+      })),
+    })),
   },
 }))
 
