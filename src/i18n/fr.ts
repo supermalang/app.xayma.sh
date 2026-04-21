@@ -404,7 +404,7 @@ export default {
   services: {
     title: 'Services',
     create: 'Nouveau service',
-    empty: 'Aucun service configuré',
+    empty: 'Aucun service disponible',
     columns: {
       name: 'Nom',
       status: 'Statut',
@@ -431,7 +431,7 @@ export default {
     },
     plans: {
       add: 'Ajouter une formule',
-      empty: 'Aucune formule configurée pour ce service',
+      empty: 'Aucun plan disponible pour ce service',
       credits_per_month: 'crédits/mois',
     },
     deployment_engine: {
@@ -483,7 +483,7 @@ export default {
     },
     errors: {
       insufficient_credits: 'Crédits insuffisants pour ce déploiement',
-      invalid_domain: 'Nom de domaine invalide',
+      invalid_domain: 'Un ou plusieurs noms de domaine sont invalides',
     },
     wizard: {
       step_1: 'Sélectionner le service',
@@ -496,6 +496,14 @@ export default {
       review_deployment: 'Vérifiez votre configuration de déploiement',
       next: 'Suivant',
       deploy: 'Déployer',
+      domain_validating: 'Validation des domaines...',
+      service_not_selected: 'Veuillez sélectionner un service pour continuer',
+      summary_service: 'Service sélectionné',
+      summary_plan: 'Plan sélectionné',
+      summary_domains: 'Domaines',
+      summary_monthly_cost: 'Coût mensuel en crédits',
+      credit_sufficient: 'Vous avez suffisamment de crédits pour ce déploiement',
+      credit_insufficient: 'Crédits insuffisants — rechargez avant de déployer',
     },
     actions: {
       stop: 'Arrêter',
