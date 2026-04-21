@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: xayma-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      # KRaft mode configuration
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Cluster configuration
+      KAFKA_CLUSTER_ID: xayma-kafka-cluster-01
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+
+      # Listener configuration
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      # Security and topic management
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168  # 7 days default (topics will override)
+
+      # Java and log configuration
+      KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - xayma-net
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: xayma-kafka-ui
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: xayma-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: ""  # Not used in KRaft mode
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - xayma-net
+
+volumes:
+  kafka-data:
+    driver: local
+
+networks:
+  xayma-net:
+    external: true
