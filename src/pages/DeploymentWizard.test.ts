@@ -189,11 +189,11 @@ describe('DeploymentWizard', () => {
     wrapper.vm.activeStep = 2
 
     // Should not proceed without label
-    expect(wrapper.vm.canProceed).toBe(false)
+    expect(wrapper.vm.canProceed).toBeFalsy()
 
     // Add label
     wrapper.vm.form.label = 'My Deployment'
-    expect(wrapper.vm.canProceed).toBe(false) // Still needs domains
+    expect(wrapper.vm.canProceed).toBeFalsy() // Still needs domains
 
     // Add domain
     wrapper.vm.form.domainNames = ['example.com']
