@@ -2,7 +2,7 @@
   <div
     class="flex items-start gap-3 p-3 rounded-md transition-colors"
     :class="[
-      notification.is_read
+      notification.read_at
         ? 'bg-surface-container-low hover:bg-surface-container-high'
         : 'bg-surface-container-highest border-l-4 border-primary hover:bg-surface-container-high',
     ]"
@@ -10,9 +10,8 @@
     <!-- Icon -->
     <div class="flex-shrink-0 mt-1">
       <i
-        :class="getIconClass(notification.type)"
+        :class="[getIconClass(notification.type), getIconColorClass(notification.type)]"
         class="text-lg"
-        :style="{ color: getIconColor(notification.type) }"
       />
     </div>
 
@@ -25,23 +24,12 @@
 
       <!-- Message -->
       <div class="text-sm text-on-surface-variant mt-1 line-clamp-2">
-        {{ notification.message }}
+        {{ notification.message || notification.title }}
       </div>
 
       <!-- Timestamp -->
       <div class="text-xs text-on-surface-variant mt-2 font-mono">
-        {{ formatDate(notification.created_at) }}
-      </div>
-
-      <!-- Action Link (if provided) -->
-      <div v-if="notification.action_url" class="mt-2">
-        <router-link
-          :to="notification.action_url"
-          class="text-xs font-medium text-primary hover:text-primary-container transition-colors"
-        >
-          {{ $t(`notifications.action.${notification.action_type || 'view'}`) }}
-          <i class="pi pi-arrow-right ml-1" style="font-size: 0.625rem" />
-        </router-link>
+        {{ formatDate(notification.created) }}
       </div>
     </div>
 
@@ -49,7 +37,7 @@
     <div class="flex-shrink-0 flex gap-2">
       <!-- Mark as read/unread -->
       <button
-        v-if="!notification.is_read"
+        v-if="!notification.read_at"
         class="p-1 hover:bg-surface-container-high rounded transition-colors"
         :title="$t('notifications.mark_as_read')"
         @click="emit('mark-read')"
@@ -70,7 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import type { Notification } from '@/services/notifications.service'
 
 defineProps<{
@@ -82,12 +69,11 @@ const emit = defineEmits<{
   delete: []
 }>()
 
-useI18n()
-
 /**
  * Format date to ISO 8601 format
  */
-function formatDate(dateString: string): string {
+function formatDate(dateString: string | null): string {
+  if (!dateString) return ''
   return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
@@ -101,7 +87,8 @@ function formatDate(dateString: string): string {
 /**
  * Get icon class based on notification type
  */
-function getIconClass(type: string): string {
+function getIconClass(type: string | null): string {
+  if (!type) return 'pi pi-bell'
   const icons: Record<string, string> = {
     credit_low: 'pi pi-exclamation-circle',
     credit_critical: 'pi pi-alert-circle',
@@ -118,19 +105,20 @@ function getIconClass(type: string): string {
 }
 
 /**
- * Get icon color based on notification type
+ * Get icon color class based on notification type (uses CSS variables)
  */
-function getIconColor(type: string): string {
+function getIconColorClass(type: string | null): string {
+  if (!type) return 'text-primary'
   if (type.includes('critical') || type.includes('failed') || type.includes('suspended')) {
-    return '#ba1a1a' // error color
+    return 'text-error'
   }
   if (type.includes('low')) {
-    return '#9d4300' // secondary color
+    return 'text-secondary'
   }
   if (type.includes('success') || type.includes('created')) {
-    return '#003d28' // tertiary color
+    return 'text-tertiary'
   }
-  return '#00288e' // primary color
+  return 'text-primary'
 }
 </script>
 
