@@ -33,3 +33,6 @@ tests/screenshots/
 .cache/
 .next/
 out/
+
+# Git worktrees
+.worktrees/
