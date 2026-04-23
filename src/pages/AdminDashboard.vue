@@ -22,7 +22,6 @@
         icon="pi pi-server"
         color="tertiary"
         format="number"
-        :trend="stats.deploymentsTrend"
       />
       <StatCard
         :label="$t('dashboard.revenue_today')"
@@ -100,14 +99,16 @@ import StatCard from '@/components/charts/StatCard.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
-import { supabase } from '@/services/supabase'
+import { supabaseSchema } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
 
-// supabase.schema().from() resolves to `never` when Database has no public schema.
+// supabaseSchema resolves to `never` when Database has no public schema — cast once here.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase.schema('xayma_app') as any
+const db = supabaseSchema as any
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim() || '#00288e'
 const notificationStore = useNotificationStore()
 
 /**
@@ -118,7 +119,6 @@ const stats = reactive({
   activeDeployments: 0,
   revenueTodayFCFA: 0,
   failedDeployments: 0,
-  deploymentsTrend: 0,
 })
 
 /**
@@ -211,13 +211,15 @@ async function loadDashboardData() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
       d.setUTCDate(d.getUTCDate() - i)
-      dayMap.set(d.toLocaleDateString('en-US', { weekday: 'short' }), 0)
+      dayMap.set(d.toLocaleDateString(locale.value, { weekday: 'short' }), 0)
     }
     for (const row of deploymentsResult.data) {
-      const label = new Date(row.created).toLocaleDateString('en-US', { weekday: 'short' })
+      const label = new Date(row.created).toLocaleDateString(locale.value, { weekday: 'short' })
       if (dayMap.has(label)) dayMap.set(label, dayMap.get(label) + 1)
     }
     deploymentsTrendData.value = Array.from(dayMap.entries()).map(([name, value]) => ({ name, value }))
+  } else {
+    notificationStore.addError(t('errors.fetch_failed'))
   }
 
   // Group 3: active deployments with plan for credit deduction chart
@@ -235,8 +237,10 @@ async function loadDashboardData() {
     }
     planCategories.value = Array.from(planTotals.keys())
     creditDeductionSeries.value = [
-      { name: t('dashboard.monthly_credits_by_plan'), data: Array.from(planTotals.values()), color: '#00288e' },
+      { name: t('dashboard.monthly_credits_by_plan'), data: Array.from(planTotals.values()), color: primaryColor },
     ]
+  } else {
+    notificationStore.addError(t('errors.fetch_failed'))
   }
 
   // Group 4: revenue by partner type
@@ -253,6 +257,8 @@ async function loadDashboardData() {
       typeMap.set(ptype, (typeMap.get(ptype) ?? 0) + (row.amountPaid ?? 0))
     }
     revenueByPartnerType.value = Array.from(typeMap.entries()).map(([name, value]) => ({ name, value }))
+  } else {
+    notificationStore.addError(t('errors.fetch_failed'))
   }
 }
 

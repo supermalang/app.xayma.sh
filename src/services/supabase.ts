@@ -29,3 +29,10 @@ const xayma = supabase.schema('xayma_app')
 export function supabaseFrom<T extends Parameters<typeof xayma.from>[0]>(table: T) {
   return xayma.from(table)
 }
+
+/**
+ * Pre-built schema accessor for the xayma_app schema.
+ * Use when supabaseFrom() is insufficient (e.g. join selects that TypeScript can't resolve).
+ * Cast to `any` at the call-site if needed — not here.
+ */
+export const supabaseSchema = supabase.schema('xayma_app')
