@@ -12,7 +12,7 @@ import {
   getTransactionsByDateRange,
 } from './credits.service'
 
-vi.mock('./supabase')
+vi.mock('./supabase', () => ({ supabaseFrom: vi.fn() }))
 
 describe('Credits Service', () => {
   beforeEach(() => {
@@ -236,6 +236,33 @@ describe('Credits Service', () => {
       } as any).mockReturnValueOnce(mockUpdateQuery as any)
 
       await expect(updateTransactionStatus('1', 'COMPLETED')).rejects.toThrow()
+    })
+
+    it('handles duplicate COMPLETED IPN gracefully (no-throw on COMPLETED → COMPLETED)', async () => {
+      const mockQuery = {
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', status: 'COMPLETED' },
+          error: null,
+        }),
+      }
+
+      const mockUpdateQuery = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: '1', status: 'COMPLETED' }],
+          error: null,
+        }),
+      }
+
+      vi.mocked(supabaseFrom).mockReturnValueOnce({
+        select: vi.fn().mockReturnValue(mockQuery),
+      } as any).mockReturnValueOnce(mockUpdateQuery as any)
+
+      const result = await updateTransactionStatus('1', 'COMPLETED')
+
+      expect(result).toBeDefined()
     })
   })
 
