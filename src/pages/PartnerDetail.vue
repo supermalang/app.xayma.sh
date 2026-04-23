@@ -130,26 +130,26 @@
             responsive-layout="scroll"
             class="p-datatable-striped"
           >
-            <Column field="created" :header="$t('credits.date')">
+            <Column field="created_at" :header="$t('credits.date')">
               <template #body="{ data }">
-                {{ formatDate(data.created) }}
+                {{ data.created_at ? formatDate(data.created_at as string) : '-' }}
               </template>
             </Column>
-            <Column field="transactionType" :header="$t('credits.type')">
+            <Column field="type" :header="$t('credits.type')">
               <template #body="{ data }">
-                <Tag :value="data.transactionType" :severity="getTransactionSeverity(data.transactionType)" />
+                <Tag :value="data.type" :severity="getTransactionSeverity(data.type as string | null)" />
               </template>
             </Column>
-            <Column field="creditsPurchased" :header="$t('credits.amount')">
+            <Column field="amount" :header="$t('credits.amount')">
               <template #body="{ data }">
-                <span :class="data.transactionType === 'TOPUP' ? 'text-tertiary' : 'text-error'" class="font-mono font-semibold">
+                <span :class="(data.type as string) === 'TOPUP' ? 'text-tertiary' : 'text-error'" class="font-mono font-semibold">
                   {{ formatTransactionAmount(data) }}
                 </span>
               </template>
             </Column>
-            <Column field="status" :header="$t('credits.status.active')">
+            <Column field="status" :header="$t('common.status')">
               <template #body="{ data }">
-                <Tag :value="data.status" :severity="getStatusSeverity(data.status)" />
+                <Tag :value="data.status" :severity="getStatusSeverity(data.status as string | null)" />
               </template>
             </Column>
             <template #empty>
@@ -171,9 +171,9 @@
           responsive-layout="scroll"
           class="p-datatable-striped"
         >
-          <Column field="created" :header="$t('audit.created')">
+          <Column field="created_at" :header="$t('audit.created')">
             <template #body="{ data }">
-              {{ formatDate(data.created) }}
+              {{ data.created_at ? formatDate(data.created_at as string) : '-' }}
             </template>
           </Column>
           <Column field="table_name" :header="$t('audit.table_name')" />
@@ -217,6 +217,8 @@ import { usePartnerStore } from '@/stores/partner.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { supabase } from '@/services/supabase'
 import { getDeploymentsByPartnerId } from '@/services/deployments.service'
+import { formatDate } from '@/lib/formatters'
+import type { Deployment } from '@/types/index'
 import Button from 'primevue/button'
 import SplitButton from 'primevue/splitbutton'
 import Dialog from 'primevue/dialog'
@@ -248,11 +250,11 @@ const creditsLoaded = ref(false)
 const auditLoaded = ref(false)
 
 // Tab data
-const deployments = ref<any[]>([])
+const deployments = ref<Deployment[]>([])
 const isLoadingDeployments = ref(false)
-const transactions = ref<any[]>([])
+const transactions = ref<unknown[]>([])
 const isLoadingTransactions = ref(false)
-const auditEntries = ref<any[]>([])
+const auditEntries = ref<unknown[]>([])
 const isLoadingAudit = ref(false)
 
 const partnerId = computed(() => parseInt(route.params.id as string))
@@ -264,8 +266,8 @@ const loadPartner = async () => {
     isLoading.value = true
     await partnerStore.fetchPartner(partnerId.value)
     partnerStore.subscribeToCredits(partnerId.value)
-  } catch (error) {
-    console.error('Failed to load partner:', error)
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
   } finally {
     isLoading.value = false
   }
@@ -339,11 +341,6 @@ const onTabChange = (event: { index: number }) => {
 }
 
 // Formatting helpers
-const formatDate = (date: string | null) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleString()
-}
-
 const getTransactionSeverity = (type: string | null) => {
   const map: Record<string, string> = {
     TOPUP: 'success',
@@ -363,9 +360,10 @@ const getStatusSeverity = (status: string | null) => {
   return map[status ?? ''] || 'secondary'
 }
 
-const formatTransactionAmount = (row: any): string => {
-  const amount = row.creditsPurchased ?? row.creditsUsed ?? 0
-  const sign = row.transactionType === 'TOPUP' || row.transactionType === 'REFUND' ? '+' : '−'
+const formatTransactionAmount = (row: unknown): string => {
+  const r = row as Record<string, unknown>
+  const amount = r.amount ?? 0
+  const sign = r.type === 'TOPUP' || r.type === 'REFUND' ? '+' : '−'
   return `${sign} ${Number(amount).toLocaleString('fr-SN')} FCFA`
 }
 
@@ -393,8 +391,8 @@ const handleFormSubmit = async (values: any) => {
     isSubmitting.value = true
     await partnerStore.updatePartner(partnerId.value, values)
     closeDialog()
-  } catch (error) {
-    console.error('Failed to update partner:', error)
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
   } finally {
     isSubmitting.value = false
   }
@@ -404,8 +402,8 @@ const handleFormSubmit = async (values: any) => {
 const changeStatus = async (status: string) => {
   try {
     await partnerStore.changeStatus(partnerId.value, status)
-  } catch (error) {
-    console.error('Failed to change status:', error)
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
   }
 }
 
