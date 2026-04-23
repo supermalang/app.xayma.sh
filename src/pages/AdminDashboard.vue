@@ -26,7 +26,7 @@
       />
       <StatCard
         :label="$t('dashboard.revenue_today')"
-        :value="stats.revenueTodayUSD"
+        :value="stats.revenueTodayFCFA"
         icon="pi pi-dollar"
         color="secondary"
         format="currency"
@@ -92,67 +92,59 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
+import { supabase } from '@/services/supabase'
+import { useNotificationStore } from '@/stores/notifications.store'
+
+// supabase.schema().from() resolves to `never` when Database has no public schema.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase.schema('xayma_app') as any
+
+const { t } = useI18n()
+const notificationStore = useNotificationStore()
 
 /**
- * Dashboard statistics (would be fetched from API)
+ * Dashboard statistics (fetched from Supabase)
  */
 const stats = reactive({
-  totalPartners: 42,
-  activeDeployments: 156,
-  revenueTodayUSD: 12400,
-  failedDeployments: 3,
-  deploymentsTrend: 8,
+  totalPartners: 0,
+  activeDeployments: 0,
+  revenueTodayFCFA: 0,
+  failedDeployments: 0,
+  deploymentsTrend: 0,
 })
 
 /**
- * Kafka metrics
+ * Kafka metrics — static placeholder (no Kafka metrics table in schema)
  */
 const kafkaMetrics = reactive({
-  consumerLag: 245,
-  messagesProcessed: 18750,
-  failedEvents: 2,
+  consumerLag: 0,
+  messagesProcessed: 0,
+  failedEvents: 0,
 })
 
 /**
- * Chart data: Deployments trend
+ * Chart data: Deployments trend (last 7 days)
  */
-const deploymentsTrendData = [
-  { name: 'Mon', value: 140 },
-  { name: 'Tue', value: 145 },
-  { name: 'Wed', value: 150 },
-  { name: 'Thu', value: 152 },
-  { name: 'Fri', value: 155 },
-  { name: 'Sat', value: 156 },
-  { name: 'Sun', value: 156 },
-]
+const deploymentsTrendData = ref<{ name: string; value: number }[]>([])
 
 /**
- * Chart data: Credit deduction by plan
+ * Chart data: Credit deduction by plan (active deployments × monthly credits)
  */
-const planCategories = ['Starter', 'Pro', 'Enterprise', 'Reseller']
-const creditDeductionSeries = [
-  {
-    name: 'Credits Deducted (24h)',
-    data: [2400, 4800, 12000, 8600],
-    color: '#00288e',
-  },
-]
+const planCategories = ref<string[]>([])
+const creditDeductionSeries = ref<{ name: string; data: number[]; color: string }[]>([])
 
 /**
  * Chart data: Revenue by partner type
  */
-const revenueByPartnerType = [
-  { name: 'Customers', value: 58 },
-  { name: 'Resellers', value: 32 },
-  { name: 'Sales Partners', value: 10 },
-]
+const revenueByPartnerType = ref<{ name: string; value: number }[]>([])
 
 /**
  * Format number with thousands separator
@@ -161,9 +153,111 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat('en-US').format(value)
 }
 
-// In production, fetch from API
+/**
+ * Build a ISO date string for the start of today (UTC)
+ */
+function todayUTCStart(): string {
+  const d = new Date()
+  d.setUTCHours(0, 0, 0, 0)
+  return d.toISOString()
+}
+
+/**
+ * Return the ISO date string for N days ago (UTC midnight)
+ */
+function daysAgoUTC(n: number): string {
+  const d = new Date()
+  d.setUTCHours(0, 0, 0, 0)
+  d.setUTCDate(d.getUTCDate() - n)
+  return d.toISOString()
+}
+
+/**
+ * Load all dashboard data in parallel query groups
+ */
+async function loadDashboardData() {
+  // Group 1: scalar counts and revenue (parallel)
+  const [partnersResult, activeDeployResult, failedDeployResult, revenueResult] =
+    await Promise.all([
+      db.from('partners').select('id', { count: 'exact', head: true }),
+      db.from('deployments').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      db.from('deployments').select('id', { count: 'exact', head: true }).eq('status', 'failed'),
+      db.from('credit_transactions')
+        .select('amountPaid')
+        .eq('status', 'completed')
+        .eq('transactionType', 'credit')
+        .gte('created', todayUTCStart()),
+    ])
+
+  if (partnersResult.error || activeDeployResult.error || failedDeployResult.error || revenueResult.error) {
+    notificationStore.addError(t('errors.fetch_failed'))
+    return
+  }
+
+  stats.totalPartners = partnersResult.count ?? 0
+  stats.activeDeployments = activeDeployResult.count ?? 0
+  stats.failedDeployments = failedDeployResult.count ?? 0
+  stats.revenueTodayFCFA = (revenueResult.data ?? []).reduce(
+    (sum: number, row: { amountPaid: number | null }) => sum + (row.amountPaid ?? 0),
+    0
+  )
+
+  // Group 2: deployments created in last 7 days (for trend line)
+  const sevenDaysAgo = daysAgoUTC(6)
+  const deploymentsResult = await db.from('deployments').select('created').gte('created', sevenDaysAgo)
+
+  if (!deploymentsResult.error && deploymentsResult.data) {
+    const dayMap = new Map()
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setUTCDate(d.getUTCDate() - i)
+      dayMap.set(d.toLocaleDateString('en-US', { weekday: 'short' }), 0)
+    }
+    for (const row of deploymentsResult.data) {
+      const label = new Date(row.created).toLocaleDateString('en-US', { weekday: 'short' })
+      if (dayMap.has(label)) dayMap.set(label, dayMap.get(label) + 1)
+    }
+    deploymentsTrendData.value = Array.from(dayMap.entries()).map(([name, value]) => ({ name, value }))
+  }
+
+  // Group 3: active deployments with plan for credit deduction chart
+  const plansResult = await db
+    .from('deployments')
+    .select('deploymentPlan, serviceplans(label, monthlyCreditConsumption)')
+    .eq('status', 'active')
+
+  if (!plansResult.error && plansResult.data) {
+    const planTotals = new Map()
+    for (const row of plansResult.data) {
+      const plan = row.serviceplans
+      if (!plan) continue
+      planTotals.set(plan.label, (planTotals.get(plan.label) ?? 0) + plan.monthlyCreditConsumption)
+    }
+    planCategories.value = Array.from(planTotals.keys())
+    creditDeductionSeries.value = [
+      { name: t('dashboard.monthly_credits_by_plan'), data: Array.from(planTotals.values()), color: '#00288e' },
+    ]
+  }
+
+  // Group 4: revenue by partner type
+  const revenueByTypeResult = await db
+    .from('credit_transactions')
+    .select('amountPaid, partners(partner_type)')
+    .eq('status', 'completed')
+    .eq('transactionType', 'credit')
+
+  if (!revenueByTypeResult.error && revenueByTypeResult.data) {
+    const typeMap = new Map()
+    for (const row of revenueByTypeResult.data) {
+      const ptype = row.partners?.partner_type ?? 'unknown'
+      typeMap.set(ptype, (typeMap.get(ptype) ?? 0) + (row.amountPaid ?? 0))
+    }
+    revenueByPartnerType.value = Array.from(typeMap.entries()).map(([name, value]) => ({ name, value }))
+  }
+}
+
 onMounted(() => {
-  // await fetchAdminDashboardData()
+  loadDashboardData()
 })
 </script>
 

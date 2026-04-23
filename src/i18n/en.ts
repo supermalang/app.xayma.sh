@@ -166,6 +166,7 @@ export default {
     monthly_consumption: 'Monthly Consumption Trend',
     deployments_trend: 'Deployments Over Time',
     credit_deduction_by_plan: 'Credit Deduction by Plan',
+    monthly_credits_by_plan: 'Monthly Credits by Plan',
     revenue_by_partner_type: 'Revenue by Partner Type',
     commission_breakdown: 'Commission Breakdown',
 
