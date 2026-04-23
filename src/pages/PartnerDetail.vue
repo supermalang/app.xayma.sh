@@ -210,12 +210,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePartnerStore } from '@/stores/partner.store'
 import { useNotificationStore } from '@/stores/notifications.store'
-import { supabase } from '@/services/supabase'
+import { supabaseFrom } from '@/services/supabase'
 import { getDeploymentsByPartnerId } from '@/services/deployments.service'
 import { formatDate } from '@/lib/formatters'
 import type { Deployment } from '@/types/index'
@@ -240,7 +240,6 @@ const partnerStore = usePartnerStore()
 const notificationStore = useNotificationStore()
 
 // State
-const isLoading = ref(false)
 const isSubmitting = ref(false)
 const showDialog = ref(false)
 
@@ -263,13 +262,10 @@ const partner = computed(() => partnerStore.selectedPartner)
 // Load partner
 const loadPartner = async () => {
   try {
-    isLoading.value = true
     await partnerStore.fetchPartner(partnerId.value)
     partnerStore.subscribeToCredits(partnerId.value)
   } catch {
     notificationStore.addError(t('errors.fetch_failed'))
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -292,10 +288,10 @@ const loadTransactions = async () => {
   if (creditsLoaded.value) return
   try {
     isLoadingTransactions.value = true
-    const { data, error } = await supabase.schema('xayma_app').from('credit_transactions' as never)
+    const { data, error } = await supabaseFrom('credit_transactions' as never)
       .select('*')
       .eq('partner_id', partnerId.value)
-      .order('created', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(50)
     if (error) {
       notificationStore.addError(t('errors.fetch_failed'))
@@ -315,10 +311,10 @@ const loadAuditEntries = async () => {
   if (auditLoaded.value) return
   try {
     isLoadingAudit.value = true
-    const { data, error } = await supabase.schema('xayma_app').from('general_audit' as never)
+    const { data, error } = await supabaseFrom('general_audit' as never)
       .select('*')
       .eq('company_id', partnerId.value)
-      .order('created', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(100)
     if (error) {
       notificationStore.addError(t('errors.fetch_failed'))
@@ -386,7 +382,7 @@ const closeDialog = () => {
 }
 
 // Form submission
-const handleFormSubmit = async (values: any) => {
+const handleFormSubmit = async (values: Record<string, unknown>) => {
   try {
     isSubmitting.value = true
     await partnerStore.updatePartner(partnerId.value, values)
@@ -415,6 +411,10 @@ const goBack = () => {
 // Lifecycle
 onMounted(() => {
   loadPartner()
+})
+
+onUnmounted(() => {
+  partnerStore.unsubscribeFromCredits()
 })
 </script>
 
