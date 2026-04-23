@@ -379,9 +379,7 @@ export default {
       deployments: 'Deployments',
       credits: 'Credits',
       audit: 'Audit',
-      deployments_coming_soon: 'Deployments feature coming soon',
-      transactions_coming_soon: 'Transaction history coming soon',
-      audit_coming_soon: 'Audit log coming soon',
+      no_deployments: 'No deployments found for this partner',
     },
   },
 

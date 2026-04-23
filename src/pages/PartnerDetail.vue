@@ -35,11 +35,11 @@
     <div class="flex gap-4">
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.form.status') }}:</span>
-        <PartnerStatusBadge :status="partner?.status" />
+        <PartnerStatusBadge :status="(partner?.status as 'active' | 'suspended' | 'inactive') ?? 'inactive'" />
       </div>
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.form.type') }}:</span>
-        <PartnerTypeBadge :type="partner?.partner_type" />
+        <PartnerTypeBadge :type="(partner?.partner_type as 'customer' | 'reseller') ?? 'customer'" />
       </div>
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.table.credits') }}:</span>
@@ -48,9 +48,9 @@
     </div>
 
     <!-- TabView -->
-    <TabView v-if="partner" class="mt-6">
+    <TabView v-if="partner" class="mt-6" @tab-change="onTabChange">
       <!-- Profile Tab -->
-      <TabPanel :header="$t('partners.tabs.profile')">
+      <TabPanel value="profile" :header="$t('partners.tabs.profile')">
         <div class="grid grid-cols-2 gap-6">
           <div>
             <label class="block text-sm font-medium text-on-surface-variant mb-1">
@@ -92,30 +92,102 @@
       </TabPanel>
 
       <!-- Deployments Tab -->
-      <TabPanel :header="$t('partners.tabs.deployments')">
-        <div class="text-on-surface-variant text-sm p-4">
-          {{ $t('partners.tabs.deployments_coming_soon') }}
+      <TabPanel value="deployments" :header="$t('partners.tabs.deployments')">
+        <div v-if="isLoadingDeployments" class="flex justify-center py-12">
+          <ProgressSpinner />
+        </div>
+        <div v-else-if="deployments.length === 0" class="text-center py-12 text-on-surface-variant">
+          {{ $t('partners.tabs.no_deployments') }}
+        </div>
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <DeploymentCard
+            v-for="deployment in deployments"
+            :key="deployment.id"
+            :deployment="deployment"
+            @stop="() => {}"
+            @start="() => {}"
+            @restart="() => {}"
+            @delete="() => {}"
+          />
         </div>
       </TabPanel>
 
       <!-- Credits Tab -->
-      <TabPanel :header="$t('partners.tabs.credits')">
+      <TabPanel value="credits" :header="$t('partners.tabs.credits')">
         <div class="space-y-4">
           <div class="bg-surface-container-low p-4 rounded-lg">
             <div class="text-sm text-on-surface-variant mb-1">{{ $t('credits.balance') }}</div>
             <div class="text-3xl font-bold text-primary">{{ partner.remainingCredits }}</div>
           </div>
-          <div class="text-on-surface-variant text-sm p-4">
-            {{ $t('partners.tabs.transactions_coming_soon') }}
+
+          <div v-if="isLoadingTransactions" class="flex justify-center py-8">
+            <ProgressSpinner />
           </div>
+          <DataTable
+            v-else
+            :value="transactions"
+            striped-rows
+            responsive-layout="scroll"
+            class="p-datatable-striped"
+          >
+            <Column field="created" :header="$t('credits.date')">
+              <template #body="{ data }">
+                {{ formatDate(data.created) }}
+              </template>
+            </Column>
+            <Column field="transactionType" :header="$t('credits.type')">
+              <template #body="{ data }">
+                <Tag :value="data.transactionType" :severity="getTransactionSeverity(data.transactionType)" />
+              </template>
+            </Column>
+            <Column field="creditsPurchased" :header="$t('credits.amount')">
+              <template #body="{ data }">
+                <span :class="data.transactionType === 'TOPUP' ? 'text-tertiary' : 'text-error'" class="font-mono font-semibold">
+                  {{ formatTransactionAmount(data) }}
+                </span>
+              </template>
+            </Column>
+            <Column field="status" :header="$t('credits.status.active')">
+              <template #body="{ data }">
+                <Tag :value="data.status" :severity="getStatusSeverity(data.status)" />
+              </template>
+            </Column>
+            <template #empty>
+              <div class="text-center text-on-surface-variant py-8">{{ $t('credits.no_transactions') }}</div>
+            </template>
+          </DataTable>
         </div>
       </TabPanel>
 
       <!-- Audit Tab -->
-      <TabPanel :header="$t('partners.tabs.audit')">
-        <div class="text-on-surface-variant text-sm p-4">
-          {{ $t('partners.tabs.audit_coming_soon') }}
+      <TabPanel value="audit" :header="$t('partners.tabs.audit')">
+        <div v-if="isLoadingAudit" class="flex justify-center py-12">
+          <ProgressSpinner />
         </div>
+        <DataTable
+          v-else
+          :value="auditEntries"
+          striped-rows
+          responsive-layout="scroll"
+          class="p-datatable-striped"
+        >
+          <Column field="created" :header="$t('audit.created')">
+            <template #body="{ data }">
+              {{ formatDate(data.created) }}
+            </template>
+          </Column>
+          <Column field="table_name" :header="$t('audit.table_name')" />
+          <Column field="action" :header="$t('audit.action')">
+            <template #body="{ data }">
+              <Tag :value="data.action" :severity="getActionSeverity(data.action)" />
+            </template>
+          </Column>
+          <Column field="email" :header="$t('audit.user')" />
+          <Column field="description" :header="$t('audit.description')" />
+          <template #empty>
+            <div class="text-center text-on-surface-variant py-8">{{ $t('common.no_data') }}</div>
+          </template>
+        </DataTable>
       </TabPanel>
     </TabView>
 
@@ -142,24 +214,46 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePartnerStore } from '@/stores/partner.store'
+import { useNotificationStore } from '@/stores/notifications.store'
+import { supabase } from '@/services/supabase'
+import { getDeploymentsByPartnerId } from '@/services/deployments.service'
 import Button from 'primevue/button'
 import SplitButton from 'primevue/splitbutton'
 import Dialog from 'primevue/dialog'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Tag from 'primevue/tag'
+import ProgressSpinner from 'primevue/progressspinner'
 import PartnerForm from '@/components/partners/PartnerForm.vue'
 import PartnerStatusBadge from '@/components/partners/PartnerStatusBadge.vue'
 import PartnerTypeBadge from '@/components/partners/PartnerTypeBadge.vue'
+import DeploymentCard from '@/components/deployments/DeploymentCard.vue'
 
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 const partnerStore = usePartnerStore()
+const notificationStore = useNotificationStore()
 
 // State
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const showDialog = ref(false)
+
+// Lazy-load flags (prevent re-fetching on tab switch)
+const deploymentsLoaded = ref(false)
+const creditsLoaded = ref(false)
+const auditLoaded = ref(false)
+
+// Tab data
+const deployments = ref<any[]>([])
+const isLoadingDeployments = ref(false)
+const transactions = ref<any[]>([])
+const isLoadingTransactions = ref(false)
+const auditEntries = ref<any[]>([])
+const isLoadingAudit = ref(false)
 
 const partnerId = computed(() => parseInt(route.params.id as string))
 const partner = computed(() => partnerStore.selectedPartner)
@@ -169,13 +263,119 @@ const loadPartner = async () => {
   try {
     isLoading.value = true
     await partnerStore.fetchPartner(partnerId.value)
-    // Subscribe to credit updates
     partnerStore.subscribeToCredits(partnerId.value)
   } catch (error) {
     console.error('Failed to load partner:', error)
   } finally {
     isLoading.value = false
   }
+}
+
+// Load deployments for this partner (lazy)
+const loadDeployments = async () => {
+  if (deploymentsLoaded.value) return
+  try {
+    isLoadingDeployments.value = true
+    deployments.value = await getDeploymentsByPartnerId(partnerId.value)
+    deploymentsLoaded.value = true
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
+  } finally {
+    isLoadingDeployments.value = false
+  }
+}
+
+// Load credit transactions for this partner (lazy)
+const loadTransactions = async () => {
+  if (creditsLoaded.value) return
+  try {
+    isLoadingTransactions.value = true
+    const { data, error } = await supabase.schema('xayma_app').from('credit_transactions' as never)
+      .select('*')
+      .eq('partner_id', partnerId.value)
+      .order('created', { ascending: false })
+      .limit(50)
+    if (error) {
+      notificationStore.addError(t('errors.fetch_failed'))
+    } else {
+      transactions.value = data || []
+      creditsLoaded.value = true
+    }
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
+  } finally {
+    isLoadingTransactions.value = false
+  }
+}
+
+// Load audit entries for this partner (lazy)
+const loadAuditEntries = async () => {
+  if (auditLoaded.value) return
+  try {
+    isLoadingAudit.value = true
+    const { data, error } = await supabase.schema('xayma_app').from('general_audit' as never)
+      .select('*')
+      .eq('company_id', partnerId.value)
+      .order('created', { ascending: false })
+      .limit(100)
+    if (error) {
+      notificationStore.addError(t('errors.fetch_failed'))
+    } else {
+      auditEntries.value = data || []
+      auditLoaded.value = true
+    }
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
+  } finally {
+    isLoadingAudit.value = false
+  }
+}
+
+// Tab change handler — lazy load per tab (0=Profile, 1=Deployments, 2=Credits, 3=Audit)
+const onTabChange = (event: { index: number }) => {
+  if (event.index === 1) loadDeployments()
+  else if (event.index === 2) loadTransactions()
+  else if (event.index === 3) loadAuditEntries()
+}
+
+// Formatting helpers
+const formatDate = (date: string | null) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleString()
+}
+
+const getTransactionSeverity = (type: string | null) => {
+  const map: Record<string, string> = {
+    TOPUP: 'success',
+    DEBIT: 'info',
+    REFUND: 'warning',
+    EXPIRY: 'danger',
+  }
+  return map[type ?? ''] || 'secondary'
+}
+
+const getStatusSeverity = (status: string | null) => {
+  const map: Record<string, string> = {
+    COMPLETED: 'success',
+    PENDING: 'warning',
+    FAILED: 'danger',
+  }
+  return map[status ?? ''] || 'secondary'
+}
+
+const formatTransactionAmount = (row: any): string => {
+  const amount = row.creditsPurchased ?? row.creditsUsed ?? 0
+  const sign = row.transactionType === 'TOPUP' || row.transactionType === 'REFUND' ? '+' : '−'
+  return `${sign} ${Number(amount).toLocaleString('fr-SN')} FCFA`
+}
+
+const getActionSeverity = (action: string | null) => {
+  const map: Record<string, string> = {
+    INSERT: 'success',
+    UPDATE: 'info',
+    DELETE: 'danger',
+  }
+  return map[action ?? ''] || 'secondary'
 }
 
 // Dialog handlers
