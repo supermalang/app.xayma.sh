@@ -2,7 +2,7 @@
   <div>
     <AppSidebar />
     <AppHeader />
-    <main class="ml-64 pt-16 p-8 min-h-screen bg-surface">
+    <main class="ml-0 md:ml-64 pt-16 p-8 min-h-screen bg-surface">
       <RouterView />
     </main>
   </div>

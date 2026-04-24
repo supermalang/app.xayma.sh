@@ -1,5 +1,5 @@
 <template>
-  <aside class="w-64 h-[calc(100vh-64px)] fixed left-0 top-16 bg-slate-50 border-r border-outline-variant/20 flex flex-col z-40">
+  <aside class="hidden md:block w-64 h-[calc(100vh-64px)] fixed left-0 top-16 bg-slate-50 border-r border-outline-variant/20 flex flex-col z-40">
     <!-- Org Identity -->
     <div class="px-4 py-8 border-b border-outline-variant/10">
       <div class="flex items-center gap-3">
@@ -80,16 +80,16 @@ interface NavItem {
 }
 
 const allNavItems: NavItem[] = [
-  { path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard', roles: ['ADMIN', 'CUSTOMER', 'RESELLER', 'SALES'] },
+  { path: '/', label: t('nav.dashboard'), icon: 'dashboard', roles: ['ADMIN', 'CUSTOMER', 'RESELLER', 'SALES'] },
   { path: '/deployments', label: t('nav.deployments'), icon: 'rocket_launch', roles: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
   { path: '/partners', label: t('nav.partners'), icon: 'group', roles: ['ADMIN', 'RESELLER', 'SALES'] },
-  { path: '/credits', label: t('nav.credits'), icon: 'receipt_long', roles: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
+  { path: '/credits/buy', label: t('nav.credits'), icon: 'receipt_long', roles: ['CUSTOMER', 'RESELLER'] },
   { path: '/portfolio', label: t('nav.portfolio'), icon: 'briefcase', roles: ['SALES'] },
   { path: '/commissions', label: t('nav.commissions'), icon: 'trending_up', roles: ['SALES'] },
   { path: '/services', label: t('nav.services'), icon: 'settings_suggest', roles: ['ADMIN'] },
   { path: '/control-nodes', label: t('nav.control_nodes'), icon: 'dns', roles: ['ADMIN'] },
   { path: '/audit', label: t('nav.audit'), icon: 'history', roles: ['ADMIN'] },
-  { path: '/settings', label: t('nav.settings'), icon: 'settings', roles: ['ADMIN', 'CUSTOMER', 'RESELLER', 'SALES'] },
+  // { path: '/settings', label: t('nav.settings'), icon: 'settings', roles: ['ADMIN'] }, // TODO: Sprint 6.9
 ]
 
 const visibleNavItems = computed(() => {
