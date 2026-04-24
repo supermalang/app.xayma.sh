@@ -195,6 +195,27 @@ export function useDeployments() {
   }
 
   /**
+   * Stop a deployment
+   */
+  async function stopDeployment(deploymentId: number) {
+    return performDeploymentAction(deploymentId, 'stop')
+  }
+
+  /**
+   * Start a deployment
+   */
+  async function startDeployment(deploymentId: number) {
+    return performDeploymentAction(deploymentId, 'start')
+  }
+
+  /**
+   * Restart a deployment
+   */
+  async function restartDeployment(deploymentId: number) {
+    return performDeploymentAction(deploymentId, 'restart')
+  }
+
+  /**
    * Terminate a deployment
    */
   async function terminateDeployment(deploymentId: number) {
@@ -301,6 +322,9 @@ export function useDeployments() {
     validateCredits,
     createDeployment,
     performDeploymentAction,
+    stopDeployment,
+    startDeployment,
+    restartDeployment,
     terminateDeployment,
     deleteDeployment,
     subscribeToDeploymentUpdates,

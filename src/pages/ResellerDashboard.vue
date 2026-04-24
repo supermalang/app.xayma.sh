@@ -103,6 +103,88 @@
       </DataTable>
     </Card>
 
+    <!-- All Deployments Section -->
+    <Card>
+      <template #header>
+        <div class="p-4">
+          <h3 class="text-base font-semibold text-on-surface">
+            {{ $t('deployments.title') }}
+          </h3>
+        </div>
+      </template>
+
+      <DataTable
+        :value="deployments"
+        :loading="deploymentsLoading"
+        striped-rows
+        responsive-layout="stack"
+        breakpoint="768px"
+        paginator
+        :rows="10"
+        class="text-sm"
+      >
+        <Column
+          field="label"
+          :header="$t('deployments.form.label')"
+        />
+        <Column
+          field="domainNames"
+          :header="$t('common.status')"
+        >
+          <template #body="slotProps">
+            <span v-if="slotProps.data.domainNames?.[0]" class="text-xs">
+              {{ slotProps.data.domainNames[0] }}
+            </span>
+            <span v-else class="text-xs text-on-surface-variant">—</span>
+          </template>
+        </Column>
+        <Column
+          field="status"
+          :header="$t('common.status')"
+        >
+          <template #body="slotProps">
+            <DeploymentStatusBadge :status="slotProps.data.status" />
+          </template>
+        </Column>
+        <Column :header="$t('common.actions')">
+          <template #body="slotProps">
+            <div class="flex gap-2">
+              <!-- Stop button -->
+              <Button
+                v-if="canStop(slotProps.data)"
+                icon="pi pi-pause"
+                class="p-button-rounded p-button-text p-button-sm"
+                :title="$t('deployments.action_stop_success')"
+                :disabled="isPendingAction(slotProps.data.id)"
+                :loading="pendingActions[slotProps.data.id] === 'stop'"
+                @click="handleStopDeployment(slotProps.data.id)"
+              />
+              <!-- Start button -->
+              <Button
+                v-if="canStart(slotProps.data)"
+                icon="pi pi-play"
+                class="p-button-rounded p-button-text p-button-sm"
+                :title="$t('deployments.action_start_success')"
+                :disabled="isPendingAction(slotProps.data.id)"
+                :loading="pendingActions[slotProps.data.id] === 'start'"
+                @click="handleStartDeployment(slotProps.data.id)"
+              />
+              <!-- Restart button -->
+              <Button
+                v-if="canRestart(slotProps.data)"
+                icon="pi pi-refresh"
+                class="p-button-rounded p-button-text p-button-sm"
+                :title="$t('deployments.action_restart_success')"
+                :disabled="isPendingAction(slotProps.data.id)"
+                :loading="pendingActions[slotProps.data.id] === 'restart'"
+                @click="handleRestartDeployment(slotProps.data.id)"
+              />
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+    </Card>
+
     <!-- At-Risk Clients Panel -->
     <Card v-if="atRiskClients.length > 0">
       <template #header>
@@ -161,27 +243,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Button from 'primevue/button'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { useDeployments } from '@/composables/useDeployments'
+import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
-const { credits, refresh } = usePartnerCredits(partnerId.value)
+const partnerId = computed(() => authStore.profile?.company_id ?? 0)
+const { credits, refresh } = usePartnerCredits(String(partnerId.value))
+const {
+  deployments,
+  isLoading: deploymentsLoading,
+  loadDeployments,
+  stopDeployment,
+  startDeployment,
+  restartDeployment,
+  subscribeToDeploymentUpdates,
+} = useDeployments()
 
 // Re-fetch when auth profile loads
 watch(() => authStore.profile?.company_id, (id) => {
-  if (id) refresh()
+  if (id) {
+    refresh()
+    loadDeployments(id)
+  }
 })
+
+// Load deployments on mount
+onMounted(() => {
+  if (partnerId.value) {
+    loadDeployments(partnerId.value)
+    subscribeToDeploymentUpdates(partnerId.value)
+  }
+})
+
+// Clean up realtime subscription on unmount
+onUnmounted(() => {
+  // subscribeToDeploymentUpdates handles its own cleanup via onUnmounted
+})
+
+/**
+ * Deployment action pending state (deploymentId -> action)
+ */
+const pendingActions = ref<Record<number, 'stop' | 'start' | 'restart'>>({})
 
 /**
  * Monthly spend
@@ -251,6 +366,70 @@ const atRiskClients = ref([
     monthlyConsumption: 1600,
   },
 ])
+
+/**
+ * Handle stop deployment action
+ */
+async function handleStopDeployment(deploymentId: number) {
+  pendingActions.value[deploymentId] = 'stop'
+  try {
+    await stopDeployment(deploymentId)
+  } finally {
+    delete pendingActions.value[deploymentId]
+  }
+}
+
+/**
+ * Handle start deployment action
+ */
+async function handleStartDeployment(deploymentId: number) {
+  pendingActions.value[deploymentId] = 'start'
+  try {
+    await startDeployment(deploymentId)
+  } finally {
+    delete pendingActions.value[deploymentId]
+  }
+}
+
+/**
+ * Handle restart deployment action
+ */
+async function handleRestartDeployment(deploymentId: number) {
+  pendingActions.value[deploymentId] = 'restart'
+  try {
+    await restartDeployment(deploymentId)
+  } finally {
+    delete pendingActions.value[deploymentId]
+  }
+}
+
+/**
+ * Check if a deployment is pending an action
+ */
+function isPendingAction(deploymentId: number): boolean {
+  return deploymentId in pendingActions.value
+}
+
+/**
+ * Check if stop action is allowed for a deployment
+ */
+function canStop(deployment: any): boolean {
+  return deployment.status === 'active' && !isPendingAction(deployment.id)
+}
+
+/**
+ * Check if start action is allowed for a deployment
+ */
+function canStart(deployment: any): boolean {
+  return deployment.status === 'stopped' && !isPendingAction(deployment.id)
+}
+
+/**
+ * Check if restart action is allowed for a deployment
+ */
+function canRestart(deployment: any): boolean {
+  return deployment.status === 'active' && !isPendingAction(deployment.id)
+}
 
 /**
  * Navigate to top up page

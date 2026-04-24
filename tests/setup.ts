@@ -3,6 +3,7 @@ import { beforeEach } from 'vitest'
 import PrimeVue from 'primevue/config'
 import { createI18n } from 'vue-i18n'
 import { createPinia, setActivePinia } from 'pinia'
+import en from '@/i18n/en'
 
 // matchMedia stub — PrimeVue Select uses it but jsdom doesn't implement it
 Object.defineProperty(window, 'matchMedia', {
@@ -19,7 +20,7 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
-const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
+const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
 
 beforeEach(() => {
   const pinia = createPinia()
