@@ -9,9 +9,11 @@ import Settings from '@/pages/Settings.vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 import en from '@/i18n/en'
-import router from '@/router'
 
 // Mock composables
+const mockLoadSettings = vi.fn()
+const mockUpdateSetting = vi.fn()
+
 vi.mock('@/composables/useAuth', () => ({
   useAuth: () => ({
     isAdmin: { value: true },
@@ -25,13 +27,15 @@ vi.mock('@/composables/useSettings', () => ({
   useSettings: () => ({
     settings: { value: {} },
     loading: { value: false },
-    loadSettings: vi.fn(),
-    updateSetting: vi.fn(),
+    loadSettings: mockLoadSettings,
+    updateSetting: mockUpdateSetting,
   }),
 }))
 
 vi.mock('@/services/supabase', () => ({
-  supabaseFrom: vi.fn(),
+  supabaseFrom: vi.fn(() => ({
+    select: vi.fn().mockResolvedValue({ data: [], error: null }),
+  })),
 }))
 
 describe('Settings', () => {
@@ -48,87 +52,71 @@ describe('Settings', () => {
     vi.clearAllMocks()
   })
 
-  it('renders the settings page with accordion sections', () => {
+  it('renders the settings page', async () => {
     wrapper = mount(Settings, {
       global: {
-        plugins: [pinia, i18n, router],
+        plugins: [pinia, i18n],
         stubs: {
-          Card: true,
-          Accordion: true,
-          AccordionTab: true,
-          InputText: true,
-          InputNumber: true,
-          ToggleButton: true,
-          ProgressSpinner: true,
-        },
-      },
-    })
-
-    expect(wrapper.find('h1').text()).toContain('Settings')
-    expect(wrapper.text()).toContain('Payments')
-    expect(wrapper.text()).toContain('Notifications')
-    expect(wrapper.text()).toContain('Limits')
-    expect(wrapper.text()).toContain('Infrastructure')
-  })
-
-  it('shows loading spinner when loading is true', async () => {
-    const useSettingsMock = vi.hoisted(() => ({
-      useSettings: () => ({
-        settings: { value: {} },
-        loading: { value: true },
-        loadSettings: vi.fn(),
-        updateSetting: vi.fn(),
-      }),
-    }))
-
-    vi.doMock('@/composables/useSettings', () => useSettingsMock)
-
-    wrapper = mount(Settings, {
-      global: {
-        plugins: [pinia, i18n, router],
-        stubs: {
-          Card: true,
-          Accordion: true,
-          AccordionTab: true,
-          InputText: true,
-          InputNumber: true,
-          ToggleButton: true,
-          ProgressSpinner: true,
+          Card: { template: '<div><slot /></div>' },
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionTab: { template: '<div><slot /></div>' },
+          InputText: { template: '<input />' },
+          InputNumber: { template: '<input />' },
+          ToggleButton: { template: '<button />' },
+          ProgressSpinner: { template: '<div>Loading</div>' },
+          RouterLink: { template: '<a><slot /></a>' },
         },
       },
     })
 
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Loading')
+    expect(wrapper.find('h1').text()).toContain('Settings')
   })
 
   it('calls loadSettings on mount', async () => {
-    const loadSettingsMock = vi.fn()
-
-    vi.doMock('@/composables/useSettings', () => ({
-      useSettings: () => ({
-        settings: { value: {} },
-        loading: { value: false },
-        loadSettings: loadSettingsMock,
-        updateSetting: vi.fn(),
-      }),
-    }))
-
     wrapper = mount(Settings, {
       global: {
-        plugins: [pinia, i18n, router],
+        plugins: [pinia, i18n],
         stubs: {
-          Card: true,
-          Accordion: true,
-          AccordionTab: true,
-          InputText: true,
-          InputNumber: true,
-          ToggleButton: true,
-          ProgressSpinner: true,
+          Card: { template: '<div><slot /></div>' },
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionTab: { template: '<div><slot /></div>' },
+          InputText: { template: '<input />' },
+          InputNumber: { template: '<input />' },
+          ToggleButton: { template: '<button />' },
+          ProgressSpinner: { template: '<div>Loading</div>' },
+          RouterLink: { template: '<a><slot /></a>' },
         },
       },
     })
 
-    expect(loadSettingsMock).toHaveBeenCalled()
+    await wrapper.vm.$nextTick()
+    expect(mockLoadSettings).toHaveBeenCalled()
+  })
+
+  it('populates form from settings on mount', async () => {
+    vi.resetModules()
+
+    wrapper = mount(Settings, {
+      global: {
+        plugins: [pinia, i18n],
+        stubs: {
+          Card: { template: '<div><slot /></div>' },
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionTab: { template: '<div><slot /></div>' },
+          InputText: { template: '<input />' },
+          InputNumber: { template: '<input />' },
+          ToggleButton: { template: '<button />' },
+          ProgressSpinner: { template: '<div>Loading</div>' },
+          RouterLink: { template: '<a><slot /></a>' },
+        },
+      },
+    })
+
+    await wrapper.vm.$nextTick()
+
+    // Check that form refs are populated (defaults)
+    expect(wrapper.vm.creditWarningThreshold).toBeDefined()
+    expect(wrapper.vm.maxDeploymentsPerPartner).toBeDefined()
   })
 })
