@@ -130,6 +130,7 @@ import { usePartnerCredits } from '@/composables/usePartnerCredits'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { getDeploymentsByPartnerId } from '@/services/deployments.service'
+import type { DeploymentWithRelations } from '@/services/deployments.service'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -149,7 +150,7 @@ watch(() => authStore.profile?.company_id, (id) => {
 /**
  * Active deployments fetched from Supabase
  */
-const activeDeployments = ref<any[]>([])
+const activeDeployments = ref<DeploymentWithRelations[]>([])
 const isLoading = ref(false)
 
 async function fetchDeployments(companyId: number | string) {
