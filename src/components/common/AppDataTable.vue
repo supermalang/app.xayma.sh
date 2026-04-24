@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-4">
     <!-- Toolbar -->
-    <div class="flex items-center justify-between gap-4 flex-wrap">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <!-- Search -->
-      <span class="p-input-icon-left flex-1 min-w-64">
+      <span class="p-input-icon-left flex-1 w-full sm:w-auto sm:min-w-64">
         <i class="pi pi-search" />
         <InputText
           v-model="localSearch"
@@ -14,7 +14,7 @@
       </span>
 
       <!-- Toolbar actions -->
-      <div class="flex gap-2">
+      <div class="flex gap-2 w-full sm:w-auto">
         <!-- Column toggle -->
         <MultiSelect
           v-model="visibleColumns"
@@ -22,7 +22,7 @@
           option-label="header"
           option-value="field"
           :placeholder="$t('common.columns')"
-          class="w-64"
+          class="flex-1 sm:w-64"
           @change="handleColumnChange"
         />
 
@@ -48,7 +48,8 @@
       :lazy="lazy"
       :first="first"
       striped-rows
-      responsive-layout="scroll"
+      responsive-layout="stack"
+      breakpoint="768px"
       class="p-datatable-striped"
       @page="handlePageChange"
     >
@@ -85,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -147,7 +148,8 @@ const getNestedValue = (obj: any, path: string) => {
   return path.split('.').reduce((acc, part) => acc?.[part], obj)
 }
 
-const handleSearch = (value: string) => {
+const handleSearch = (event: Event) => {
+  const value = (event.target as HTMLInputElement).value
   localSearch.value = value
   emit('search', value)
   emit('update:modelValue', {

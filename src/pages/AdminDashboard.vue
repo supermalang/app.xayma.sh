@@ -57,7 +57,7 @@
     </div>
 
     <!-- Revenue by Partner Type -->
-    <div class="lg:col-span-2">
+    <div>
       <DonutChart
         :title="$t('dashboard.revenue_by_partner_type')"
         :data="revenueByPartnerType"
