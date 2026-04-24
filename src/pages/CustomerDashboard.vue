@@ -56,7 +56,12 @@
         </div>
       </template>
 
-      <div v-if="activeDeployments.length === 0" class="text-center py-8 text-on-surface-variant">
+      <!-- Loading skeletons -->
+      <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Skeleton v-for="n in 3" :key="n" height="6rem" border-radius="0.375rem" />
+      </div>
+
+      <div v-else-if="activeDeployments.length === 0" class="text-center py-8 text-on-surface-variant">
         <i class="pi pi-inbox text-3xl mb-2 block opacity-50" />
         <p class="text-sm">{{ $t('dashboard.no_deployments') }}</p>
         <router-link
@@ -112,58 +117,52 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
+import Skeleton from 'primevue/skeleton'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
 import { useAuthStore } from '@/stores/auth.store'
+import { useNotificationStore } from '@/stores/notifications.store'
+import { getDeploymentsByPartnerId } from '@/services/deployments.service'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 const { credits, refresh } = usePartnerCredits(partnerId.value)
 
 // Re-fetch when auth profile loads
 watch(() => authStore.profile?.company_id, (id) => {
-  if (id) refresh()
+  if (id) {
+    refresh()
+    fetchDeployments(id)
+  }
 })
 
 /**
- * Active deployments (would be fetched from API)
+ * Active deployments fetched from Supabase
  */
-const activeDeployments = [
-  {
-    id: '1',
-    label: 'Production Odoo',
-    domain: 'odoo.example.com',
-    service: 'Odoo 16',
-    plan: 'Pro',
-    status: 'active',
-    monthlyConsumption: 2400,
-  },
-  {
-    id: '2',
-    label: 'Staging',
-    domain: 'staging.example.com',
-    service: 'Odoo 16',
-    plan: 'Starter',
-    status: 'active',
-    monthlyConsumption: 800,
-  },
-  {
-    id: '3',
-    label: 'Dev Env',
-    domain: 'dev.example.com',
-    service: 'Custom Docker',
-    plan: 'Starter',
-    status: 'active',
-    monthlyConsumption: 600,
-  },
-]
+const activeDeployments = ref<any[]>([])
+const isLoading = ref(false)
+
+async function fetchDeployments(companyId: number | string) {
+  isLoading.value = true
+  try {
+    const data = await getDeploymentsByPartnerId(Number(companyId))
+    activeDeployments.value = data.filter((d: any) => d.status === 'active')
+  } catch {
+    notificationStore.addError(t('errors.fetch_failed'))
+  } finally {
+    isLoading.value = false
+  }
+}
 
 /**
  * Last payment date
@@ -234,9 +233,9 @@ function navigateToTopUp() {
   router.push('/credits/buy')
 }
 
-// In production, fetch from API
 onMounted(() => {
-  // await fetchCustomerDashboardData()
+  const companyId = authStore.profile?.company_id
+  if (companyId) fetchDeployments(companyId)
 })
 </script>
 
