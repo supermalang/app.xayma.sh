@@ -25,6 +25,7 @@ const AuditLog = () => import('@/pages/AuditLog.vue')
 const ControlNodes = () => import('@/pages/ControlNodes.vue')
 const Services = () => import('@/pages/Services.vue')
 const ServiceDetail = () => import('@/pages/ServiceDetail.vue')
+const Settings = () => import('@/pages/Settings.vue')
 const Deployments = () => import('@/pages/Deployments.vue')
 const DeploymentDetail = () => import('@/pages/DeploymentDetail.vue')
 const DeploymentWizard = () => import('@/pages/DeploymentWizard.vue')
@@ -163,6 +164,12 @@ const routes: RouteRecordRaw[] = [
         component: Commissions,
         meta: { requiredRole: ['SALES'] },
         name: 'commissions',
+      },
+      {
+        path: 'settings',
+        component: Settings,
+        meta: { requiredRole: ['ADMIN'] },
+        name: 'settings',
       },
     ],
   },

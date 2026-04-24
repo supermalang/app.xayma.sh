@@ -588,4 +588,40 @@ export default {
     ytd_renewal: 'YTD Renewal',
   },
 
+  // Settings
+  settings: {
+    title: 'Platform Settings',
+    description: 'Configure platform-wide settings for payments, notifications, limits, and infrastructure',
+    payments_header: 'Payments',
+    payment_gateway_api_key: 'Payment Gateway API Key',
+    payment_gateway_api_key_hint: 'Used for processing credit purchases. Keep this secure.',
+    wave_merchant_id: 'Wave Merchant ID',
+    orange_merchant_id: 'Orange Money Merchant ID',
+    notifications_header: 'Notifications',
+    credit_warning_threshold: 'Credit Warning Threshold (%)',
+    credit_warning_threshold_hint: 'Send warning when partner credits fall below this percentage',
+    enable_email_notifications: 'Enable Email Notifications',
+    enable_sms_notifications: 'Enable SMS Notifications',
+    limits_header: 'Limits',
+    max_deployments_per_partner: 'Max Deployments per Partner',
+    max_users_per_partner: 'Max Users per Partner',
+    infrastructure_header: 'Infrastructure',
+    deployment_engine_url: 'Deployment Engine URL',
+    deployment_engine_url_hint: 'Base URL of the deployment engine service',
+    workflow_engine_url: 'Workflow Engine URL',
+    kafka_brokers: 'Kafka Brokers',
+    kafka_brokers_hint: 'Comma-separated list of Kafka broker addresses',
+    saved: 'Setting saved successfully',
+    error_loading: 'Failed to load settings',
+    error_saving: 'Failed to save setting',
+  },
+
+  // Accessibility (ARIA labels)
+  aria: {
+    export_csv: 'Export data as CSV',
+    toggle_language: 'Toggle language between English and French',
+    open_user_menu: 'Open user menu for {email}',
+    toggle_notifications: 'Toggle notifications panel (unread: {count})',
+  },
+
 }

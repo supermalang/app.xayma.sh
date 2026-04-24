@@ -588,4 +588,40 @@ export default {
     ytd_renewal: 'Renouvellement YTD',
   },
 
+  // Settings
+  settings: {
+    title: 'Paramètres de la Plateforme',
+    description: 'Configurez les paramètres de la plateforme pour les paiements, les notifications, les limites et l\'infrastructure',
+    payments_header: 'Paiements',
+    payment_gateway_api_key: 'Clé API de la Passerelle de Paiement',
+    payment_gateway_api_key_hint: 'Utilisée pour traiter les achats de crédits. Gardez cela sécurisé.',
+    wave_merchant_id: 'ID Commerçant Wave',
+    orange_merchant_id: 'ID Commerçant Orange Money',
+    notifications_header: 'Notifications',
+    credit_warning_threshold: 'Seuil d\'Alerte de Crédit (%)',
+    credit_warning_threshold_hint: 'Envoyer une alerte lorsque les crédits du partenaire tombent en dessous de ce pourcentage',
+    enable_email_notifications: 'Activer les Notifications par E-mail',
+    enable_sms_notifications: 'Activer les Notifications par SMS',
+    limits_header: 'Limites',
+    max_deployments_per_partner: 'Max de Déploiements par Partenaire',
+    max_users_per_partner: 'Max d\'Utilisateurs par Partenaire',
+    infrastructure_header: 'Infrastructure',
+    deployment_engine_url: 'URL du Moteur de Déploiement',
+    deployment_engine_url_hint: 'URL de base du service du moteur de déploiement',
+    workflow_engine_url: 'URL du Moteur de Flux de Travail',
+    kafka_brokers: 'Courtiers Kafka',
+    kafka_brokers_hint: 'Liste séparée par des virgules des adresses des courtiers Kafka',
+    saved: 'Paramètre enregistré avec succès',
+    error_loading: 'Échec du chargement des paramètres',
+    error_saving: 'Échec de l\'enregistrement du paramètre',
+  },
+
+  // Accessibility (ARIA labels)
+  aria: {
+    export_csv: 'Exporter les données en CSV',
+    toggle_language: 'Basculer entre l\'anglais et le français',
+    open_user_menu: 'Ouvrir le menu utilisateur pour {email}',
+    toggle_notifications: 'Basculer le panneau des notifications (non lus : {count})',
+  },
+
 }
