@@ -428,7 +428,7 @@ function canStart(deployment: any): boolean {
  * Check if restart action is allowed for a deployment
  */
 function canRestart(deployment: any): boolean {
-  return deployment.status === 'active' && !isPendingAction(deployment.id)
+  return (deployment.status === 'active' || deployment.status === 'stopped') && !isPendingAction(deployment.id)
 }
 
 /**
