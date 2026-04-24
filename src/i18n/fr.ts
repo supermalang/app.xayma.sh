@@ -172,6 +172,12 @@ export default {
     commission_breakdown_acquisition: 'Bonus d\'acquisition',
     commission_breakdown_renewal: 'Commissions de renouvellement',
 
+    // Table columns
+    client_name: 'Client',
+    deployment_label: 'Déploiement',
+    deployments: 'Déploiements',
+    credit_pool: 'Pool de crédits',
+
     // Actions
     view_all: 'Voir tout',
     view_portfolio: 'Voir le portefeuille',

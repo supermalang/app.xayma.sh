@@ -66,8 +66,8 @@
           :header="$t('dashboard.client_name')"
         />
         <Column
-          field="deploymentCount"
-          :header="$t('dashboard.deployments')"
+          field="deploymentLabel"
+          :header="$t('dashboard.deployment_label')"
         />
         <Column
           field="monthlyConsumption"
@@ -91,12 +91,31 @@
         </Column>
         <Column :header="$t('common.actions')">
           <template #body="slotProps">
-            <router-link
-              :to="`/partners/${slotProps.data.partnerId}`"
-              class="text-xs font-medium text-primary hover:text-primary-container"
-            >
-              {{ $t('common.view') }}
-            </router-link>
+            <div class="flex items-center gap-2">
+              <Button
+                v-if="slotProps.data.status === 'active'"
+                :label="$t('deployments.actions.stop')"
+                severity="danger"
+                size="small"
+                text
+                @click="handleStop(slotProps.data.deploymentId)"
+              />
+              <Button
+                v-if="slotProps.data.status === 'stopped' || slotProps.data.status === 'suspended'"
+                :label="$t('deployments.actions.start')"
+                severity="success"
+                size="small"
+                text
+                :disabled="(credits?.remainingCredits ?? 0) <= 0"
+                @click="handleStart(slotProps.data.deploymentId)"
+              />
+              <router-link
+                :to="`/partners/${slotProps.data.partnerId}`"
+                class="text-xs font-medium text-primary hover:text-primary-container"
+              >
+                {{ $t('common.view') }}
+              </router-link>
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -167,11 +186,13 @@ import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Button from 'primevue/button'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { useDeployments } from '@/composables/useDeployments'
 import { supabaseSchema } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
 
@@ -185,6 +206,7 @@ const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 const { credits, refresh } = usePartnerCredits(partnerId.value)
+const { performDeploymentAction } = useDeployments()
 
 // Re-fetch when auth profile loads
 watch(() => authStore.profile?.company_id, (id) => {
@@ -205,79 +227,111 @@ const monthlySpend = ref(8400)
 const activeClientsCount = ref(12)
 
 interface ClientDeploymentRow {
+  deploymentId: number
+  deploymentLabel: string
   partnerId: string
   clientName: string
-  deploymentCount: number
   monthlyConsumption: number
   status: string
 }
 
 /**
- * Client deployments — grouped by partner
+ * Client deployments — one row per deployment
  */
 const clientDeployments = ref<ClientDeploymentRow[]>([])
 
 /**
- * At-risk clients — suspended or low remaining credits
+ * At-risk clients — partners with suspended deployments or low credits
  */
-const atRiskClients = ref<ClientDeploymentRow[]>([])
+const atRiskClients = ref<(ClientDeploymentRow & { deploymentCount: number })[]>([])
 
 /**
- * Fetch client deployments and derive at-risk list from Supabase
+ * Fetch client deployments (one row per deployment) and derive at-risk list
  */
 async function fetchDashboardData() {
   const result = await db
     .from('deployments')
-    .select('id, status, partner_id, partner:partners(id, name, remainingCredits), serviceplan:serviceplans(monthlyCreditConsumption)')
+    .select('id, label, status, partner_id, partner:partners(id, name, remainingCredits), serviceplan:serviceplans(monthlyCreditConsumption)')
 
   if (result.error) {
     notificationStore.addError(t('errors.fetch_failed'))
     return
   }
 
-  // Credits threshold below which a partner is considered at-risk
   const AT_RISK_CREDIT_THRESHOLD = 500
 
-  // Aggregate rows by partner
-  const partnerMap = new Map<string, ClientDeploymentRow & { remainingCredits: number }>()
+  const rows: ClientDeploymentRow[] = []
+  const partnerRiskMap = new Map<string, { clientName: string; partnerId: string; remainingCredits: number; deploymentCount: number; hasRisk: boolean }>()
 
   for (const dep of result.data as Array<{
     id: number
+    label: string
     status: string
     partner_id: number
     partner: { id: number; name: string; remainingCredits: number } | null
     serviceplan: { monthlyCreditConsumption: number } | null
   }>) {
     const pid = String(dep.partner_id)
-    const partnerCredits = dep.partner?.remainingCredits ?? 0
     const consumption = dep.serviceplan?.monthlyCreditConsumption ?? 0
+    const partnerCredits = dep.partner?.remainingCredits ?? 0
 
-    if (!partnerMap.has(pid)) {
-      partnerMap.set(pid, {
-        partnerId: pid,
+    rows.push({
+      deploymentId: dep.id,
+      deploymentLabel: dep.label ?? '',
+      partnerId: pid,
+      clientName: dep.partner?.name ?? '',
+      monthlyConsumption: consumption,
+      status: dep.status,
+    })
+
+    // Aggregate partner risk data separately for the at-risk panel
+    if (!partnerRiskMap.has(pid)) {
+      partnerRiskMap.set(pid, {
         clientName: dep.partner?.name ?? '',
-        deploymentCount: 0,
-        monthlyConsumption: 0,
-        status: 'active',
+        partnerId: pid,
         remainingCredits: partnerCredits,
+        deploymentCount: 0,
+        hasRisk: false,
       })
     }
-
-    const row = partnerMap.get(pid)!
-    row.deploymentCount++
-    row.monthlyConsumption += consumption
-    if (dep.status === 'suspended') {
-      row.status = 'at_risk'
-    }
+    const risk = partnerRiskMap.get(pid)!
+    risk.deploymentCount++
+    if (dep.status === 'suspended') risk.hasRisk = true
   }
 
-  const rows = Array.from(partnerMap.values())
+  clientDeployments.value = rows
 
-  clientDeployments.value = rows.map(({ remainingCredits: _rc, ...rest }) => rest)
+  atRiskClients.value = Array.from(partnerRiskMap.values())
+    .filter(p => p.hasRisk || p.remainingCredits < AT_RISK_CREDIT_THRESHOLD)
+    .map(p => ({
+      deploymentId: 0,
+      deploymentLabel: '',
+      partnerId: p.partnerId,
+      clientName: p.clientName,
+      monthlyConsumption: 0,
+      status: 'at_risk',
+      deploymentCount: p.deploymentCount,
+    }))
+}
 
-  atRiskClients.value = rows
-    .filter(row => row.status === 'at_risk' || row.remainingCredits < AT_RISK_CREDIT_THRESHOLD)
-    .map(({ remainingCredits: _rc, ...rest }) => rest)
+/**
+ * Stop a deployment via workflow engine
+ */
+async function handleStop(deploymentId: number) {
+  await performDeploymentAction(deploymentId, 'stop')
+  await fetchDashboardData()
+}
+
+/**
+ * Start a deployment via workflow engine (credit check first)
+ */
+async function handleStart(deploymentId: number) {
+  if ((credits.value?.remainingCredits ?? 0) <= 0) {
+    notificationStore.addError(t('deployments.errors.insufficient_credits'))
+    return
+  }
+  await performDeploymentAction(deploymentId, 'start')
+  await fetchDashboardData()
 }
 
 /**
