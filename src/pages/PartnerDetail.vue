@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- Header with back button and actions -->
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <Button
           icon="pi pi-arrow-left"
@@ -13,7 +13,7 @@
           <p class="text-sm text-on-surface-variant">{{ partner?.email }}</p>
         </div>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button
           :label="$t('common.edit')"
           icon="pi pi-pencil"
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Status and Type badges -->
-    <div class="flex gap-4">
+    <div class="flex flex-wrap gap-4">
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.form.status') }}:</span>
         <PartnerStatusBadge :status="(partner?.status as 'active' | 'suspended' | 'inactive') ?? 'inactive'" />
@@ -51,7 +51,7 @@
     <TabView v-if="partner" class="mt-6" @tab-change="onTabChange">
       <!-- Profile Tab -->
       <TabPanel value="profile" :header="$t('partners.tabs.profile')">
-        <div class="grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label class="block text-sm font-medium text-on-surface-variant mb-1">
               {{ $t('partners.form.name') }}
