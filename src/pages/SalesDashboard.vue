@@ -75,7 +75,7 @@
         </div>
       </template>
 
-      <DataTable v-if="atRiskCustomers.length > 0" :value="atRiskCustomers" striped-rows responsive-layout="stack" :paginator="atRiskCustomers.length > 5" :rows="5" class="text-sm">
+      <DataTable v-if="atRiskCustomers.length > 0" :value="atRiskCustomers" striped-rows responsive-layout="stack" breakpoint="768px" :paginator="atRiskCustomers.length > 5" :rows="5" class="text-sm">
         <Column field="partnerName" :header="$t('dashboard.customer_name')" />
         <Column field="plan" :header="$t('dashboard.plan')">
           <template #body="slotProps">

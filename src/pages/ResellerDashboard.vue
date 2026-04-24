@@ -57,6 +57,7 @@
         :value="clientDeployments"
         striped-rows
         responsive-layout="stack"
+        breakpoint="768px"
         paginator
         :rows="10"
         class="text-sm"
