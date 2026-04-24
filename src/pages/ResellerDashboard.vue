@@ -129,7 +129,7 @@
               </p>
             </div>
             <Tag
-              value="LOW BALANCE"
+              :value="$t('dashboard.low_balance')"
               severity="danger"
               class="text-xs"
             />
@@ -161,6 +161,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
@@ -171,15 +172,26 @@ import CreditMeter from '@/components/credits/CreditMeter.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { supabaseSchema } from '@/services/supabase'
+import { useNotificationStore } from '@/stores/notifications.store'
 
+// supabaseSchema resolves to `never` when Database has no public schema — cast once here.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabaseSchema as any
+
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 const { credits, refresh } = usePartnerCredits(partnerId.value)
 
 // Re-fetch when auth profile loads
 watch(() => authStore.profile?.company_id, (id) => {
-  if (id) refresh()
+  if (id) {
+    refresh()
+    fetchDashboardData()
+  }
 })
 
 /**
@@ -192,64 +204,81 @@ const monthlySpend = ref(8400)
  */
 const activeClientsCount = ref(12)
 
-/**
- * Client deployments
- */
-const clientDeployments = ref([
-  {
-    partnerId: '1',
-    clientName: 'TechCorp Nigeria',
-    deploymentCount: 2,
-    monthlyConsumption: 3200,
-    status: 'active',
-  },
-  {
-    partnerId: '2',
-    clientName: 'Fashion Hub',
-    deploymentCount: 1,
-    monthlyConsumption: 1200,
-    status: 'active',
-  },
-  {
-    partnerId: '3',
-    clientName: 'Logistics Plus',
-    deploymentCount: 3,
-    monthlyConsumption: 2800,
-    status: 'at_risk',
-  },
-  {
-    partnerId: '4',
-    clientName: 'Health Clinic Group',
-    deploymentCount: 1,
-    monthlyConsumption: 800,
-    status: 'active',
-  },
-  {
-    partnerId: '5',
-    clientName: 'Trading Company',
-    deploymentCount: 2,
-    monthlyConsumption: 1600,
-    status: 'at_risk',
-  },
-])
+interface ClientDeploymentRow {
+  partnerId: string
+  clientName: string
+  deploymentCount: number
+  monthlyConsumption: number
+  status: string
+}
 
 /**
- * At-risk clients (low balance)
+ * Client deployments — grouped by partner
  */
-const atRiskClients = ref([
-  {
-    partnerId: '3',
-    clientName: 'Logistics Plus',
-    deploymentCount: 3,
-    monthlyConsumption: 2800,
-  },
-  {
-    partnerId: '5',
-    clientName: 'Trading Company',
-    deploymentCount: 2,
-    monthlyConsumption: 1600,
-  },
-])
+const clientDeployments = ref<ClientDeploymentRow[]>([])
+
+/**
+ * At-risk clients — suspended or low remaining credits
+ */
+const atRiskClients = ref<ClientDeploymentRow[]>([])
+
+/**
+ * Fetch client deployments and derive at-risk list from Supabase
+ */
+async function fetchDashboardData() {
+  const result = await db
+    .from('deployments')
+    .select('id, status, partner_id, partner:partners(id, name, remainingCredits), serviceplan:serviceplans(monthlyCreditConsumption)')
+
+  if (result.error) {
+    notificationStore.addError(t('errors.fetch_failed'))
+    return
+  }
+
+  // Credits threshold below which a partner is considered at-risk
+  const AT_RISK_CREDIT_THRESHOLD = 500
+
+  // Aggregate rows by partner
+  const partnerMap = new Map<string, ClientDeploymentRow & { remainingCredits: number }>()
+
+  for (const dep of result.data as Array<{
+    id: number
+    status: string
+    partner_id: number
+    partner: { id: number; name: string; remainingCredits: number } | null
+    serviceplan: { monthlyCreditConsumption: number } | null
+  }>) {
+    const pid = String(dep.partner_id)
+    const partnerCredits = dep.partner?.remainingCredits ?? 0
+    const consumption = dep.serviceplan?.monthlyCreditConsumption ?? 0
+
+    if (!partnerMap.has(pid)) {
+      partnerMap.set(pid, {
+        partnerId: pid,
+        clientName: dep.partner?.name ?? '',
+        deploymentCount: 0,
+        monthlyConsumption: 0,
+        status: 'active',
+        remainingCredits: partnerCredits,
+      })
+    }
+
+    const row = partnerMap.get(pid)!
+    row.deploymentCount++
+    row.monthlyConsumption += consumption
+    if (dep.status === 'suspended') {
+      row.status = 'at_risk'
+    }
+  }
+
+  const rows = Array.from(partnerMap.values())
+
+  clientDeployments.value = rows.map(({ remainingCredits: _rc, ...rest }) => rest)
+
+  atRiskClients.value = rows
+    .filter(row => row.status === 'at_risk' || row.remainingCredits < AT_RISK_CREDIT_THRESHOLD)
+    .map(({ remainingCredits: _rc, ...rest }) => rest)
+}
 
 /**
  * Navigate to top up page
@@ -258,9 +287,8 @@ function navigateToTopUp() {
   router.push('/credits/buy')
 }
 
-// In production, fetch from API
 onMounted(() => {
-  // await fetchResellerDashboardData()
+  fetchDashboardData()
 })
 </script>
 

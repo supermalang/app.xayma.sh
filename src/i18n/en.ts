@@ -175,6 +175,7 @@ export default {
     view_portfolio: 'View Portfolio',
     view_commissions: 'View Commissions',
     view_details: 'View Details',
+    low_balance: 'LOW BALANCE',
   },
 
   // Notifications

@@ -175,6 +175,7 @@ export default {
     view_portfolio: 'Voir le portefeuille',
     view_commissions: 'Voir les commissions',
     view_details: 'Voir les détails',
+    low_balance: 'SOLDE FAIBLE',
   },
 
   // Notifications
