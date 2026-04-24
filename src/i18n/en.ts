@@ -55,9 +55,19 @@ export default {
     required: 'This field is required',
     invalid_email: 'Invalid email address',
     fetch_failed: 'Failed to fetch data',
+    save_failed: 'Failed to save. Please try again.',
     webhook_failed: 'Operation failed. Please try again.',
     unauthorized: 'You are not authorized to perform this action',
     not_found: 'Resource not found',
+  },
+
+  // Settings
+  settings: {
+    title: 'Platform Settings',
+    description: 'View and edit platform-wide configuration values.',
+    key: 'Key',
+    value: 'Value',
+    save_success: 'Setting saved successfully',
   },
 
   // Auth

@@ -55,9 +55,19 @@ export default {
     required: 'Ce champ est obligatoire',
     invalid_email: 'Adresse e-mail invalide',
     fetch_failed: 'Échec de la récupération des données',
+    save_failed: 'Échec de la sauvegarde. Veuillez réessayer.',
     webhook_failed: 'L\'opération a échoué. Veuillez réessayer.',
     unauthorized: 'Vous n\'êtes pas autorisé à effectuer cette action',
     not_found: 'Ressource non trouvée',
+  },
+
+  // Settings
+  settings: {
+    title: 'Paramètres de la plateforme',
+    description: 'Consultez et modifiez les valeurs de configuration de la plateforme.',
+    key: 'Clé',
+    value: 'Valeur',
+    save_success: 'Paramètre sauvegardé avec succès',
   },
 
   // Auth

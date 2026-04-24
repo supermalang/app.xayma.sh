@@ -37,6 +37,7 @@ const VouchersManagement = () => import('@/pages/Vouchers/Management.vue')
 const Notifications = () => import('@/pages/Notifications.vue')
 const Portfolio = () => import('@/pages/Portfolio.vue')
 const Commissions = () => import('@/pages/Commissions.vue')
+const Settings = () => import('@/pages/Settings.vue')
 
 const routes: RouteRecordRaw[] = [
   // Authenticated routes
@@ -163,6 +164,12 @@ const routes: RouteRecordRaw[] = [
         component: Commissions,
         meta: { requiredRole: ['SALES'] },
         name: 'commissions',
+      },
+      {
+        path: 'settings',
+        component: Settings,
+        meta: { requiredRole: ['ADMIN'] },
+        name: 'settings',
       },
     ],
   },

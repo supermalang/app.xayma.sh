@@ -89,7 +89,7 @@ const allNavItems: NavItem[] = [
   { path: '/services', label: t('nav.services'), icon: 'settings_suggest', roles: ['ADMIN'] },
   { path: '/control-nodes', label: t('nav.control_nodes'), icon: 'dns', roles: ['ADMIN'] },
   { path: '/audit', label: t('nav.audit'), icon: 'history', roles: ['ADMIN'] },
-  { path: '/settings', label: t('nav.settings'), icon: 'settings', roles: ['ADMIN', 'CUSTOMER', 'RESELLER', 'SALES'] },
+  { path: '/settings', label: t('nav.settings'), icon: 'settings', roles: ['ADMIN'] },
 ]
 
 const visibleNavItems = computed(() => {
