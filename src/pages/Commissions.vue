@@ -60,7 +60,7 @@
 
       <Accordion
         :value="activeAccordionTabs"
-        @update:value="(value: any) => { activeAccordionTabs = Array.isArray(value) ? value : [] }"
+        @update:value="(value: unknown) => { activeAccordionTabs = Array.isArray(value) ? (value as number[]) : [] }"
         :multiple="true"
         aria-label="Commission breakdown by customer"
       >
@@ -183,7 +183,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -193,6 +194,31 @@ import AccordionTab from 'primevue/accordiontab'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import LineChart from '@/components/charts/LineChart.vue'
+import { supabaseSchema } from '@/services/supabase'
+import { useNotificationStore } from '@/stores/notifications.store'
+
+const { t } = useI18n()
+const notificationStore = useNotificationStore()
+
+/**
+ * Partner row returned from Supabase
+ */
+interface PartnerRow {
+  id: number
+  name: string
+  created: string
+}
+
+/**
+ * Credit transaction row returned from Supabase
+ */
+interface CreditTransactionRow {
+  id: number
+  partner_id: number
+  amountPaid: number | null
+  status: string | null
+  created: string
+}
 
 /**
  * Customer commission record
@@ -228,146 +254,30 @@ interface CommissionHistoryEntry {
   status: 'Pending' | 'Paid'
 }
 
+const ACQUISITION_RATE = 0.1
+const RENEWAL_RATE = 0.05
+const ACQUISITION_MONTHS = 3
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000
+
 /**
  * Customers with commissions
  */
-const customers = ref<CustomerCommission[]>([
-  {
-    id: '1',
-    name: 'Logistics Plus',
-    plan: 'Enterprise',
-    planPrice: 500000,
-    signupDate: new Date('2025-12-15').toISOString(),
-    acquisitionBonus: {
-      percentage: 10,
-      amount: 50000,
-      isPaid: true,
-    },
-    renewalCommission: {
-      percentage: 5,
-      monthlyAmount: 25000,
-      ytdTotal: 75000,
-    },
-    totalCommission: 125000,
-  },
-  {
-    id: '2',
-    name: 'Fashion Hub',
-    plan: 'Pro',
-    planPrice: 250000,
-    signupDate: new Date('2026-01-10').toISOString(),
-    acquisitionBonus: {
-      percentage: 10,
-      amount: 25000,
-      isPaid: false,
-    },
-    renewalCommission: {
-      percentage: 5,
-      monthlyAmount: 12500,
-      ytdTotal: 37500,
-    },
-    totalCommission: 62500,
-  },
-  {
-    id: '3',
-    name: 'Tech Solutions',
-    plan: 'Starter',
-    planPrice: 100000,
-    signupDate: new Date('2026-02-01').toISOString(),
-    acquisitionBonus: {
-      percentage: 10,
-      amount: 10000,
-      isPaid: false,
-    },
-    renewalCommission: {
-      percentage: 5,
-      monthlyAmount: 5000,
-      ytdTotal: 10000,
-    },
-    totalCommission: 20000,
-  },
-  {
-    id: '4',
-    name: 'Retail Group',
-    plan: 'Enterprise',
-    planPrice: 500000,
-    signupDate: new Date('2026-03-01').toISOString(),
-    acquisitionBonus: {
-      percentage: 10,
-      amount: 0,
-      isPaid: false,
-    },
-    renewalCommission: {
-      percentage: 5,
-      monthlyAmount: 25000,
-      ytdTotal: 25000,
-    },
-    totalCommission: 25000,
-  },
-])
+const customers = ref<CustomerCommission[]>([])
 
 /**
- * Commission history (mock data)
+ * Commission history
  */
-const commissionHistory = ref<CommissionHistoryEntry[]>([
-  {
-    date: new Date('2026-03-20').toISOString(),
-    customerName: 'Logistics Plus',
-    type: 'Renewal',
-    percentage: 5,
-    amount: 25000,
-    status: 'Paid',
-  },
-  {
-    date: new Date('2026-03-15').toISOString(),
-    customerName: 'Fashion Hub',
-    type: 'Acquisition',
-    percentage: 10,
-    amount: 25000,
-    status: 'Pending',
-  },
-  {
-    date: new Date('2026-03-10').toISOString(),
-    customerName: 'Logistics Plus',
-    type: 'Renewal',
-    percentage: 5,
-    amount: 25000,
-    status: 'Paid',
-  },
-  {
-    date: new Date('2026-03-05').toISOString(),
-    customerName: 'Retail Group',
-    type: 'Acquisition',
-    percentage: 10,
-    amount: 0,
-    status: 'Pending',
-  },
-  {
-    date: new Date('2026-02-20').toISOString(),
-    customerName: 'Tech Solutions',
-    type: 'Acquisition',
-    percentage: 10,
-    amount: 10000,
-    status: 'Pending',
-  },
-])
+const commissionHistory = ref<CommissionHistoryEntry[]>([])
+
+/**
+ * Commission trend data (for chart) — monthly totals
+ */
+const commissionTrendData = ref<{ name: string; value: number }[]>([])
 
 /**
  * Accordion active tabs
  */
 const activeAccordionTabs = ref<number[]>([])
-
-/**
- * Commission trend data (for chart)
- */
-const commissionTrendData = [
-  { name: 'March', value: 85000 },
-  { name: 'February', value: 62500 },
-  { name: 'January', value: 45000 },
-  { name: 'December', value: 50000 },
-  { name: 'November', value: 35000 },
-  { name: 'October', value: 28000 },
-]
 
 /**
  * Calculate totals
@@ -390,6 +300,142 @@ const acquisitionBonusTotal = computed(() => {
 const renewalIncomeTotal = computed(() => {
   return customers.value.reduce((sum, c) => sum + c.renewalCommission.ytdTotal, 0)
 })
+
+/**
+ * Build CustomerCommission and CommissionHistoryEntry records from raw DB rows
+ */
+function buildCommissionData(
+  partners: PartnerRow[],
+  transactions: CreditTransactionRow[]
+): void {
+  const now = new Date()
+  const startOfYear = new Date(now.getFullYear(), 0, 1)
+  const historyEntries: CommissionHistoryEntry[] = []
+  const monthTotals = new Map<string, number>()
+
+  const customerList: CustomerCommission[] = partners.map((partner) => {
+    const partnerCreated = new Date(partner.created)
+    const acquisitionCutoff = new Date(partnerCreated.getTime() + ACQUISITION_MONTHS * MONTH_MS)
+
+    const partnerTxs = transactions
+      .filter((tx) => tx.partner_id === partner.id && tx.status === 'completed' && (tx.amountPaid ?? 0) > 0)
+      .sort((a, b) => new Date(a.created).getTime() - new Date(b.created).getTime())
+
+    let acquisitionAmount = 0
+    let renewalYtdTotal = 0
+    let lastRenewalMonthlyAmount = 0
+    let totalPlanPrice = 0
+    let txCount = 0
+
+    for (const tx of partnerTxs) {
+      const txDate = new Date(tx.created)
+      const paid = tx.amountPaid ?? 0
+      const isAcquisition = txDate <= acquisitionCutoff
+      const rate = isAcquisition ? ACQUISITION_RATE : RENEWAL_RATE
+      const commissionAmount = paid * rate
+      const txType: 'Acquisition' | 'Renewal' = isAcquisition ? 'Acquisition' : 'Renewal'
+
+      if (isAcquisition) {
+        acquisitionAmount += commissionAmount
+      } else {
+        if (txDate >= startOfYear) {
+          renewalYtdTotal += commissionAmount
+        }
+        lastRenewalMonthlyAmount = commissionAmount
+      }
+
+      totalPlanPrice += paid
+      txCount++
+
+      historyEntries.push({
+        date: tx.created,
+        customerName: partner.name,
+        type: txType,
+        percentage: isAcquisition ? 10 : 5,
+        amount: commissionAmount,
+        status: 'Paid',
+      })
+
+      // Aggregate for trend chart by month label
+      const monthLabel = txDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+      monthTotals.set(monthLabel, (monthTotals.get(monthLabel) ?? 0) + commissionAmount)
+    }
+
+    const avgPlanPrice = txCount > 0 ? totalPlanPrice / txCount : 0
+    const totalCommission = acquisitionAmount + renewalYtdTotal
+
+    return {
+      id: String(partner.id),
+      name: partner.name,
+      plan: '—',
+      planPrice: avgPlanPrice,
+      signupDate: partner.created,
+      acquisitionBonus: {
+        percentage: 10,
+        amount: acquisitionAmount,
+        isPaid: acquisitionAmount > 0,
+      },
+      renewalCommission: {
+        percentage: 5,
+        monthlyAmount: lastRenewalMonthlyAmount,
+        ytdTotal: renewalYtdTotal,
+      },
+      totalCommission,
+    }
+  })
+
+  customers.value = customerList.filter((c) => c.totalCommission > 0 || c.acquisitionBonus.amount > 0)
+
+  commissionHistory.value = historyEntries
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  // Build trend data sorted newest-first → last 6 months
+  const sortedMonths = Array.from(monthTotals.entries())
+    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+    .slice(0, 6)
+
+  commissionTrendData.value = sortedMonths.map(([name, value]) => ({ name, value }))
+}
+
+/**
+ * Load commissions data from Supabase
+ */
+async function loadCommissions(): Promise<void> {
+  const { data: partners, error: partnersError } = await (supabaseSchema as any)
+    .from('partners')
+    .select('id, name, created')
+
+  if (partnersError) {
+    notificationStore.addError(t('errors.fetch_failed'))
+    return
+  }
+
+  const partnerRows = (partners ?? []) as PartnerRow[]
+
+  if (partnerRows.length === 0) {
+    customers.value = []
+    commissionHistory.value = []
+    commissionTrendData.value = []
+    return
+  }
+
+  const partnerIds = partnerRows.map((p) => p.id)
+
+  const { data: txData, error: txError } = await (supabaseSchema as any)
+    .from('credit_transactions')
+    .select('id, partner_id, amountPaid, status, created')
+    .in('partner_id', partnerIds)
+    .eq('transactionType', 'credit')
+    .order('created', { ascending: false })
+
+  if (txError) {
+    notificationStore.addError(t('errors.fetch_failed'))
+    return
+  }
+
+  const txRows = (txData ?? []) as CreditTransactionRow[]
+  buildCommissionData(partnerRows, txRows)
+}
 
 /**
  * Format currency
@@ -420,6 +466,10 @@ function formatDate(dateString: string): string {
 function getAccordionHeader(customer: CustomerCommission): string {
   return `${customer.name} (${customer.plan}) - ${formatCurrency(customer.totalCommission)}`
 }
+
+onMounted(() => {
+  loadCommissions()
+})
 </script>
 
 <style scoped>

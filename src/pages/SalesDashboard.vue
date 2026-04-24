@@ -124,6 +124,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -131,47 +132,197 @@ import Tag from 'primevue/tag'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
+import { supabaseSchema } from '@/services/supabase'
+import { useNotificationStore } from '@/stores/notifications.store'
+
+const { t } = useI18n()
+const notificationStore = useNotificationStore()
+
+/**
+ * Partner row returned from Supabase
+ */
+interface PartnerRow {
+  id: number
+  name: string
+  status: string | null
+  remainingCredits: number
+  created: string
+}
+
+/**
+ * Credit transaction row returned from Supabase
+ */
+interface CreditTransactionRow {
+  partner_id: number
+  amountPaid: number | null
+  status: string | null
+  created: string
+}
+
+/**
+ * At-risk customer display record
+ */
+interface AtRiskCustomer {
+  partnerId: number
+  partnerName: string
+  plan: string
+  creditStatus: 'LOW' | 'CRITICAL'
+  nextRenewal: string
+}
+
+const AT_RISK_STATUSES = ['low_credit', 'no_credit', 'suspended', 'on_debt']
 
 /**
  * Portfolio statistics
  */
 const portfolioStats = ref({
-  portfolioSize: 24,
-  newCustomersThisMonth: 3,
-  customerGrowthTrend: 12,
-  pendingCommission: 8400,
-  totalEarnings: 45600,
-  atRiskCount: 2,
+  portfolioSize: 0,
+  newCustomersThisMonth: 0,
+  customerGrowthTrend: 0,
+  pendingCommission: 0,
+  totalEarnings: 0,
+  atRiskCount: 0,
 })
 
 /**
  * At-risk customers
  */
-const atRiskCustomers = ref([
-  {
-    partnerId: '1',
-    partnerName: 'Logistics Plus',
-    plan: 'Enterprise',
-    creditStatus: 'CRITICAL',
-    nextRenewal: new Date('2026-04-15').toISOString(),
-  },
-  {
-    partnerId: '2',
-    partnerName: 'Fashion Hub',
-    plan: 'Pro',
-    creditStatus: 'LOW',
-    nextRenewal: new Date('2026-04-20').toISOString(),
-  },
-])
+const atRiskCustomers = ref<AtRiskCustomer[]>([])
 
 /**
- * Commission breakdown
+ * Commission breakdown for chart
  */
-const commissionBreakdown = [
-  { name: 'Acquisition Bonus', value: 12800 },
-  { name: 'Renewal Commissions', value: 24600 },
-  { name: 'Pending (This Month)', value: 8400 },
-]
+const commissionBreakdown = ref<{ name: string; value: number }[]>([])
+
+/**
+ * Determine credit status label for a partner status value
+ */
+function getCreditStatus(status: string | null): 'LOW' | 'CRITICAL' {
+  if (status === 'low_credit' || status === 'on_debt') return 'LOW'
+  return 'CRITICAL'
+}
+
+/**
+ * Compute commission amounts from transactions
+ * Acquisition: 10% of amountPaid in first 3 months after partner created
+ * Renewal: 5% of amountPaid after first 3 months
+ */
+function computeCommissions(
+  partners: PartnerRow[],
+  transactions: CreditTransactionRow[]
+): { acquisitionTotal: number; renewalTotal: number; pendingTotal: number } {
+  let acquisitionTotal = 0
+  let renewalTotal = 0
+  const pendingTotal = 0
+
+  for (const partner of partners) {
+    const partnerCreated = new Date(partner.created).getTime()
+    const threeMonthsMs = 3 * 30 * 24 * 60 * 60 * 1000
+    const acquisitionCutoff = partnerCreated + threeMonthsMs
+
+    const partnerTxs = transactions.filter(
+      (tx) => tx.partner_id === partner.id && tx.status === 'completed' && (tx.amountPaid ?? 0) > 0
+    )
+
+    for (const tx of partnerTxs) {
+      const txDate = new Date(tx.created).getTime()
+      const paid = tx.amountPaid ?? 0
+      if (txDate <= acquisitionCutoff) {
+        acquisitionTotal += paid * 0.1
+      } else {
+        renewalTotal += paid * 0.05
+      }
+    }
+  }
+
+  return { acquisitionTotal, renewalTotal, pendingTotal }
+}
+
+/**
+ * Load sales dashboard data from Supabase
+ */
+async function loadDashboardData(): Promise<void> {
+  const { data: partners, error: partnersError } = await (supabaseSchema as any)
+    .from('partners')
+    .select('id, name, status, remainingCredits, created')
+
+  if (partnersError) {
+    notificationStore.addError(t('errors.fetch_failed'))
+    return
+  }
+
+  const partnerRows = (partners ?? []) as PartnerRow[]
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  const portfolioSize = partnerRows.length
+  const newThisMonth = partnerRows.filter((p) => new Date(p.created) >= startOfMonth).length
+  const newLastMonth = partnerRows.filter((p) => {
+    const d = new Date(p.created)
+    return d >= startOfLastMonth && d < startOfMonth
+  }).length
+
+  const growthTrend = newLastMonth > 0
+    ? Math.round(((newThisMonth - newLastMonth) / newLastMonth) * 100)
+    : newThisMonth > 0 ? 100 : 0
+
+  const atRiskPartners = partnerRows.filter((p) => AT_RISK_STATUSES.includes(p.status ?? ''))
+
+  // Fetch credit transactions for commission calculation
+  const partnerIds = partnerRows.map((p) => p.id)
+  let transactions: CreditTransactionRow[] = []
+
+  if (partnerIds.length > 0) {
+    const { data: txData, error: txError } = await (supabaseSchema as any)
+      .from('credit_transactions')
+      .select('partner_id, amountPaid, status, created')
+      .in('partner_id', partnerIds)
+      .eq('transactionType', 'credit')
+
+    if (txError) {
+      notificationStore.addError(t('errors.fetch_failed'))
+      return
+    }
+    transactions = (txData ?? []) as CreditTransactionRow[]
+  }
+
+  const { acquisitionTotal, renewalTotal } = computeCommissions(partnerRows, transactions)
+  const totalEarnings = acquisitionTotal + renewalTotal
+
+  // Latest transaction per at-risk partner for nextRenewal estimate
+  const atRiskList: AtRiskCustomer[] = atRiskPartners.map((p) => {
+    const partnerTxs = transactions
+      .filter((tx) => tx.partner_id === p.id && tx.status === 'completed')
+      .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+    const lastPayment = partnerTxs[0]?.created ?? p.created
+    const nextRenewal = new Date(new Date(lastPayment).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+    return {
+      partnerId: p.id,
+      partnerName: p.name,
+      plan: p.status ?? '—',
+      creditStatus: getCreditStatus(p.status),
+      nextRenewal,
+    }
+  })
+
+  portfolioStats.value = {
+    portfolioSize,
+    newCustomersThisMonth: newThisMonth,
+    customerGrowthTrend: growthTrend,
+    pendingCommission: 0,
+    totalEarnings,
+    atRiskCount: atRiskPartners.length,
+  }
+
+  atRiskCustomers.value = atRiskList
+
+  commissionBreakdown.value = [
+    { name: t('dashboard.commission_breakdown_acquisition'), value: acquisitionTotal },
+    { name: t('dashboard.commission_breakdown_renewal'), value: renewalTotal },
+  ]
+}
 
 /**
  * Format currency
@@ -196,9 +347,8 @@ function formatDate(dateString: string): string {
   })
 }
 
-// In production, fetch from API
 onMounted(() => {
-  // await fetchSalesDashboardData()
+  loadDashboardData()
 })
 </script>
 

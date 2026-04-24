@@ -169,6 +169,8 @@ export default {
     monthly_credits_by_plan: 'Monthly Credits by Plan',
     revenue_by_partner_type: 'Revenue by Partner Type',
     commission_breakdown: 'Commission Breakdown',
+    commission_breakdown_acquisition: 'Acquisition Bonus',
+    commission_breakdown_renewal: 'Renewal Commissions',
 
     // Actions
     view_all: 'View All',
@@ -563,6 +565,11 @@ export default {
     filter_status: 'Filter by Status',
     reset_filters: 'Reset Filters',
     no_customers: 'No customers found matching your filters',
+    all_plans: 'All Plans',
+    all_statuses: 'All Statuses',
+    status_healthy: 'Healthy',
+    status_low: 'Low Balance',
+    status_critical: 'Critical',
   },
 
   // Commissions

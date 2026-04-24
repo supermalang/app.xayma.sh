@@ -169,6 +169,8 @@ export default {
     monthly_credits_by_plan: 'Crédits mensuels par plan',
     revenue_by_partner_type: 'Revenus par type de partenaire',
     commission_breakdown: 'Ventilation des commissions',
+    commission_breakdown_acquisition: 'Bonus d\'acquisition',
+    commission_breakdown_renewal: 'Commissions de renouvellement',
 
     // Actions
     view_all: 'Voir tout',
@@ -563,6 +565,11 @@ export default {
     filter_status: 'Filtrer par état',
     reset_filters: 'Réinitialiser les filtres',
     no_customers: 'Aucun client trouvé correspondant à vos filtres',
+    all_plans: 'Tous les plans',
+    all_statuses: 'Tous les statuts',
+    status_healthy: 'Sain',
+    status_low: 'Solde faible',
+    status_critical: 'Critique',
   },
 
   // Commissions
