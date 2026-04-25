@@ -1,0 +1,145 @@
+/* Shared Animations - Single Source of Truth
+   Import this in main.ts to avoid keyframe duplication across components
+*/
+
+/* Fade-in and opacity transitions */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Chart data reveal: subtle fade during initialization */
+@keyframes chart-data-reveal {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
+}
+
+/* Legend items fade-in with delay */
+@keyframes legend-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Stat card stagger entry: fade + subtle lift */
+@keyframes stat-card-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chart cards slide up: fade + lift from bottom */
+@keyframes chart-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade + larger slide-up for major layout shifts */
+@keyframes fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Table fade-in: opacity only (no transform for complex layouts) */
+@keyframes table-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Dialog slide-up modal animation */
+@keyframes dialog-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Filter bar slide-up */
+@keyframes filter-bar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Kafka metric cards stagger fade */
+@keyframes kafka-metric-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page header entry */
+@keyframes header-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Status badge pulse: gentle opacity cycle */
+@keyframes status-badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Trend indicator pulse: same pattern as status pulse */
+@keyframes pulse-trend {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* CSS Custom Properties for Easing Functions
+   Usage: animation-timing-function: var(--easing-standard);
+*/
+:root {
+  /* Standard easing: expo-out (fast → slow) */
+  --easing-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Pulse easing: ease-in-out */
+  --easing-pulse: cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* Standard transition durations */
+  --duration-micro: 150ms;
+  --duration-standard: 250ms;
+  --duration-slow: 350ms;
+
+  /* Combined transition shortcuts */
+  --transition-smooth: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-micro: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Reusable transition utility classes */
+.transition-smooth {
+  transition: var(--transition-smooth);
+}
+
+.transition-micro {
+  transition: var(--transition-micro);
+}

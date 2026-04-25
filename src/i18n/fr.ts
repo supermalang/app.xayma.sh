@@ -170,6 +170,7 @@ export default {
     revenue_by_partner_type: 'Revenus par type de partenaire',
     deployment_status_distribution: 'Distribution des Statuts de Déploiement',
     top_partners_deployments: 'Top 5 Partenaires par Déploiements',
+    service_popularity: 'Popularité des Services',
     commission_breakdown: 'Ventilation des commissions',
 
     // Actions

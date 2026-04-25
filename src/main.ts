@@ -18,6 +18,7 @@ import frMessages from './i18n/fr'
 
 // Styles
 import './assets/styles/main.css'
+import './assets/styles/animations.css'
 import './assets/styles/primevue-theme.css'
 import 'primeicons/primeicons.css'
 

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Animation Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8f9ff;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #1a1b1f;
+      margin-bottom: 2rem;
+    }
+
+    .demo-section {
+      background: white;
+      border: 1px solid #cac4d0;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .demo-section h2 {
+      color: #1a1b1f;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Stat Card Stagger Animation */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: #eff4ff;
+      border: 1px solid #cac4d0;
+      border-radius: 6px;
+      padding: 1.5rem;
+      animation: stat-card-fade 300ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0ms; }
+    .stat-card:nth-child(2) { animation-delay: 80ms; }
+    .stat-card:nth-child(3) { animation-delay: 160ms; }
+    .stat-card:nth-child(4) { animation-delay: 240ms; }
+
+    .stat-card:hover {
+      background-color: #dce9ff;
+      border-color: #00288e;
+      box-shadow: 0 1px 3px rgba(0, 40, 142, 0.08);
+    }
+
+    @keyframes stat-card-fade {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stat-card .label {
+      font-size: 0.875rem;
+      color: #49454e;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .value {
+      font-size: 1.875rem;
+      font-weight: bold;
+      color: #1a1b1f;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .stat-card .trend {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.75rem;
+      color: #003d28;
+      animation: pulse-trend 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-trend {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Chart Slide-Up Animation */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .chart-card {
+      background: #eff4ff;
+      border: 1px solid #cac4d0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      animation: chart-enter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .chart-card:nth-child(1) { animation-delay: 0ms; }
+    .chart-card:nth-child(2) { animation-delay: 100ms; }
+
+    .chart-card:hover {
+      border-color: #00288e;
+      box-shadow: 0 2px 4px rgba(0, 40, 142, 0.06);
+    }
+
+    @keyframes chart-enter {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chart-card h3 {
+      color: #1a1b1f;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .chart-placeholder {
+      background: linear-gradient(135deg, #cfe1ff 0%, #eaeef7 100%);
+      height: 200px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #79747e;
+    }
+
+    /* Kafka Metrics Stagger */
+    .kafka-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .kafka-metric {
+      background: #eff4ff;
+      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+      animation: kafka-metric-fade 250ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    }
+
+    .kafka-metric:nth-child(1) { animation-delay: 0ms; }
+    .kafka-metric:nth-child(2) { animation-delay: 60ms; }
+    .kafka-metric:nth-child(3) { animation-delay: 120ms; }
+
+    @keyframes kafka-metric-fade {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .kafka-metric .label {
+      font-size: 0.75rem;
+      color: #49454e;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .kafka-metric .value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #1a1b1f;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .code {
+      background: #eaeef7;
+      border: 1px solid #cac4d0;
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+      color: #49454e;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard Animation Preview</h1>
+
+    <!-- Stat Cards Stagger -->
+    <div class="demo-section">
+      <h2>Stat Cards (Stagger Fade-In)</h2>
+      <p>Cards enter sequentially with 80ms stagger, creating a left-to-right scanning effect.</p>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">Total Partners</div>
+          <div class="value">42</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Active Deployments</div>
+          <div class="value">156</div>
+          <div class="trend">↑ 8%</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Revenue Today</div>
+          <div class="value">$12.4K</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Failed Deployments</div>
+          <div class="value">3</div>
+        </div>
+      </div>
+      <div class="code">Timing: 300ms fade + 80ms stagger<br/>
+Easing: cubic-bezier(0.16, 1, 0.3, 1) [expo-out]<br/>
+Effect: Opacity 0→1 + TranslateY 8px→0</div>
+    </div>
+
+    <!-- Charts Slide-Up -->
+    <div class="demo-section">
+      <h2>Charts (Slide-Up)</h2>
+      <p>Charts fade in and lift 12px. Slower entrance (300ms) for larger layout shift.</p>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>Deployments Trend</h3>
+          <div class="chart-placeholder">Line Chart</div>
+        </div>
+        <div class="chart-card">
+          <h3>Credit Deduction</h3>
+          <div class="chart-placeholder">Bar Chart</div>
+        </div>
+      </div>
+      <div class="code">Timing: 300ms slide-up<br/>
+Easing: cubic-bezier(0.16, 1, 0.3, 1) [expo-out]<br/>
+Effect: Opacity 0→1 + TranslateY 12px→0</div>
+    </div>
+
+    <!-- Kafka Metrics Stagger -->
+    <div class="demo-section">
+      <h2>Kafka Metrics (Stagger Fade)</h2>
+      <p>Metric boxes enter with 60ms stagger after chart section loads (350ms total).</p>
+      <div class="kafka-metrics">
+        <div class="kafka-metric">
+          <div class="label">Consumer Lag</div>
+          <div class="value">245</div>
+        </div>
+        <div class="kafka-metric">
+          <div class="label">Messages Processed</div>
+          <div class="value">18.7K</div>
+        </div>
+        <div class="kafka-metric">
+          <div class="label">Failed Events</div>
+          <div class="value">2</div>
+        </div>
+      </div>
+      <div class="code">Timing: 250ms fade + 60ms stagger<br/>
+Easing: cubic-bezier(0.16, 1, 0.3, 1) [expo-out]<br/>
+Effect: Opacity 0→1 + TranslateY 6px→0</div>
+    </div>
+
+    <!-- Animation Summary -->
+    <div class="demo-section">
+      <h2>Animation Philosophy</h2>
+      <p><strong>All animations follow design.md motion rules:</strong></p>
+      <ul style="margin-left: 1rem; margin-top: 1rem;">
+        <li>✓ Only for state transitions (clarifying, never distracting)</li>
+        <li>✓ Easing: expo-out (fast → slow), no bounce</li>
+        <li>✓ No layout property animations (opacity + transform only)</li>
+        <li>✓ Timing: 150–300ms standard, 350ms for large shifts</li>
+        <li>✓ Stagger creates scanning effect (guides visual flow)</li>
+        <li>✓ Hover + focus states smooth (250ms transitions)</li>
+      </ul>
+    </div>
+
+    <!-- Deployments Page Motion -->
+    <div class="demo-section">
+      <h2>Deployments Page Animations</h2>
+      <p>Operational page focused on deployment status clarity and action responsiveness.</p>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">1. Page Header (Permanent)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Title + "Create Deployment" button appear immediately (300ms fade).</p>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">2. Admin Stats Cards (Staggered)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Total Deployments → Active Deployments → Monthly Cost, each 80ms apart (same as Dashboard).</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 300ms fade + 80ms stagger<br/>
+        Easing: expo-out<br/>
+        Trigger: Page load (if user is admin)<br/>
+        Effect: Opacity 0→1 + TranslateY 8px→0
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">3. Status Filter Bar (Slide-Up)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Filter appears after stats, slight upward motion.</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 300ms (100ms delay from header)<br/>
+        Easing: expo-out<br/>
+        Effect: Opacity 0→1 + TranslateY -6px→0<br/>
+        On filter change: Smooth 250ms fade transition
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">4. DataTable (Fade-In)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Entire table appears after filter bar is ready.</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 300ms (200ms delay from header)<br/>
+        Easing: expo-out<br/>
+        Effect: Opacity 0→1 (no transform—table is complex)<br/>
+        On data change: Smooth re-flow with fade
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">5. Status Badge Pulse (Critical States)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Badges for "deploying" and "failed" status gentle pulse (draws attention, not alarming).</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 1.5s infinite cycle<br/>
+        Easing: ease-in-out<br/>
+        Effect: Opacity 1.0 ↔ 0.7 (50% amplitude)<br/>
+        Usage: Draws eyes to critical states without distraction
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">6. Action Button Hover</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">View and Delete buttons scale slightly on hover (responsive tactile feedback).</p>
+      <div class="code">
+        Timing: 250ms<br/>
+        Easing: expo-out<br/>
+        Effect: Transform scale(1.0) → scale(1.1)<br/>
+        Platform feedback: Confirms button is interactive
+      </div>
+    </div>
+
+    <!-- Deployment Sequence Summary -->
+    <div class="demo-section">
+      <h2>Deployment Page Load Timeline</h2>
+      <div class="code">
+        0ms    → Header enters (title + create button)
+        0–100ms → Stats cards stagger in (if admin)
+        100ms  → Filter bar enters
+        200ms  → Table fades in with data
+        ∞      → Status badges pulse (for critical states)
+      </div>
+      <p style="color: #49454e; margin-top: 1rem;">Total initial sequence: ~500ms to full page visibility. User can interact immediately.</p>
+    </div>
+
+    <!-- Partners Page Animations -->
+    <div class="demo-section">
+      <h2>Partners Page Animations</h2>
+      <p>Management page focused on partner relationship oversight with clear status indicators.</p>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">1. Page Header (Permanent)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Title + "Create Partner" button appear immediately (300ms fade).</p>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">2. Filter Dropdowns (Slide-Up)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Status and Type filter dropdowns appear after header with 100ms delay.</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 300ms (100ms delay from header)<br/>
+        Easing: expo-out<br/>
+        Effect: Opacity 0→1 + TranslateY -6px→0<br/>
+        On change: Smooth 250ms fade transition
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">3. Partner Table (Fade-In)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">DataTable appears after filters settle (200ms delay).</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 300ms (200ms delay from header)<br/>
+        Easing: expo-out<br/>
+        Effect: Opacity 0→1 (no transform—table is complex)<br/>
+        Columns: Name, Email, Phone, Type, Status, Remaining Credits
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">4. Status Badge Pulse (Suspended)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Suspended status badges (warning state) gently pulse—draws attention to accounts needing action.</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 1.5s infinite cycle<br/>
+        Easing: ease-in-out<br/>
+        Effect: Opacity 1.0 ↔ 0.7 (50% amplitude)<br/>
+        Usage: Active, Inactive have no pulse—only suspended pulses
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">5. Create/Edit Dialog (Slide-Up Modal)</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">Dialog enters from bottom when user clicks "Create" or edit pencil icon.</p>
+      <div class="code" style="margin-bottom: 1rem;">
+        Timing: 300ms enter, 250ms leave<br/>
+        Easing: expo-out<br/>
+        Effect: Opacity 0→1 + TranslateY 20px→0<br/>
+        Form inside: PartnerForm component with validation feedback
+      </div>
+
+      <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #1a1b1f;">6. Action Buttons Hover</h3>
+      <p style="color: #49454e; margin-bottom: 1rem;">View, Edit, Delete buttons scale slightly and smooth on hover (250ms).</p>
+      <div class="code">
+        Timing: 250ms<br/>
+        Easing: expo-out<br/>
+        Effect: Transform scale(1.0) → scale(1.1)<br/>
+        Interactive feedback: Confirms button responsiveness
+      </div>
+    </div>
+
+    <!-- Partners Page Load Timeline -->
+    <div class="demo-section">
+      <h2>Partners Page Load Timeline</h2>
+      <div class="code">
+        0ms    → Header enters (title + create button)
+        100ms  → Filter dropdowns slide up
+        200ms  → Partner table fades in with data
+        ∞      → Suspended badges pulse gently
+        On open → Dialog slides up (create/edit form)
+      </div>
+      <p style="color: #49454e; margin-top: 1rem;">Total initial sequence: ~500ms to full page visibility. Filters and table ready immediately.</p>
+    </div>
+  </div>
+</body>
+</html>

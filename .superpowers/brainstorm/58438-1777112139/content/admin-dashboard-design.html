@@ -1,0 +1,64 @@
+<h2>Admin Dashboard — Real Data Mapping</h2>
+<p class="subtitle">Each widget mapped to its Supabase query. Does this look right?</p>
+
+<div class="section">
+  <h3>Stat Cards (top row)</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label" style="color:#00288e">Total Partners</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT count(*) FROM xayma_app.partners WHERE status != 'archived'</code></div>
+      <div style="font-size:12px;color:#666;margin-top:4px">No trend arrow needed</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label" style="color:#00288e">Active Deployments</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT count(*) FROM xayma_app.deployments WHERE status = 'active'</code></div>
+      <div style="font-size:12px;color:#666;margin-top:4px">Trend: compare to yesterday's count</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label" style="color:#003d28">Revenue Today (FCFA)</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT sum(amountPaid) FROM xayma_app.credit_transactions WHERE status='completed' AND created >= today</code></div>
+      <div style="font-size:12px;color:#666;margin-top:4px">Formatted with useCurrency (FCFA)</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label" style="color:#ba1a1a">Failed Deployments</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT count(*) FROM xayma_app.deployments WHERE status = 'failed'</code></div>
+      <div style="font-size:12px;color:#666;margin-top:4px">Error color card</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Charts</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">LineChart — Deployments Trend</div>
+      <div style="font-size:13px;margin-top:6px">Active deployment count per day, last 7 days<br><code>GROUP BY date(created)</code> from deployments</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">BarChart — Credits by Plan</div>
+      <div style="font-size:13px;margin-top:6px">Sum of <code>creditsUsed</code> per service plan label<br>JOIN deployments → serviceplans</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">DonutChart — Revenue by Partner Type</div>
+      <div style="font-size:13px;margin-top:6px">Sum of <code>amountPaid</code> per <code>partner_type</code><br>JOIN credit_transactions → partners</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Kafka Metrics</h3>
+  <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px;font-size:13px">
+    <strong>Kept as-is (hardcoded placeholders)</strong> — Kafka consumer lag, messages processed, and failed events require direct Kafka API access which is not available from the Vue frontend. These cards will remain static until a backend metrics endpoint is available.
+  </div>
+</div>
+
+<div class="section">
+  <h3>New composable: <code>useAdminDashboard.ts</code></h3>
+  <div style="font-size:13px;border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+    <div>Single composable runs all 4 Supabase queries in parallel via <code>Promise.all</code></div>
+    <div style="margin-top:8px">Returns: <code>{ stats, deploymentsTrend, creditsByPlan, revenueByPartnerType, isLoading, error }</code></div>
+    <div style="margin-top:8px">Called once in <code>onMounted</code>, replaces the commented-out <code>fetchAdminDashboardData()</code></div>
+  </div>
+</div>
+
+<p style="margin-top:16px;font-size:13px;color:#555">Open <strong>http://localhost:65247</strong> to see this. Does this mapping look right? Any metric you'd like to change?</p>

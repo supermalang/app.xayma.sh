@@ -1,0 +1,77 @@
+<h2>Customer, Reseller & Sales Dashboards — Real Data Mapping</h2>
+<p class="subtitle">Each widget mapped to its Supabase query. Let me know if anything needs changing.</p>
+
+<div class="section">
+  <h3 style="color:#00288e">Customer Dashboard</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Credit Balance + Status</div>
+      <div style="font-size:13px;margin-top:6px">Already wired via <code>usePartnerCredits</code> ✓<br>No changes needed</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Active Deployments (list)</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT * FROM xayma_app.deployments WHERE status='active' AND partner_id=me</code><br>RLS scopes to current user's partner automatically</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Total Spend</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT sum(amountPaid) FROM xayma_app.credit_transactions WHERE partner_id=me AND status='completed'</code><br>Formatted in FCFA</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">LineChart — Monthly Consumption</div>
+      <div style="font-size:13px;margin-top:6px"><code>creditsUsed</code> per month from <code>credit_transactions</code> for this partner, last 6 months</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#666;margin-top:8px">New composable: <code>useCustomerDashboard.ts</code></div>
+</div>
+
+<div class="section">
+  <h3 style="color:#9d4300">Reseller Dashboard</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Active Clients Count</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT count(*) FROM xayma_app.partners WHERE reseller_id=me AND status='active'</code><br><em>Note: assumes a reseller_id FK on partners — needs verification</em></div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Monthly Spend</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT sum(amountPaid) FROM xayma_app.credit_transactions WHERE partner_id=me AND created >= month_start AND status='completed'</code></div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Client Deployments (list)</div>
+      <div style="font-size:13px;margin-top:6px">Already partially wired via <code>useDeployments</code> ✓<br>May need to filter by client partners</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">At-Risk Clients</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT * FROM xayma_app.partners WHERE reseller_id=me AND status IN ('low_credit','no_credit','on_debt')</code></div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#666;margin-top:8px">New composable: <code>useResellerDashboard.ts</code></div>
+</div>
+
+<div class="section">
+  <h3 style="color:#003d28">Sales Dashboard</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Portfolio Stats (stat cards)</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT count(*), sum(remainingCredits) FROM xayma_app.partners WHERE sales_agent_id=me</code><br><em>Note: assumes a sales_agent_id FK on partners — needs verification</em></div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">At-Risk Customers</div>
+      <div style="font-size:13px;margin-top:6px"><code>SELECT * FROM xayma_app.partners WHERE sales_agent_id=me AND status IN ('low_credit','no_credit','on_debt')</code></div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">DonutChart — Commission Breakdown</div>
+      <div style="font-size:13px;margin-top:6px">Calculated client-side using <code>useCommissions</code> composable (already exists ✓)<br>Based on each partner's plan price</div>
+    </div>
+    <div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px">
+      <div class="label">Commission Total</div>
+      <div style="font-size:13px;margin-top:6px">Sum of acquisition + renewal commissions via <code>useCommissions</code><br>No new query needed</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#666;margin-top:8px">New composable: <code>useSalesDashboard.ts</code></div>
+</div>
+
+<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:14px;margin-top:8px">
+  <strong>⚠ Schema assumption to verify:</strong> The Reseller and Sales dashboards assume <code>partners</code> has <code>reseller_id</code> and <code>sales_agent_id</code> FK columns. If these don't exist, those dashboards will fall back to showing only the current partner's own data (scoped by RLS), which may still be useful.
+</div>
+
+<p style="margin-top:16px;font-size:13px;color:#555">Open <strong>http://localhost:65247</strong> — does this mapping look right for all three?</p>

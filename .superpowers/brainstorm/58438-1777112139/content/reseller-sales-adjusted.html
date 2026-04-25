@@ -1,0 +1,38 @@
+<h2>Reseller & Sales Dashboards — Adjusted Design</h2>
+<p class="subtitle">No <code>reseller_id</code> or <code>sales_agent_id</code> FK exists in the schema. How should we handle client/portfolio data?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Own data only (scope to current partner)</h3>
+      <p>Reseller and Sales dashboards show their own partner's credits, deployments, and transactions — just like the Customer dashboard but with different labels. Simple, accurate, ships immediately.</p>
+      <div style="margin-top:8px;font-size:12px;color:#666">
+        Reseller sees: their own credit balance, their own deployments, their own spend<br>
+        Sales sees: same, plus commission calculation on their own plan via useCommissions
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Keep hardcoded placeholders for "client" metrics</h3>
+      <p>Wire up what we can (own credits, own spend, own deployments) and keep the "Active Clients", "At-Risk Clients", and "Portfolio" cards as clearly-labeled placeholders until the schema has the FK columns.</p>
+      <div style="margin-top:8px;font-size:12px;color:#666">
+        Real data for self-owned metrics, honest placeholder for hierarchy metrics
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Add schema FK columns as part of this task</h3>
+      <p>Generate a migration to add <code>reseller_id</code> and <code>sales_agent_id</code> to the <code>partners</code> table, then wire up the full hierarchy queries. More scope, but gets the full design right.</p>
+      <div style="margin-top:8px;font-size:12px;color:#666">
+        Requires a DB migration + RLS policy update before the UI can work
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:16px;font-size:13px;color:#555">Open <strong>http://localhost:65247</strong> — pick A, B, or C for how to handle the missing schema relationships.</p>

@@ -18,11 +18,14 @@
         <!-- Trend Indicator -->
         <div
           v-if="trend !== undefined"
-          class="flex items-center gap-1"
-          :class="trend > 0 ? 'text-tertiary' : 'text-error'"
+          class="flex items-center gap-1 trend-indicator"
+          :class="{
+            'text-tertiary trend-positive': trend > 0,
+            'text-error': trend <= 0,
+          }"
         >
           <i :class="trend > 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down'" />
-          <span class="text-sm font-medium">{{ Math.abs(trend) }}%</span>
+          <span class="text-sm font-medium tabular-nums">{{ Math.abs(trend) }}%</span>
         </div>
       </div>
     </template>
@@ -111,10 +114,24 @@ const formattedValue = computed(() => {
 }
 
 .stat-card {
-  transition: all 0.2s ease;
+  transition: var(--transition-smooth);
 }
 
 .stat-card:hover :deep(.p-card) {
   background-color: var(--surface-container-high);
+  border-color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0, 40, 142, 0.08);
+}
+
+.trend-indicator {
+  transition: color var(--duration-standard) var(--easing-standard);
+}
+
+.trend-positive {
+  animation: pulse-trend 2s var(--easing-pulse) infinite;
+}
+
+p {
+  transition: opacity var(--duration-standard) var(--easing-standard);
 }
 </style>

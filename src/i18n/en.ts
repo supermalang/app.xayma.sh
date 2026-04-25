@@ -170,6 +170,7 @@ export default {
     revenue_by_partner_type: 'Revenue by Partner Type',
     deployment_status_distribution: 'Deployment Status Distribution',
     top_partners_deployments: 'Top 5 Partners by Deployments',
+    service_popularity: 'Service Popularity',
     commission_breakdown: 'Commission Breakdown',
 
     // Actions

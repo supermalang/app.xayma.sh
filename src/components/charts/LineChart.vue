@@ -6,7 +6,7 @@
       </div>
     </template>
 
-    <div class="w-full h-96">
+    <div class="w-full h-96 chart-content">
       <VChart :option="option" autoresize />
     </div>
   </Card>
@@ -114,6 +114,7 @@ const option = computed<EChartsOption>(() => ({
   border: 1px solid var(--outline-variant);
   background: var(--surface-container-low);
   box-shadow: none;
+  transition: var(--transition-smooth);
 }
 
 :deep(.p-card-header) {
@@ -123,5 +124,18 @@ const option = computed<EChartsOption>(() => ({
 :deep(.echarts) {
   width: 100% !important;
   height: 100% !important;
+}
+
+.chart-card {
+  transition: var(--transition-smooth);
+}
+
+.chart-card:hover :deep(.p-card) {
+  border-color: var(--primary);
+  box-shadow: 0 2px 4px rgba(0, 40, 142, 0.06);
+}
+
+.chart-content {
+  animation: chart-data-reveal 400ms var(--easing-standard);
 }
 </style>

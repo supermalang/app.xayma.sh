@@ -83,6 +83,17 @@
       </div>
     </transition>
 
+    <!-- Service Popularity -->
+    <transition name="chart-slide-up">
+      <div key="service-popularity">
+        <BarChart
+          :title="$t('dashboard.service_popularity')"
+          :categories="serviceCategories"
+          :series="serviceSeries"
+        />
+      </div>
+    </transition>
+
     <!-- Kafka Metrics (Optional) -->
     <transition name="fade-slide-up">
       <Card key="kafka-metrics">
@@ -144,7 +155,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType } = useAdminDashboard()
-const { statusDistribution, topPartners } = useAdminInsights()
+const { statusDistribution, topPartners, serviceStats } = useAdminInsights()
 
 interface StatCardConfig {
   id: string
@@ -217,6 +228,18 @@ const topPartnersSeries = computed(() => [
     name: t('dashboard.deployments'),
     data: topPartners.value.map(p => p.deployment_count),
     color: '#667eea',
+  },
+])
+
+const serviceCategories = computed(() =>
+  serviceStats.value.map(s => s.service_name)
+)
+
+const serviceSeries = computed(() => [
+  {
+    name: t('dashboard.deployments'),
+    data: serviceStats.value.map(s => s.count),
+    color: '#48bb78',
   },
 ])
 

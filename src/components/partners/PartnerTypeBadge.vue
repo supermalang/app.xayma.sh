@@ -1,5 +1,5 @@
 <template>
-  <Tag :value="label" :severity="severity" />
+  <Tag :value="label" :severity="severity" class="type-badge" />
 </template>
 
 <script setup lang="ts">
@@ -30,3 +30,26 @@ const severity = computed(() => {
   return severityMap[props.type] || 'secondary'
 })
 </script>
+
+<style scoped>
+.type-badge {
+  transition: var(--transition-smooth);
+  font-weight: 600;
+}
+
+/* Partner type color coding
+ * Reseller: success green (revenue-driving accounts)
+ * Customer: info blue (end-user accounts)
+ */
+:deep(.type-badge.p-tag-success) {
+  background: #00b341 !important;
+  border-color: #00b341 !important;
+  color: #ffffff !important;
+}
+
+:deep(.type-badge.p-tag-info) {
+  background: #1e40af !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+}
+</style>

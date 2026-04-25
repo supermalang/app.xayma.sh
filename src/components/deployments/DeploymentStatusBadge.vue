@@ -2,7 +2,10 @@
   <Tag
     :value="getLabel(status)"
     :severity="getSeverity(status)"
-    class="whitespace-nowrap"
+    class="whitespace-nowrap status-badge"
+    :class="{
+      'status-critical': ['deploying', 'failed'].includes(status),
+    }"
   />
 </template>
 
@@ -45,3 +48,13 @@ function getSeverity(status: string): string {
   return severityMap[status] || 'info'
 }
 </script>
+
+<style scoped>
+.status-badge {
+  transition: var(--transition-smooth);
+}
+
+.status-critical {
+  animation: status-badge-pulse 1.5s var(--easing-pulse) infinite;
+}
+</style>
