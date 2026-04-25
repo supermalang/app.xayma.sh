@@ -62,6 +62,16 @@
       </div>
     </transition>
 
+    <!-- Deployment Status Distribution -->
+    <transition name="chart-slide-up">
+      <div key="status-distribution">
+        <DonutChart
+          :title="$t('dashboard.deployment_status_distribution')"
+          :data="deploymentStatusData"
+        />
+      </div>
+    </transition>
+
     <!-- Kafka Metrics (Optional) -->
     <transition name="fade-slide-up">
       <Card key="kafka-metrics">
@@ -118,10 +128,12 @@ import LineChart from '@/components/charts/LineChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
 import { useAdminDashboard } from '@/composables/useAdminDashboard'
+import { useAdminInsights } from '@/composables/useAdminInsights'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType } = useAdminDashboard()
+const { statusDistribution } = useAdminInsights()
 
 interface StatCardConfig {
   id: string
@@ -177,6 +189,13 @@ const creditDeductionSeries = computed(() => [
     color: '#00288e',
   },
 ])
+
+const deploymentStatusData = computed(() =>
+  statusDistribution.value.map(s => ({
+    name: `${s.status} (${s.count})`,
+    value: s.count,
+  }))
+)
 
 function formatNumber(value: string): string {
   return value

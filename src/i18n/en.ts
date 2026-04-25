@@ -168,6 +168,7 @@ export default {
     deployments_trend: 'Deployments Over Time',
     credit_deduction_by_plan: 'Credit Deduction by Plan',
     revenue_by_partner_type: 'Revenue by Partner Type',
+    deployment_status_distribution: 'Deployment Status Distribution',
     commission_breakdown: 'Commission Breakdown',
 
     // Actions
