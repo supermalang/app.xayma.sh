@@ -39,14 +39,11 @@ interface Props {
   data: DataItem[]
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const colors = ['#00288e', '#fd761a', '#003d28', '#ba1a1a', '#1e40af', '#9d4300', '#fbb340']
 
-/**
- * Computed: ECharts configuration
- */
-const option = computed<EChartsOption>((props) => ({
+const option = computed<EChartsOption>(() => ({
   color: colors,
   tooltip: {
     trigger: 'item',
@@ -62,7 +59,7 @@ const option = computed<EChartsOption>((props) => ({
       name: '',
       type: 'pie',
       radius: ['40%', '70%'],
-      data: (props as any).data,
+      data: props.data,
       itemStyle: {
         borderColor: '#f8f9ff',
         borderWidth: 2,
