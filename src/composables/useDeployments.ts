@@ -259,22 +259,26 @@ export function useDeployments() {
   /**
    * Subscribe to Realtime updates for deployments
    * Updates local state when deployment status changes
+   * If partnerId is not provided, subscribes to all deployment changes (admin mode)
    */
-  function subscribeToDeploymentUpdates(partnerId: number) {
+  function subscribeToDeploymentUpdates(partnerId?: number) {
     // Clean up any existing subscription
     if (realtimeChannel) {
       supabase.removeChannel(realtimeChannel)
     }
 
+    const channelName = partnerId ? `deployments-partner-${partnerId}` : 'deployments-all'
+    const filter = partnerId ? `partner_id=eq.${partnerId}` : undefined
+
     realtimeChannel = supabase
-      .channel(`deployments-partner-${partnerId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'xayma_app',
           table: 'deployments',
-          filter: `partner_id=eq.${partnerId}`,
+          ...(filter && { filter }),
         },
         (payload) => {
           // Update deployment in local array
