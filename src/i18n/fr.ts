@@ -169,6 +169,7 @@ export default {
     credit_deduction_by_plan: 'Déduction de crédit par plan',
     revenue_by_partner_type: 'Revenus par type de partenaire',
     deployment_status_distribution: 'Distribution des Statuts de Déploiement',
+    top_partners_deployments: 'Top 5 Partenaires par Déploiements',
     commission_breakdown: 'Ventilation des commissions',
 
     // Actions
