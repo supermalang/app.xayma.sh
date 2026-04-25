@@ -28,7 +28,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-outline-variant">
           <div class="text-center">
             <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.total_spent') }}</p>
-            <p class="text-2xl font-bold text-on-surface font-mono">{{ formatCurrency(1250) }}</p>
+            <p class="text-2xl font-bold text-on-surface font-mono">{{ formatCurrency(totalSpend) }}</p>
           </div>
           <div class="text-center">
             <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.last_payment') }}</p>
@@ -84,11 +84,8 @@
               class="text-xs"
             />
           </div>
-          <p class="text-xs text-on-surface-variant">
-            {{ deployment.service }} • {{ deployment.plan }}
-          </p>
-          <p class="text-xs font-mono text-on-surface-variant mt-2">
-            {{ deployment.monthlyConsumption }} FCFA/month
+          <p class="text-xs font-mono text-on-surface-variant mt-1">
+            {{ deployment.domain }}
           </p>
         </div>
 
@@ -106,13 +103,13 @@
     <!-- Monthly Consumption Chart -->
     <LineChart
       :title="$t('dashboard.monthly_consumption')"
-      :data="monthlyConsumptionData"
+      :data="monthlyConsumption"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
@@ -120,6 +117,7 @@ import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { useCustomerDashboard } from '@/composables/useCustomerDashboard'
 import { useAuthStore } from '@/stores/auth.store'
 
 const router = useRouter()
@@ -127,85 +125,24 @@ const authStore = useAuthStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 const { credits, refresh } = usePartnerCredits(partnerId.value)
 
-// Re-fetch when auth profile loads
 watch(() => authStore.profile?.company_id, (id) => {
   if (id) refresh()
 })
 
-/**
- * Active deployments (would be fetched from API)
- */
-const activeDeployments = [
-  {
-    id: '1',
-    label: 'Production Odoo',
-    domain: 'odoo.example.com',
-    service: 'Odoo 16',
-    plan: 'Pro',
-    status: 'active',
-    monthlyConsumption: 2400,
-  },
-  {
-    id: '2',
-    label: 'Staging',
-    domain: 'staging.example.com',
-    service: 'Odoo 16',
-    plan: 'Starter',
-    status: 'active',
-    monthlyConsumption: 800,
-  },
-  {
-    id: '3',
-    label: 'Dev Env',
-    domain: 'dev.example.com',
-    service: 'Custom Docker',
-    plan: 'Starter',
-    status: 'active',
-    monthlyConsumption: 600,
-  },
-]
+const { activeDeployments, lastPaymentDate, totalSpend, monthlyConsumption } = useCustomerDashboard()
 
-/**
- * Last payment date
- */
-const lastPaymentDate = new Date('2026-03-20').toISOString()
-
-/**
- * Days remaining
- */
 const daysRemaining = computed(() => {
   const today = new Date()
   const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-  const daysLeft = Math.ceil((nextMonth.getTime() - today.getTime()) / (1000 * 3600 * 24))
-  return daysLeft
+  return Math.ceil((nextMonth.getTime() - today.getTime()) / (1000 * 3600 * 24))
 })
 
-/**
- * Monthly consumption data
- */
-const monthlyConsumptionData = [
-  { name: 'Jan', value: 7200 },
-  { name: 'Feb', value: 7800 },
-  { name: 'Mar', value: 8400 },
-  { name: 'Apr', value: 9200 },
-  { name: 'May', value: 8900 },
-  { name: 'Jun', value: 9600 },
-]
-
-/**
- * Format currency
- */
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(value)
+  return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(value)
 }
 
-/**
- * Format date
- */
-function formatDate(dateString: string): string {
+function formatDate(dateString: string | null): string {
+  if (!dateString) return '—'
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -213,9 +150,6 @@ function formatDate(dateString: string): string {
   })
 }
 
-/**
- * Get Tag severity for status
- */
 function getStatusSeverity(status: string): string {
   const severities: Record<string, string> = {
     active: 'success',
@@ -227,17 +161,9 @@ function getStatusSeverity(status: string): string {
   return severities[status] || 'secondary'
 }
 
-/**
- * Navigate to top up page
- */
 function navigateToTopUp() {
   router.push('/credits/buy')
 }
-
-// In production, fetch from API
-onMounted(() => {
-  // await fetchCustomerDashboardData()
-})
 </script>
 
 <style scoped>
