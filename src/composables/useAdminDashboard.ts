@@ -93,7 +93,13 @@ export function useAdminDashboard() {
 
       supabaseFrom('credit_transactions')
         .select('amountPaid, partners(partner_type)')
-        .eq('status', 'completed'),
+        .eq('status', 'completed')
+        .gte('created', (() => {
+          const d = new Date()
+          d.setDate(d.getDate() - 30)
+          d.setHours(0, 0, 0, 0)
+          return d.toISOString()
+        })()),
     ])
 
     if (
@@ -125,7 +131,6 @@ export function useAdminDashboard() {
 
     // Deployments trend: 7-day chart
     const dayCounts: Record<string, number> = {}
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
@@ -136,10 +141,15 @@ export function useAdminDashboard() {
       const key = row.created.slice(0, 10)
       if (key in dayCounts) dayCounts[key]++
     }
-    deploymentsTrend.value = Object.entries(dayCounts).map(([dateStr, count]) => ({
-      name: days[new Date(dateStr).getDay()],
-      value: count,
-    }))
+    deploymentsTrend.value = Object.entries(dayCounts)
+      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+      .map(([dateStr, count]) => {
+        const d = new Date(dateStr)
+        return {
+          name: `${d.toLocaleString('en-US', { month: 'short', day: 'numeric' })}`,
+          value: count,
+        }
+      })
 
     // Credits by plan: aggregate creditsUsed per plan
     const planLabels: Record<number, string> = {}
