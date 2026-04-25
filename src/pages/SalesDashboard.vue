@@ -123,7 +123,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -131,75 +130,27 @@ import Tag from 'primevue/tag'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
+import { useSalesDashboard } from '@/composables/useSalesDashboard'
 
-/**
- * Portfolio statistics
- */
-const portfolioStats = ref({
-  portfolioSize: 24,
-  newCustomersThisMonth: 3,
-  customerGrowthTrend: 12,
-  pendingCommission: 8400,
-  totalEarnings: 45600,
-  atRiskCount: 2,
-})
+const { portfolioStats, atRiskCustomers, commissionBreakdown } = useSalesDashboard()
 
-/**
- * At-risk customers
- */
-const atRiskCustomers = ref([
-  {
-    partnerId: '1',
-    partnerName: 'Logistics Plus',
-    plan: 'Enterprise',
-    creditStatus: 'CRITICAL',
-    nextRenewal: new Date('2026-04-15').toISOString(),
-  },
-  {
-    partnerId: '2',
-    partnerName: 'Fashion Hub',
-    plan: 'Pro',
-    creditStatus: 'LOW',
-    nextRenewal: new Date('2026-04-20').toISOString(),
-  },
-])
-
-/**
- * Commission breakdown
- */
-const commissionBreakdown = [
-  { name: 'Acquisition Bonus', value: 12800 },
-  { name: 'Renewal Commissions', value: 24600 },
-  { name: 'Pending (This Month)', value: 8400 },
-]
-
-/**
- * Format currency
- */
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('fr-SN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'XOF',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value)
 }
 
-/**
- * Format date
- */
-function formatDate(dateString: string): string {
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '—'
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   })
 }
-
-// In production, fetch from API
-onMounted(() => {
-  // await fetchSalesDashboardData()
-})
 </script>
 
 <style scoped>
