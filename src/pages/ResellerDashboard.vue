@@ -255,6 +255,7 @@ import CreditMeter from '@/components/credits/CreditMeter.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { useResellerDashboard } from '@/composables/useResellerDashboard'
 import { useDeployments } from '@/composables/useDeployments'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 
@@ -293,79 +294,14 @@ onUnmounted(() => {
   // subscribeToDeploymentUpdates handles its own cleanup via onUnmounted
 })
 
-/**
- * Deployment action pending state (deploymentId -> action)
- */
 const pendingActions = ref<Record<number, 'stop' | 'start' | 'restart'>>({})
 
-/**
- * Monthly spend
- */
-const monthlySpend = ref(8400)
-
-/**
- * Active clients count
- */
-const activeClientsCount = ref(12)
-
-/**
- * Client deployments
- */
-const clientDeployments = ref([
-  {
-    partnerId: '1',
-    clientName: 'TechCorp Nigeria',
-    deploymentCount: 2,
-    monthlyConsumption: 3200,
-    status: 'active',
-  },
-  {
-    partnerId: '2',
-    clientName: 'Fashion Hub',
-    deploymentCount: 1,
-    monthlyConsumption: 1200,
-    status: 'active',
-  },
-  {
-    partnerId: '3',
-    clientName: 'Logistics Plus',
-    deploymentCount: 3,
-    monthlyConsumption: 2800,
-    status: 'at_risk',
-  },
-  {
-    partnerId: '4',
-    clientName: 'Health Clinic Group',
-    deploymentCount: 1,
-    monthlyConsumption: 800,
-    status: 'active',
-  },
-  {
-    partnerId: '5',
-    clientName: 'Trading Company',
-    deploymentCount: 2,
-    monthlyConsumption: 1600,
-    status: 'at_risk',
-  },
-])
-
-/**
- * At-risk clients (low balance)
- */
-const atRiskClients = ref([
-  {
-    partnerId: '3',
-    clientName: 'Logistics Plus',
-    deploymentCount: 3,
-    monthlyConsumption: 2800,
-  },
-  {
-    partnerId: '5',
-    clientName: 'Trading Company',
-    deploymentCount: 2,
-    monthlyConsumption: 1600,
-  },
-])
+const {
+  activeClientsCount,
+  monthlySpend,
+  clientDeployments,
+  atRiskClients,
+} = useResellerDashboard()
 
 /**
  * Handle stop deployment action
@@ -438,10 +374,7 @@ function navigateToTopUp() {
   router.push('/credits/buy')
 }
 
-// In production, fetch from API
-onMounted(() => {
-  // await fetchResellerDashboardData()
-})
+
 </script>
 
 <style scoped>
