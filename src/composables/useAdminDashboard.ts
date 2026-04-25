@@ -86,12 +86,11 @@ export function useAdminDashboard() {
         .eq('status', 'active')
         .gte('created', sevenDaysAgo.toISOString()),
 
-      supabaseFrom('serviceplans').select('id, label'),
+      supabaseFrom('serviceplans').select('id, label, monthlyCreditConsumption'),
 
-      supabaseFrom('credit_transactions')
-        .select('creditsUsed, deployment_id')
-        .eq('status', 'completed')
-        .not('creditsUsed', 'is', null),
+      supabaseFrom('deployments')
+        .select('serviceplanId')
+        .eq('status', 'active'),
 
       supabaseFrom('credit_transactions')
         .select('amountPaid, partner_id')
@@ -153,30 +152,20 @@ export function useAdminDashboard() {
         }
       })
 
-    // Credits by plan: fetch deployments to map plan IDs
-    const planLabels: Record<number, string> = {}
+    // Credits by plan: active deployments × their plan's monthly credit consumption
+    const planDetails: Record<number, { label: string; monthly: number }> = {}
     for (const plan of plansResult.data ?? []) {
-      planLabels[plan.id] = plan.label
+      planDetails[plan.id] = { label: plan.label, monthly: (plan as any).monthlyCreditConsumption ?? 0 }
     }
-
-    // Get deployment → plan mapping
-    const { data: deploymentsData } = await supabaseFrom('deployments').select('id, serviceplan_id')
-    const deploymentToPlan: Record<number, number> = {}
-    for (const d of deploymentsData ?? []) {
-      deploymentToPlan[d.id] = d.serviceplan_id
+    const planCounts: Record<string, number> = {}
+    for (const d of txResult.data ?? []) {
+      const planId = (d as any).serviceplanId
+      const detail = planDetails[planId]
+      if (detail) {
+        planCounts[detail.label] = (planCounts[detail.label] ?? 0) + detail.monthly
+      }
     }
-
-    const planTotals: Record<string, number> = {}
-    for (const tx of txResult.data ?? []) {
-      const deploymentId = (tx as any).deployment_id
-      const planId = deploymentToPlan[deploymentId]
-      const label = planLabels[planId] ?? 'Unknown'
-      planTotals[label] = (planTotals[label] ?? 0) + (tx.creditsUsed ?? 0)
-    }
-    creditsByPlan.value = Object.entries(planTotals).map(([name, value]) => ({
-      name,
-      value,
-    }))
+    creditsByPlan.value = Object.entries(planCounts).map(([name, value]) => ({ name, value }))
 
     // Revenue by partner type: fetch partners to map types
     const { data: partnersData } = await supabaseFrom('partners').select('id, partner_type')
