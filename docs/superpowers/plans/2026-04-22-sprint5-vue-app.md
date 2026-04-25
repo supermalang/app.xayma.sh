@@ -19,7 +19,7 @@
 - `src/stores/partner.store.ts` — Ensure credit balance Realtime subscription active
 
 **Created:**
-- `docs/superpowers/workflow-engine-sprint5-handoff.md` — External n8n workflow specifications for ops team
+- `docs/workflow-engine/sprint5-handoff.md` — External n8n workflow specifications for ops team
 - (No new UI components needed; all notification components complete)
 
 ---
@@ -356,13 +356,13 @@ git commit -m "test(sprint5): verify all notification and automation E2E tests p
 ### Task 5: Create Workflow Engine Handoff Document
 
 **Files:**
-- Create: `docs/superpowers/workflow-engine-sprint5-handoff.md`
+- Create: `docs/workflow-engine/sprint5-handoff.md`
 
-This document captures what the workflow engine team needs to implement. It references the existing `docs/workflow-engine-sprint5-contracts.md` and confirms this Vue app is ready for automation.
+This document captures what the workflow engine team needs to implement. It references the existing `docs/workflow-engine/sprint5-contracts.md` and confirms this Vue app is ready for automation.
 
 - [ ] **Step 1: Create handoff document**
 
-Create new file `docs/superpowers/workflow-engine-sprint5-handoff.md`:
+Create new file `docs/workflow-engine/sprint5-handoff.md`:
 
 ```markdown
 # Sprint 5 Workflow Engine Handoff
@@ -384,7 +384,7 @@ All frontend tasks for Sprint 5 are complete:
 
 ## What the Workflow Engine Team Needs to Build
 
-The Vue app is ready to receive updates from the following workflow engine automations. Implement these 6 workflows in n8n per the specifications in `docs/workflow-engine-sprint5-contracts.md`:
+The Vue app is ready to receive updates from the following workflow engine automations. Implement these 6 workflows in n8n per the specifications in `docs/workflow-engine/sprint5-contracts.md`:
 
 ### Critical Path (Required for Sprint 5 completion)
 
@@ -422,7 +422,7 @@ The Vue app is ready to receive updates from the following workflow engine autom
 
 ## Settings Table Keys Required
 
-Before deploying these workflows, populate `xayma_app.settings` with all keys listed in Section 6 of `docs/workflow-engine-sprint5-contracts.md`:
+Before deploying these workflows, populate `xayma_app.settings` with all keys listed in Section 6 of `docs/workflow-engine/sprint5-contracts.md`:
 
 - `deployment_engine_base_url`
 - `deployment_engine_api_token`
@@ -478,7 +478,7 @@ For questions about frontend integration:
 - [ ] **Step 2: Commit handoff document**
 
 ```bash
-git add docs/superpowers/workflow-engine-sprint5-handoff.md
+git add docs/workflow-engine/sprint5-handoff.md
 git commit -m "docs(sprint5): create workflow engine handoff document for ops team"
 ```
 
@@ -504,7 +504,7 @@ Update the checklist to show:
 **Status: Vue App Complete ✅ | Workflow Engine Pending (External Team)**
 
 ### Tasks
-- [ ] **5.1–5.9, 5.12–5.13** Workflow engine automations (SEE: `docs/superpowers/workflow-engine-sprint5-handoff.md` for external team)
+- [ ] **5.1–5.9, 5.12–5.13** Workflow engine automations (SEE: `docs/workflow-engine/sprint5-handoff.md` for external team)
 
 ### Tests
 - [x] **5.T1** Unit: Credit deduction calculation ✅
@@ -598,4 +598,4 @@ git commit -m "feat(sprint5): complete Vue app implementation with Realtime subs
 
 **Outcome:** Sprint 5 Vue app is complete and ready for workflow engine team to build the external automation workflows. All Realtime subscriptions are configured to display live updates when the workflow engine modifies deployment status and partner credits.
 
-**Next Step:** Workflow engine team implements the 6 workflows from `docs/superpowers/workflow-engine-sprint5-handoff.md` and `docs/workflow-engine-sprint5-contracts.md`.
+**Next Step:** Workflow engine team implements the 6 workflows from `docs/workflow-engine/sprint5-handoff.md` and `docs/workflow-engine/sprint5-contracts.md`.

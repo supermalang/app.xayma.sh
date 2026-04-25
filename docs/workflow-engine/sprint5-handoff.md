@@ -10,7 +10,7 @@
 
 The Xayma.sh Vue management app has completed all frontend implementation for Sprint 5. The application is now ready to hand off to the workflow engine team for implementing the 6 automation workflows that drive credit management, deployment lifecycle, and multi-channel notifications.
 
-This document serves as the bridge between the Vue app and the workflow engine (n8n) team. All detailed technical specifications are in `docs/workflow-engine-sprint5-contracts.md`.
+This document serves as the bridge between the Vue app and the workflow engine (n8n) team. All detailed technical specifications are in `docs/workflow-engine/sprint5-contracts.md`.
 
 ---
 
@@ -191,7 +191,7 @@ The Vue app does **not** make direct HTTP calls to the deployment engine or send
 ## Reference Documentation
 
 **For detailed implementation specifications, read:**
-- `docs/workflow-engine-sprint5-contracts.md` — Full technical contract for all 6 workflows
+- `docs/workflow-engine/sprint5-contracts.md` — Full technical contract for all 6 workflows
 
 **For database schema context:**
 - `docs/specs/SPEC_05_DATABASE_DESIGN.md` — Table schemas, RLS policies, audit triggers
@@ -221,7 +221,7 @@ The Vue app does **not** make direct HTTP calls to the deployment engine or send
 
 ## Appendix: Key Contract Excerpts
 
-For quick reference, key algorithmic details are below. For complete specifications, see `docs/workflow-engine-sprint5-contracts.md`.
+For quick reference, key algorithmic details are below. For complete specifications, see `docs/workflow-engine/sprint5-contracts.md`.
 
 ### Credit Deduction Calculation
 ```javascript

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Partners page now uses **strategic color** to guide attention to B2B relationship tiers and account health. Colors are semantic, not decorative.
+The Partners page uses **strategic color** to guide attention to B2B relationship tiers and account health. Colors are semantic, not decorative.
 
 ## Color Mapping
 
@@ -114,47 +114,3 @@ All color overrides use `:deep()` to pierce PrimeVue scoped component boundaries
 ```
 
 Why `!important`? PrimeVue uses inline styles on the Tag component, which have high specificity. CSS variable overrides alone don't work — `!important` ensures our semantic colors win.
-
-## Next Steps
-
-### Optional Enhancements
-
-1. **Row status indicator stripe** (left edge, 4px, color-coded by status)
-   - Adds visual scanability without violating the "no side-stripe borders" rule
-   - Stripe is not a border, it's a background gradient indicator
-   - Would require adding a pseudo-element to table rows
-
-2. **Reseller account header highlight**
-   - Add a subtle background tint to reseller account rows
-   - Already implemented: hover state gets blue tint
-   - Could be permanent (very light) for always-visible hierarchy
-
-3. **Credit balance color encoding**
-   - Green (>50%), Yellow (10–50%), Red (<10%)
-   - Requires modifying the "Remaining Credits" column
-   - Adds another visual signal without text change
-
-## Testing Checklist
-
-- [ ] All badges appear with correct background colors
-- [ ] White text on badges is readable (not gray, not off-white)
-- [ ] Hover state on table rows is smooth (250ms, no jank)
-- [ ] Suspended badges pulse continuously (1.5s cycle)
-- [ ] Filter dropdown focus has blue border + shadow
-- [ ] Color contrast passes aA11y checking
-- [ ] Colors consistent across different browser zoom levels
-- [ ] No color-only meaning (icon/label + color, never color alone)
-
-## Brand Alignment
-
-This colorization stays **true to the Restrained strategy** defined in DESIGN.md:
-- Tinted neutrals (gray-blue surfaces)
-- One primary accent (blue, <10% usage)
-- Semantic status colors (green/orange/blue)
-- No gradients, glassmorphism, or artificial decorations
-- High contrast for accessibility
-
-The Partners page is now **visually coded** to help admins and resellers quickly scan for:
-- Account health (Active, Suspended, Inactive)
-- Partner tier (Reseller, Customer)
-- Accounts needing action (pulsing suspended badges)

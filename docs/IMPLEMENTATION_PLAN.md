@@ -285,7 +285,7 @@ Kafka infrastructure (KRaft deployment, topics, consumer groups) has been extrac
 - [ ] **5.8** Configure Africa's Talking SMS in workflow engine (HTTP node; West Africa number format)
 - [ ] **5.9** Implement in-app notifications — workflow engine inserts to `xayma_app.notifications` table; Vue subscribes via database service Realtime for instant delivery
 - [ ] **5.12** Add workflow engine error handling & retry logic — failed webhook consumers re-queue via workflow engine dead-letter queue
-- [ ] **5.13** Document in `docs/workflow-engine-contracts.md` — all event schemas, retry behavior, error codes
+- [ ] **5.13** Document in `docs/workflow-engine/sprint5-contracts.md` — all event schemas, retry behavior, error codes
 
 ### Sprint 5 Tests
 

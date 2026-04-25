@@ -272,6 +272,6 @@ Kafka UI is exposed via Traefik on `https://kafka-ui.xayma.sh` with BasicAuth (a
 
 ## Related Documentation
 
-- **Workflow Engine:** `docs/workflow-engine.md` — Lists all webhook paths and Kafka publishing points
+- **Workflow Engine Contracts:** `docs/workflow-engine/` — Webhook contracts, Kafka publishing points, and automation specs (`sprint4-contracts.md`, `sprint5-contracts.md`)
 - **Database Design:** `docs/specs/SPEC_05_DATABASE_DESIGN.md` — Table schemas for credit_transactions, deployments, etc.
 - **Infrastructure:** `docs/SPEC_08_DEPLOYMENT_INFRASTRUCTURE.md` — Full DevOps setup (Hetzner, Traefik, monitoring)
