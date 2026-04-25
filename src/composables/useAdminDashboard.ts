@@ -87,12 +87,12 @@ export function useAdminDashboard() {
       supabaseFrom('serviceplans').select('id, label'),
 
       supabaseFrom('credit_transactions')
-        .select('creditsUsed, deployments(serviceplanId)')
+        .select('creditsUsed, deployment_id')
         .eq('status', 'completed')
         .not('creditsUsed', 'is', null),
 
       supabaseFrom('credit_transactions')
-        .select('amountPaid, partners(partner_type)')
+        .select('amountPaid, partner_id')
         .eq('status', 'completed')
         .gte('created', (() => {
           const d = new Date()
@@ -151,14 +151,23 @@ export function useAdminDashboard() {
         }
       })
 
-    // Credits by plan: aggregate creditsUsed per plan
+    // Credits by plan: fetch deployments to map plan IDs
     const planLabels: Record<number, string> = {}
     for (const plan of plansResult.data ?? []) {
       planLabels[plan.id] = plan.label
     }
+
+    // Get deployment → plan mapping
+    const { data: deploymentsData } = await supabaseFrom('deployments').select('id, serviceplan_id')
+    const deploymentToPlan: Record<number, number> = {}
+    for (const d of deploymentsData ?? []) {
+      deploymentToPlan[d.id] = d.serviceplan_id
+    }
+
     const planTotals: Record<string, number> = {}
     for (const tx of txResult.data ?? []) {
-      const planId = (tx.deployments as any)?.serviceplanId
+      const deploymentId = (tx as any).deployment_id
+      const planId = deploymentToPlan[deploymentId]
       const label = planLabels[planId] ?? 'Unknown'
       planTotals[label] = (planTotals[label] ?? 0) + (tx.creditsUsed ?? 0)
     }
@@ -167,10 +176,17 @@ export function useAdminDashboard() {
       value,
     }))
 
-    // Revenue by partner type
+    // Revenue by partner type: fetch partners to map types
+    const { data: partnersData } = await supabaseFrom('partners').select('id, partner_type')
+    const partnerToType: Record<number, string> = {}
+    for (const p of partnersData ?? []) {
+      partnerToType[p.id] = p.partner_type ?? 'unknown'
+    }
+
     const typeMap: Record<string, number> = {}
     for (const row of revenueByTypeResult.data ?? []) {
-      const type = (row.partners as any)?.partner_type ?? 'unknown'
+      const partnerId = (row as any).partner_id
+      const type = partnerToType[partnerId] ?? 'unknown'
       typeMap[type] = (typeMap[type] ?? 0) + (row.amountPaid ?? 0)
     }
     revenueByPartnerType.value = Object.entries(typeMap).map(([name, value]) => ({
