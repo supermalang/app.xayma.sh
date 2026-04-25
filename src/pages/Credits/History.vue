@@ -259,13 +259,14 @@ async function loadTransactions() {
 
     const partnerId = String(authStore.profile.company_id)
 
+    const endDateObj = endDate.value ? new Date(endDate.value) : undefined
+    if (endDateObj) endDateObj.setHours(23, 59, 59, 999)
+
     const result = await listTransactions({
       partnerId,
       type: selectedType.value as any,
       startDate: startDate.value ? startDate.value.toISOString() : undefined,
-      endDate: endDate.value
-        ? new Date(endDate.value).setHours(23, 59, 59, 999)
-        : undefined,
+      endDate: endDateObj ? endDateObj.toISOString() : undefined,
       page: currentPage.value + 1,
       pageSize,
       orderDirection: 'desc',

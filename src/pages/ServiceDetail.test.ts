@@ -79,7 +79,6 @@ describe('ServiceDetail', () => {
   it('shows loading state while fetching service', async () => {
     vi.mocked(serviceService.getService).mockImplementation(() => new Promise(() => {}))
     const wrapper = mount(ServiceDetail, { global: { plugins: [i18n] } })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).loading).toBe(true)
   })
 
@@ -153,7 +152,6 @@ describe('ServiceDetail', () => {
     await wrapper.vm.$nextTick()
     await new Promise(resolve => setTimeout(resolve, 10))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).error).toBeTruthy()
   })
 
@@ -167,9 +165,7 @@ describe('ServiceDetail', () => {
     await new Promise(resolve => setTimeout(resolve, 10))
 
     // Check that the service is loaded and has no control_node_id
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).service.control_node_id).toBeNull()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).service.deploymentEngineJobTemplateId).toBeNull()
   })
 
@@ -182,7 +178,6 @@ describe('ServiceDetail', () => {
     await new Promise(resolve => setTimeout(resolve, 10))
 
     // statusSeverity is a computed property
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).statusSeverity).toBe('success')
   })
 
@@ -195,7 +190,6 @@ describe('ServiceDetail', () => {
     await wrapper.vm.$nextTick()
     await new Promise(resolve => setTimeout(resolve, 10))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).statusSeverity).toBe('warn')
   })
 
@@ -208,7 +202,6 @@ describe('ServiceDetail', () => {
     await wrapper.vm.$nextTick()
     await new Promise(resolve => setTimeout(resolve, 10))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((wrapper.vm as any).statusSeverity).toBe('secondary')
   })
 

@@ -8,6 +8,7 @@
 import { RouterView } from 'vue-router'
 import { onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
+import '@/assets/styles/a11y.css'
 
 const authStore = useAuthStore()
 let authSubscription: any

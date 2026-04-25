@@ -50,7 +50,7 @@
     <!-- TabView -->
     <TabView v-if="partner" class="mt-6">
       <!-- Profile Tab -->
-      <TabPanel :header="$t('partners.tabs.profile')">
+      <TabPanel value="0" :header="$t('partners.tabs.profile')">
         <div class="grid grid-cols-2 gap-6">
           <div>
             <label class="block text-sm font-medium text-on-surface-variant mb-1">
@@ -92,14 +92,14 @@
       </TabPanel>
 
       <!-- Deployments Tab -->
-      <TabPanel :header="$t('partners.tabs.deployments')">
+      <TabPanel value="1" :header="$t('partners.tabs.deployments')">
         <div class="text-on-surface-variant text-sm p-4">
           {{ $t('partners.tabs.deployments_coming_soon') }}
         </div>
       </TabPanel>
 
       <!-- Credits Tab -->
-      <TabPanel :header="$t('partners.tabs.credits')">
+      <TabPanel value="2" :header="$t('partners.tabs.credits')">
         <div class="space-y-4">
           <div class="bg-surface-container-low p-4 rounded-lg">
             <div class="text-sm text-on-surface-variant mb-1">{{ $t('credits.balance') }}</div>
@@ -112,7 +112,7 @@
       </TabPanel>
 
       <!-- Audit Tab -->
-      <TabPanel :header="$t('partners.tabs.audit')">
+      <TabPanel value="3" :header="$t('partners.tabs.audit')">
         <div class="text-on-surface-variant text-sm p-4">
           {{ $t('partners.tabs.audit_coming_soon') }}
         </div>
@@ -153,7 +153,6 @@ import PartnerTypeBadge from '@/components/partners/PartnerTypeBadge.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
 const partnerStore = usePartnerStore()
 
 // State

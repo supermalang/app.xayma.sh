@@ -64,8 +64,8 @@
               v-for="notification in group"
               :key="notification.id"
               :notification="notification"
-              @mark-read="readNotification(notification.id)"
-              @delete="removeNotification(notification.id)"
+              @mark-read="readNotification(String(notification.id))"
+              @delete="removeNotification(String(notification.id))"
             />
           </div>
         </div>
@@ -127,10 +127,10 @@ const statusOptions = [
  */
 const filteredNotifications = computed(() => {
   if (selectedStatus.value === 'unread') {
-    return notifications.value.filter((n) => !n.is_read)
+    return notifications.value.filter((n) => !n.read_at)
   }
   if (selectedStatus.value === 'read') {
-    return notifications.value.filter((n) => n.is_read)
+    return notifications.value.filter((n) => n.read_at)
   }
   return notifications.value
 })
@@ -138,7 +138,7 @@ const filteredNotifications = computed(() => {
 /**
  * Computed: check if there are read notifications
  */
-const hasReadNotifications = computed(() => notifications.value.some((n) => n.is_read))
+const hasReadNotifications = computed(() => notifications.value.some((n) => n.read_at))
 
 /**
  * Apply filters and refresh

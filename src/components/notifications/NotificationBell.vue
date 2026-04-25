@@ -1,14 +1,18 @@
 <template>
   <div class="flex items-center">
     <!-- Bell Button with Badge -->
-    <OverlayBadge
-      :value="unreadCount > 0 ? unreadCount : undefined"
-      severity="danger"
-      class="cursor-pointer"
+    <button
+      class="flex items-center cursor-pointer"
+      :aria-label="$t('aria.toggle_notifications', { count: unreadCount })"
       @click="toggleFeed"
     >
-      <i class="pi pi-bell text-xl text-on-surface hover:text-primary transition-colors" />
-    </OverlayBadge>
+      <OverlayBadge
+        :value="unreadCount > 0 ? unreadCount : undefined"
+        severity="danger"
+      >
+        <i class="pi pi-bell text-xl text-on-surface hover:text-primary transition-colors" />
+      </OverlayBadge>
+    </button>
 
     <!-- Notification Feed -->
     <NotificationFeed ref="feed" />

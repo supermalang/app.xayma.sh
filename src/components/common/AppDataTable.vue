@@ -33,6 +33,7 @@
           severity="secondary"
           @click="exportCSV"
           :title="$t('common.export')"
+          :aria-label="$t('aria.export_csv')"
         />
       </div>
     </div>
@@ -177,8 +178,69 @@ const handlePageChange = (event: any) => {
   })
 }
 
-const exportCSV = () => {
-  dt.value?.exportCSV()
+function exportCSV(): void {
+  if (!props.rows || props.rows.length === 0) {
+    // Export headers only if no data
+    const csvHeaders = visibleColumns.value
+      .map((col) => {
+        const column = props.columns.find((c) => c.field === col)
+        return column ? `"${t(`${column.header}`)}"` : `"${col}"`
+      })
+      .join(',')
+    const csv = csvHeaders
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    downloadCSV(blob)
+    return
+  }
+
+  // Get visible column headers with i18n translations
+  const csvHeaders = visibleColumns.value
+    .map((col) => {
+      const column = props.columns.find((c) => c.field === col)
+      return column ? `"${t(`${column.header}`)}"` : `"${col}"`
+    })
+    .join(',')
+
+  // Build CSV rows with proper RFC 4180 escaping
+  const csvRows = props.rows.map((row: any) =>
+    visibleColumns.value
+      .map((col) => {
+        const value = getNestedValue(row, col)
+        if (value === null || value === undefined) return '""'
+
+        const stringValue = String(value)
+        // Escape quotes by doubling them, replace newlines with space
+        const escaped = stringValue
+          .replace(/"/g, '""')
+          .replace(/\n/g, ' ')
+        return `"${escaped}"`
+      })
+      .join(',')
+  )
+
+  // Combine headers and rows
+  const csv = [csvHeaders, ...csvRows].join('\n')
+
+  // Create and download blob
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  downloadCSV(blob)
+}
+
+function downloadCSV(blob: Blob): void {
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  const date = new Date().toISOString().split('T')[0]
+
+  link.setAttribute('href', url)
+  link.setAttribute('download', `export-${date}.csv`)
+  link.style.visibility = 'hidden'
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Clean up
+  URL.revokeObjectURL(url)
 }
 
 watch(

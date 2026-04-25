@@ -69,11 +69,9 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 
 const router = useRouter()
-const { t } = useI18n()
 
 function goBack() {
   router.back()

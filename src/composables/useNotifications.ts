@@ -58,9 +58,8 @@ export function useNotifications() {
   async function readNotification(id: string) {
     try {
       await markAsRead(id)
-      const notification = notifications.value.find((n) => n.id === id)
+      const notification = notifications.value.find((n) => n.id === parseInt(id))
       if (notification) {
-        notification.is_read = true
         notification.read_at = new Date().toISOString()
       }
       if (unreadCount.value > 0) {
@@ -80,7 +79,6 @@ export function useNotifications() {
     try {
       await markAllAsRead(user.value.id)
       notifications.value.forEach((n) => {
-        n.is_read = true
         n.read_at = new Date().toISOString()
       })
       unreadCount.value = 0
@@ -95,10 +93,10 @@ export function useNotifications() {
   async function removeNotification(id: string) {
     try {
       await deleteNotification(id)
-      const index = notifications.value.findIndex((n) => n.id === id)
+      const index = notifications.value.findIndex((n) => n.id === parseInt(id))
       if (index > -1) {
         const notification = notifications.value[index]
-        if (!notification.is_read) {
+        if (!notification.read_at) {
           unreadCount.value = Math.max(0, unreadCount.value - 1)
         }
         notifications.value.splice(index, 1)
@@ -127,7 +125,7 @@ export function useNotifications() {
         (payload) => {
           const newNotification = payload.new as Notification
           notifications.value.unshift(newNotification)
-          if (!newNotification.is_read) {
+          if (!newNotification.read_at) {
             unreadCount.value++
           }
         }
@@ -145,9 +143,9 @@ export function useNotifications() {
           const index = notifications.value.findIndex((n) => n.id === updatedNotification.id)
           if (index > -1) {
             const oldNotification = notifications.value[index]
-            if (!oldNotification.is_read && updatedNotification.is_read) {
+            if (!oldNotification.read_at && updatedNotification.read_at) {
               unreadCount.value = Math.max(0, unreadCount.value - 1)
-            } else if (oldNotification.is_read && !updatedNotification.is_read) {
+            } else if (oldNotification.read_at && !updatedNotification.read_at) {
               unreadCount.value++
             }
             notifications.value[index] = updatedNotification
@@ -167,7 +165,7 @@ export function useNotifications() {
           const index = notifications.value.findIndex((n) => n.id === deletedId)
           if (index > -1) {
             const notification = notifications.value[index]
-            if (!notification.is_read) {
+            if (!notification.read_at) {
               unreadCount.value = Math.max(0, unreadCount.value - 1)
             }
             notifications.value.splice(index, 1)
@@ -199,7 +197,7 @@ export function useNotifications() {
   /**
    * Computed: filtered unread notifications
    */
-  const unreadNotifications = computed(() => notifications.value.filter((n) => !n.is_read))
+  const unreadNotifications = computed(() => notifications.value.filter((n) => !n.read_at))
 
   /**
    * Computed: grouped notifications by date
@@ -208,7 +206,7 @@ export function useNotifications() {
     const groups: Record<string, Notification[]> = {}
 
     notifications.value.forEach((notification) => {
-      const date = new Date(notification.created_at).toLocaleDateString('en-US', {
+      const date = new Date(notification.created).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

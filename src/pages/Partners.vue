@@ -110,7 +110,6 @@ import AppDataTable from '@/components/common/AppDataTable.vue'
 import PartnerForm from '@/components/partners/PartnerForm.vue'
 import PartnerStatusBadge from '@/components/partners/PartnerStatusBadge.vue'
 import PartnerTypeBadge from '@/components/partners/PartnerTypeBadge.vue'
-import * as partnerService from '@/services/partners.service'
 
 const router = useRouter()
 const { t } = useI18n()

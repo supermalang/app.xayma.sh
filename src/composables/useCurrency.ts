@@ -149,7 +149,7 @@ export function useCurrency() {
 
     // Clean the string: remove currency symbols and whitespace, normalize separators
     let cleaned = formatted
-      .replace(/[^\d\.,\-]/g, '')
+      .replace(/[^\d.,-]/g, '')
       .trim()
 
     if (!cleaned) return 0

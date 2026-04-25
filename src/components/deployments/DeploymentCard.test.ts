@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import SplitButton from 'primevue/splitbutton'
@@ -405,8 +405,9 @@ describe('DeploymentCard', () => {
       })
 
       const splitButton = wrapper.findComponent(SplitButton)
-      const model = splitButton.props('model')
-      const restartItem = model.find((item: any) => item.label === 'Restart')
+      const model = splitButton.props('model') as any[]
+      expect(model).toBeDefined()
+      const restartItem = model?.find((item: any) => item.label === 'Restart')
       expect(restartItem).toBeDefined()
     })
 
@@ -417,8 +418,9 @@ describe('DeploymentCard', () => {
       })
 
       const splitButton = wrapper.findComponent(SplitButton)
-      const model = splitButton.props('model')
-      const restartItem = model.find((item: any) => item.label === 'Restart')
+      const model = splitButton.props('model') as any[]
+      expect(model).toBeDefined()
+      const restartItem = model?.find((item: any) => item.label === 'Restart')
       expect(restartItem).toBeUndefined()
     })
 
@@ -429,9 +431,10 @@ describe('DeploymentCard', () => {
       })
 
       const splitButton = wrapper.findComponent(SplitButton)
-      const model = splitButton.props('model')
-      const viewDetailsItem = model.find((item: any) => item.label === 'View Details')
-      const deleteItem = model.find((item: any) => item.label === 'Delete')
+      const model = splitButton.props('model') as any[]
+      expect(model).toBeDefined()
+      const viewDetailsItem = model?.find((item: any) => item.label === 'View Details')
+      const deleteItem = model?.find((item: any) => item.label === 'Delete')
       expect(viewDetailsItem).toBeDefined()
       expect(deleteItem).toBeDefined()
     })
@@ -443,9 +446,11 @@ describe('DeploymentCard', () => {
       })
 
       const splitButton = wrapper.findComponent(SplitButton)
-      const model = splitButton.props('model')
-      const restartItem = model.find((item: any) => item.label === 'Restart')
-      restartItem.command()
+      const model = splitButton.props('model') as any[]
+      expect(model).toBeDefined()
+      const restartItem = model?.find((item: any) => item.label === 'Restart')
+      expect(restartItem).toBeDefined()
+      restartItem?.command()
 
       expect(wrapper.emitted('restart')).toEqual([[99]])
     })
@@ -457,9 +462,11 @@ describe('DeploymentCard', () => {
       })
 
       const splitButton = wrapper.findComponent(SplitButton)
-      const model = splitButton.props('model')
-      const deleteItem = model.find((item: any) => item.label === 'Delete')
-      deleteItem.command()
+      const model = splitButton.props('model') as any[]
+      expect(model).toBeDefined()
+      const deleteItem = model?.find((item: any) => item.label === 'Delete')
+      expect(deleteItem).toBeDefined()
+      deleteItem?.command()
 
       expect(wrapper.emitted('delete')).toEqual([[88]])
     })
@@ -471,9 +478,11 @@ describe('DeploymentCard', () => {
       })
 
       const splitButton = wrapper.findComponent(SplitButton)
-      const model = splitButton.props('model')
-      const viewDetailsItem = model.find((item: any) => item.label === 'View Details')
-      viewDetailsItem.command()
+      const model = splitButton.props('model') as any[]
+      expect(model).toBeDefined()
+      const viewDetailsItem = model?.find((item: any) => item.label === 'View Details')
+      expect(viewDetailsItem).toBeDefined()
+      viewDetailsItem?.command()
 
       expect(mockPush).toHaveBeenCalledWith('/app/deployments/77')
     })

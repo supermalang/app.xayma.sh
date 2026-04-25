@@ -109,7 +109,6 @@ describe('Slug generation (2.T3)', () => {
 // PrimeVue registered globally via tests/setup.ts; i18n provided per test.
 
 describe('PartnerForm component', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let wrapper: ReturnType<typeof mount<any>>
 
   const mountForm = (props: Record<string, unknown> = {}) =>
@@ -119,13 +118,11 @@ describe('PartnerForm component', () => {
 
   describe('Form mode', () => {
     it('is in create mode when no initialData provided', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((wrapper.vm as any).isEditMode).toBe(false)
     })
 
     it('is in edit mode when initialData has an id', () => {
       const w = mountForm({ initialData: { id: 1, name: 'Existing', slug: 'existing' } })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((w.vm as any).isEditMode).toBe(true)
     })
   })
@@ -137,7 +134,6 @@ describe('PartnerForm component', () => {
         phone: '701234567', partner_type: 'customer', status: 'active',
         description: '', address: '', activity_area: [], allowCreditDebt: false, creditDebtThreshold: 0,
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (wrapper.vm as any).onSubmit(values)
       expect(wrapper.emitted('submit')).toBeTruthy()
       expect(wrapper.emitted('submit')![0]).toEqual([values])

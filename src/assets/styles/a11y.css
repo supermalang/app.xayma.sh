@@ -1,0 +1,73 @@
+/**
+ * Accessibility (a11y) styles for keyboard navigation and focus indicators
+ * Ensures WCAG 2.1 AA compliance for keyboard navigation
+ */
+
+/* Visible focus rings for all focusable elements */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Fallback for browsers that don't support :focus-visible */
+:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Remove outline on click (but keep for keyboard) */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* PrimeVue button focus states */
+:deep(.p-button:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+:deep(.p-button:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+/* PrimeVue input components */
+:deep(.p-inputtext:focus-visible),
+:deep(.p-inputtextarea:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+:deep(.p-inputtext:focus:not(:focus-visible)),
+:deep(.p-inputtextarea:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+/* PrimeVue dropdown/select components */
+:deep(.p-dropdown:focus-visible),
+:deep(.p-multiselect:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+:deep(.p-dropdown:focus:not(:focus-visible)),
+:deep(.p-multiselect:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 3px;
+  }
+}
+
+/* Reduced motion: remove outline animations on focus */
+@media (prefers-reduced-motion: reduce) {
+  :focus-visible {
+    outline-offset: 0;
+  }
+}

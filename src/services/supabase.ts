@@ -26,6 +26,6 @@ const xayma = supabase.schema('xayma_app')
  * Helper to ensure all queries use the xayma_app schema
  * Usage: supabaseFrom('partners') → xayma_app.partners
  */
-export function supabaseFrom<T extends Parameters<typeof xayma.from>[0]>(table: T) {
-  return xayma.from(table)
+export function supabaseFrom(table: string) {
+  return xayma.from(table as any)
 }

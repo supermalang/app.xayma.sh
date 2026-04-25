@@ -110,14 +110,9 @@
           </template>
         </Column>
 
-        <Column :rowEditor="true" style="min-width: 120px">
-          <template #roweditinit="{ data }">
-            <Button
-              icon="pi pi-pencil"
-              class="p-button-rounded p-button-text"
-            />
-          </template>
-          <template #roweditinit-actions="{ data }">
+        <Column :rowEditor="true" style="min-width: 120px" />
+        <Column style="min-width: 50px">
+          <template #body="{ data }">
             <Button
               icon="pi pi-trash"
               class="p-button-rounded p-button-text p-button-danger"

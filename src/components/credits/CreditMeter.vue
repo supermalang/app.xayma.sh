@@ -52,7 +52,7 @@
             </span>
           </p>
           <p class="text-xs text-on-surface-variant">
-            {{ percentageRemaining | 0 }}% {{ $t('credits.remaining') }}
+            {{ Math.floor(percentageRemaining) }}% {{ $t("credits.remaining") }}
           </p>
         </div>
         <div v-if="daysRemaining >= 0" class="text-right">
@@ -71,7 +71,7 @@
           {{ $t('credits.active_deployments', { count: activeDeployments }) }}
         </p>
         <p class="text-sm text-on-surface-variant">
-          {{ $t('credits.monthly_consumption', { amount: monthlyConsumption | 0 }) }} FCFA/month
+          {{ $t('credits.monthly_consumption', { amount: Math.floor(monthlyConsumption) }) }} FCFA/month
         </p>
       </div>
 
@@ -88,7 +88,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
 import ProgressBar from 'primevue/progressbar'
 import Tag from 'primevue/tag'
@@ -111,11 +110,10 @@ const props = withDefaults(defineProps<Props>(), {
   monthlyConsumption: 0,
 })
 
-const emit = defineEmits<{
+defineEmits<{
   topup: []
 }>()
 
-const { t } = useI18n()
 const { formatSymbol } = useCurrency()
 
 // Calculate percentage remaining

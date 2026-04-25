@@ -28,8 +28,8 @@
           v-for="notification in notifications"
           :key="notification.id"
           :notification="notification"
-          @mark-read="readNotification(notification.id)"
-          @delete="removeNotification(notification.id)"
+          @mark-read="readNotification(String(notification.id))"
+          @delete="removeNotification(String(notification.id))"
         />
       </div>
     </div>
@@ -56,7 +56,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import OverlayPanel from 'primevue/overlaypanel'
 import Button from 'primevue/button'
 import NotificationItem from './NotificationItem.vue'

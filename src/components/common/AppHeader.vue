@@ -18,19 +18,21 @@
         :label="locale.toUpperCase()"
         @click="toggleLanguage"
         severity="secondary"
+        :aria-label="$t('aria.toggle_language')"
       />
 
       <!-- Notification Bell -->
       <NotificationBell />
 
       <!-- User Avatar with initials -->
-      <div
+      <button
         class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold cursor-pointer"
         :title="user?.email"
+        :aria-label="$t('aria.open_user_menu', { email: user?.email || 'User' })"
         @click="toggleUserMenu"
       >
         {{ userInitials }}
-      </div>
+      </button>
       <Menu ref="userMenu" :model="userMenuItems" :popup="true" />
     </div>
   </header>

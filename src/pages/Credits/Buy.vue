@@ -68,7 +68,6 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { useAuthStore } from '@/stores/auth.store'
@@ -94,7 +93,6 @@ interface CreditBundle {
   status: 'ACTIVE' | 'INACTIVE'
 }
 
-const router = useRouter()
 const { t } = useI18n()
 const { userRole } = useAuth()
 const authStore = useAuthStore()

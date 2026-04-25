@@ -19,11 +19,15 @@ export async function listNotifications(filters: ListNotificationsFilter = {}) {
   let query = supabaseFrom('notifications').select('*', { count: 'exact' })
 
   if (partnerId) {
-    query = query.eq('partner_id', partnerId)
+    query = query.eq('user_id', partnerId)
   }
 
   if (isRead !== undefined) {
-    query = query.eq('is_read', isRead)
+    if (isRead) {
+      query = query.not('read_at', 'is', null)
+    } else {
+      query = query.is('read_at', null)
+    }
   }
 
   const from = (page - 1) * pageSize
@@ -59,7 +63,7 @@ export async function getUnreadCount(partnerId: string): Promise<number> {
   const { count, error } = await supabaseFrom('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('partner_id', partnerId)
-    .eq('is_read', false)
+    .is('read_at', null)
 
   if (error) throw error
 
@@ -71,8 +75,8 @@ export async function getUnreadCount(partnerId: string): Promise<number> {
  */
 export async function markAsRead(id: string) {
   const { error } = await supabaseFrom('notifications')
-    .eq('id', id)
-    .update({ is_read: true, read_at: new Date().toISOString() })
+    .eq('id', parseInt(id))
+    .update({ read_at: new Date().toISOString() })
 
   if (error) throw error
 
@@ -84,9 +88,9 @@ export async function markAsRead(id: string) {
  */
 export async function markAllAsRead(partnerId: string) {
   const { error } = await supabaseFrom('notifications')
-    .eq('partner_id', partnerId)
-    .eq('is_read', false)
-    .update({ is_read: true, read_at: new Date().toISOString() })
+    .eq('user_id', partnerId)
+    .is('read_at', null)
+    .update({ read_at: new Date().toISOString() })
 
   if (error) throw error
 
@@ -98,7 +102,7 @@ export async function markAllAsRead(partnerId: string) {
  */
 export async function deleteNotification(id: string) {
   const { error } = await supabaseFrom('notifications')
-    .eq('id', id)
+    .eq('id', parseInt(id))
     .delete()
 
   if (error) throw error
@@ -111,8 +115,8 @@ export async function deleteNotification(id: string) {
  */
 export async function deleteReadNotifications(partnerId: string) {
   const { error } = await supabaseFrom('notifications')
-    .eq('partner_id', partnerId)
-    .eq('is_read', true)
+    .eq('user_id', partnerId)
+    .not('read_at', 'is', null)
     .delete()
 
   if (error) throw error
