@@ -171,6 +171,7 @@ export default {
     deployment_status_distribution: 'Distribution des Statuts de Déploiement',
     top_partners_deployments: 'Top 5 Partenaires par Déploiements',
     service_popularity: 'Popularité des Services',
+    monthly_revenue_trend: 'Tendance des Revenus Mensuels',
     commission_breakdown: 'Ventilation des commissions',
 
     // Actions

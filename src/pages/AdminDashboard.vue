@@ -94,6 +94,16 @@
       </div>
     </transition>
 
+    <!-- Monthly Revenue Trend -->
+    <transition name="chart-slide-up">
+      <div key="monthly-revenue">
+        <LineChart
+          :title="$t('dashboard.monthly_revenue_trend')"
+          :data="monthlyRevenueChartData"
+        />
+      </div>
+    </transition>
+
     <!-- Kafka Metrics (Optional) -->
     <transition name="fade-slide-up">
       <Card key="kafka-metrics">
@@ -155,7 +165,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType } = useAdminDashboard()
-const { statusDistribution, topPartners, serviceStats } = useAdminInsights()
+const { statusDistribution, topPartners, serviceStats, monthlyRevenue } = useAdminInsights()
 
 interface StatCardConfig {
   id: string
@@ -242,6 +252,13 @@ const serviceSeries = computed(() => [
     color: '#48bb78',
   },
 ])
+
+const monthlyRevenueChartData = computed(() =>
+  monthlyRevenue.value.map(m => ({
+    name: m.month,
+    value: m.revenue,
+  }))
+)
 
 function formatNumber(value: string): string {
   return value
