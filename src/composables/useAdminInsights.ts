@@ -3,9 +3,10 @@
  * Simple queries for breakdown charts: status distribution, top partners, services, revenue trends
  */
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
+import { useAuthStore } from '@/stores/auth.store'
 
 export interface StatusDistribution {
   status: string
@@ -31,6 +32,7 @@ export interface MonthlyRevenue {
 
 export function useAdminInsights() {
   const notificationStore = useNotificationStore()
+  const authStore = useAuthStore()
 
   const statusDistribution = ref<StatusDistribution[]>([])
   const topPartners = ref<TopPartner[]>([])
@@ -171,7 +173,16 @@ export function useAdminInsights() {
     return { data: monthlyRevenue.value, error: null }
   }
 
-  onMounted(fetchAll)
+  onMounted(() => {
+    // Wait for auth to be initialized before fetching
+    if (authStore.isInitialized) {
+      fetchAll()
+    } else {
+      watch(() => authStore.isInitialized, (initialized) => {
+        if (initialized) fetchAll()
+      }, { once: true })
+    }
+  })
 
   return {
     statusDistribution,

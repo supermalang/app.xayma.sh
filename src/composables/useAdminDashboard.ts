@@ -1,6 +1,7 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useI18n } from 'vue-i18n'
 
 interface AdminStats {
@@ -28,6 +29,7 @@ interface PartnerTypeRevenue {
 export function useAdminDashboard() {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
+  const authStore = useAuthStore()
 
   const stats = ref<AdminStats>({
     totalPartners: 0,
@@ -197,7 +199,16 @@ export function useAdminDashboard() {
     isLoading.value = false
   }
 
-  onMounted(fetchAll)
+  onMounted(() => {
+    // Wait for auth to be initialized before fetching
+    if (authStore.isInitialized) {
+      fetchAll()
+    } else {
+      watch(() => authStore.isInitialized, (initialized) => {
+        if (initialized) fetchAll()
+      }, { once: true })
+    }
+  })
 
   return { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType, isLoading, error }
 }
