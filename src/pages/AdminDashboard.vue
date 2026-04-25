@@ -30,7 +30,7 @@
       </transition-group>
     </div>
 
-    <!-- Charts Grid -->
+    <!-- Section 1: Overview Charts -->
     <transition-group
       name="chart-slide-up"
       tag="div"
@@ -52,59 +52,56 @@
       />
     </transition-group>
 
-    <!-- Revenue by Partner Type -->
+    <!-- Section 2: Breakdown Charts -->
+    <transition-group
+      name="chart-slide-up"
+      tag="div"
+      class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+    >
+      <!-- Deployment Status Distribution -->
+      <DonutChart
+        key="status-distribution"
+        :title="$t('dashboard.deployment_status_distribution')"
+        :data="deploymentStatusData"
+      />
+
+      <!-- Top 5 Partners by Deployments -->
+      <BarChart
+        key="top-partners"
+        :title="$t('dashboard.top_partners_deployments')"
+        :categories="topPartnersCategories"
+        :series="topPartnersSeries"
+      />
+
+      <!-- Service Popularity -->
+      <BarChart
+        key="service-popularity"
+        :title="$t('dashboard.service_popularity')"
+        :categories="serviceCategories"
+        :series="serviceSeries"
+      />
+    </transition-group>
+
+    <!-- Section 3: Revenue Analytics -->
     <transition name="chart-slide-up">
-      <div key="revenue-chart">
-        <DonutChart
-          :title="$t('dashboard.revenue_by_partner_type')"
-          :data="revenueByPartnerType"
-        />
+      <div key="revenue-section">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Monthly Revenue Trend -->
+          <LineChart
+            :title="$t('dashboard.monthly_revenue_trend')"
+            :data="monthlyRevenueChartData"
+          />
+
+          <!-- Revenue by Partner Type -->
+          <DonutChart
+            :title="$t('dashboard.revenue_by_partner_type')"
+            :data="revenueByPartnerType"
+          />
+        </div>
       </div>
     </transition>
 
-    <!-- Deployment Status Distribution -->
-    <transition name="chart-slide-up">
-      <div key="status-distribution">
-        <DonutChart
-          :title="$t('dashboard.deployment_status_distribution')"
-          :data="deploymentStatusData"
-        />
-      </div>
-    </transition>
-
-    <!-- Top 5 Partners by Deployments -->
-    <transition name="chart-slide-up">
-      <div key="top-partners">
-        <BarChart
-          :title="$t('dashboard.top_partners_deployments')"
-          :categories="topPartnersCategories"
-          :series="topPartnersSeries"
-        />
-      </div>
-    </transition>
-
-    <!-- Service Popularity -->
-    <transition name="chart-slide-up">
-      <div key="service-popularity">
-        <BarChart
-          :title="$t('dashboard.service_popularity')"
-          :categories="serviceCategories"
-          :series="serviceSeries"
-        />
-      </div>
-    </transition>
-
-    <!-- Monthly Revenue Trend -->
-    <transition name="chart-slide-up">
-      <div key="monthly-revenue">
-        <LineChart
-          :title="$t('dashboard.monthly_revenue_trend')"
-          :data="monthlyRevenueChartData"
-        />
-      </div>
-    </transition>
-
-    <!-- Kafka Metrics (Optional) -->
+    <!-- Section 4: Kafka Metrics -->
     <transition name="fade-slide-up">
       <Card key="kafka-metrics">
         <template #header>
