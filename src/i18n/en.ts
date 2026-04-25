@@ -172,6 +172,7 @@ export default {
     top_partners_deployments: 'Top 5 Partners by Deployments',
     service_popularity: 'Service Popularity',
     monthly_revenue_trend: 'Monthly Revenue Trend',
+    deployments: 'Deployments',
     commission_breakdown: 'Commission Breakdown',
 
     // Actions
