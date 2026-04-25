@@ -163,6 +163,7 @@ export default {
     consumer_lag: 'Lag consommateur',
     messages_processed: 'Messages traités',
     failed_events: 'Événements échoués',
+    kafka_indicative: 'Indicatif (aucune connexion en direct)',
     monthly_consumption: 'Tendance de consommation mensuelle',
     deployments_trend: 'Déploiements au fil du temps',
     credit_deduction_by_plan: 'Déduction de crédit par plan',
