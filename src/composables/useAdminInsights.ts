@@ -63,6 +63,12 @@ export function useAdminInsights() {
     }
 
     isLoading.value = false
+    console.log('[AdminInsights] Data loaded', {
+      statusLength: statusDistribution.value.length,
+      partnersLength: topPartners.value.length,
+      servicesLength: serviceStats.value.length,
+      revenueLength: monthlyRevenue.value.length,
+    })
   }
 
   async function fetchStatusDistribution() {

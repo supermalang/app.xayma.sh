@@ -6,17 +6,36 @@
       </div>
     </template>
 
-    <div class="w-full h-96 chart-content">
-      <VChart :option="option" autoresize />
-    </div>
+    <template #content>
+      <div v-if="isLoading" class="w-full h-96 flex items-center justify-center">
+        <div class="space-y-4 w-full px-4">
+          <Skeleton height="2rem" />
+          <Skeleton height="10rem" />
+          <Skeleton height="2rem" />
+        </div>
+      </div>
+      <div v-else-if="data.every(d => d.value === 0)" class="w-full h-96 flex items-center justify-center text-on-surface-variant">
+        <p>{{ $t('common.no_data') }}</p>
+      </div>
+      <div v-else class="w-full h-96 chart-content">
+        <VChart :option="option" autoresize />
+      </div>
+    </template>
   </Card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import Card from 'primevue/card'
+import Skeleton from 'primevue/skeleton'
 import VChart from 'vue-echarts'
 import type { EChartsOption } from 'echarts'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart as ELineChart } from 'echarts/charts'
+import { TooltipComponent, GridComponent } from 'echarts/components'
+
+use([CanvasRenderer, ELineChart, TooltipComponent, GridComponent])
 
 interface DataPoint {
   name: string
@@ -29,12 +48,14 @@ interface Props {
   xAxisLabel?: string
   yAxisLabel?: string
   color?: string
+  isLoading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   xAxisLabel: 'Time',
   yAxisLabel: 'Value',
   color: '#00288e',
+  isLoading: false,
 })
 
 /**

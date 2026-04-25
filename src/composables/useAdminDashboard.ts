@@ -46,6 +46,7 @@ export function useAdminDashboard() {
   async function fetchAll() {
     isLoading.value = true
     error.value = null
+    console.log('[AdminDashboard] fetchAll() started')
 
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
@@ -113,11 +114,22 @@ export function useAdminDashboard() {
       txResult.error ||
       revenueByTypeResult.error
     ) {
+      console.error('[AdminDashboard] Query error:', {
+        partners: partnersResult.error?.message,
+        activeDeployments: activeDeploymentsResult.error?.message,
+        failedDeployments: failedDeploymentsResult.error?.message,
+        revenue: revenueResult.error?.message,
+        deploymentsTrend: deploymentsTrendResult.error?.message,
+        plans: plansResult.error?.message,
+        tx: txResult.error?.message,
+        revenueByType: revenueByTypeResult.error?.message,
+      })
       notificationStore.addError(t('errors.fetch_failed'))
       error.value = 'fetch_failed'
       isLoading.value = false
       return
     }
+    console.log('[AdminDashboard] All queries succeeded')
 
     // Stats
     stats.value = {
@@ -186,18 +198,37 @@ export function useAdminDashboard() {
     }))
 
     isLoading.value = false
+    console.log('[AdminDashboard] Data loaded successfully', {
+      statsValue: stats.value,
+      trendLength: deploymentsTrend.value.length,
+      creditsLength: creditsByPlan.value.length,
+      revenueLength: revenueByPartnerType.value.length,
+    })
   }
 
   onMounted(() => {
+    console.log('[AdminDashboard] Mounted, authStore.isInitialized =', authStore.isInitialized)
     // Wait for auth to be initialized before fetching
     if (authStore.isInitialized) {
+      console.log('[AdminDashboard] Auth already initialized, calling fetchAll()')
       fetchAll()
     } else {
+      console.log('[AdminDashboard] Waiting for auth initialization...')
       watch(() => authStore.isInitialized, (initialized) => {
-        if (initialized) fetchAll()
+        if (initialized) {
+          console.log('[AdminDashboard] Auth initialized, calling fetchAll()')
+          fetchAll()
+        }
       }, { once: true })
     }
   })
 
-  return { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType, isLoading, error }
+  return {
+    stats,
+    deploymentsTrend,
+    creditsByPlan,
+    revenueByPartnerType,
+    isLoading,
+    error,
+  }
 }

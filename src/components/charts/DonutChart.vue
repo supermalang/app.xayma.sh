@@ -6,28 +6,49 @@
       </div>
     </template>
 
-    <div class="w-full h-80 chart-content">
-      <VChart :option="option" autoresize />
-    </div>
-
-    <!-- Legend Below Chart -->
-    <div class="mt-4 grid grid-cols-2 gap-2 text-xs legend-items">
-      <div v-for="(item, index) in data" :key="item.name" class="flex items-center gap-2">
-        <div
-          class="w-3 h-3 rounded-full"
-          :style="{ backgroundColor: colors[index % colors.length] }"
-        />
-        <span class="text-on-surface-variant">{{ item.name }}</span>
+    <template #content>
+      <div v-if="isLoading" class="w-full h-80 flex items-center justify-center">
+        <div class="space-y-4 w-full px-4">
+          <Skeleton height="10rem" borderRadius="50%" />
+          <div class="space-y-2">
+            <Skeleton height="1rem" />
+            <Skeleton height="1rem" />
+          </div>
+        </div>
       </div>
-    </div>
+      <div v-else-if="data.length === 0" class="w-full h-80 flex items-center justify-center text-on-surface-variant">
+        <p>{{ $t('common.no_data') }}</p>
+      </div>
+      <div v-else>
+        <div class="w-full h-80 chart-content">
+          <VChart :option="option" autoresize />
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-2 text-xs legend-items">
+          <div v-for="(item, index) in data" :key="item.name" class="flex items-center gap-2">
+            <div
+              class="w-3 h-3 rounded-full"
+              :style="{ backgroundColor: colors[index % colors.length] }"
+            />
+            <span class="text-on-surface-variant">{{ item.name }}</span>
+          </div>
+        </div>
+      </div>
+    </template>
   </Card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import Card from 'primevue/card'
+import Skeleton from 'primevue/skeleton'
 import VChart from 'vue-echarts'
 import type { EChartsOption } from 'echarts'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { PieChart } from 'echarts/charts'
+import { TooltipComponent } from 'echarts/components'
+
+use([CanvasRenderer, PieChart, TooltipComponent])
 
 interface DataItem {
   name: string
@@ -37,9 +58,12 @@ interface DataItem {
 interface Props {
   title: string
   data: DataItem[]
+  isLoading?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isLoading: false,
+})
 
 const colors = ['#00288e', '#fd761a', '#003d28', '#ba1a1a', '#1e40af', '#9d4300', '#fbb340']
 

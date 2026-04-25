@@ -21,7 +21,6 @@ export function useCreditAlerts(partnerId: string, userId: string) {
 
   /**
    * Send alert notification via workflow engine webhook
-   * This triggers a workflow engine that publishes to Kafka and sends notifications
    */
   async function sendAlert(type: 'LOW_BALANCE' | 'CRITICAL_BALANCE') {
     try {

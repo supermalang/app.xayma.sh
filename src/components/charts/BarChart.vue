@@ -6,17 +6,36 @@
       </div>
     </template>
 
-    <div class="w-full h-96 chart-content">
-      <VChart :option="option" autoresize />
-    </div>
+    <template #content>
+      <div v-if="isLoading" class="w-full h-96 flex items-center justify-center">
+        <div class="space-y-4 w-full px-4">
+          <Skeleton height="2rem" />
+          <Skeleton height="10rem" />
+          <Skeleton height="2rem" />
+        </div>
+      </div>
+      <div v-else-if="categories.length === 0" class="w-full h-96 flex items-center justify-center text-on-surface-variant">
+        <p>{{ $t('common.no_data') }}</p>
+      </div>
+      <div v-else class="w-full h-96 chart-content">
+        <VChart :option="option" autoresize />
+      </div>
+    </template>
   </Card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import Card from 'primevue/card'
+import Skeleton from 'primevue/skeleton'
 import VChart from 'vue-echarts'
 import type { EChartsOption } from 'echarts'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { BarChart as EBarChart } from 'echarts/charts'
+import { TooltipComponent, GridComponent, LegendComponent } from 'echarts/components'
+
+use([CanvasRenderer, EBarChart, TooltipComponent, GridComponent, LegendComponent])
 
 interface BarSeries {
   name: string
@@ -30,11 +49,13 @@ interface Props {
   series: BarSeries[]
   xAxisLabel?: string
   yAxisLabel?: string
+  isLoading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   xAxisLabel: 'Category',
   yAxisLabel: 'Value',
+  isLoading: false,
 })
 
 const defaultColors = ['#00288e', '#fd761a', '#003d28', '#ba1a1a']

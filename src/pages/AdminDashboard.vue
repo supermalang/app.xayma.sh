@@ -41,6 +41,7 @@
         key="deployments-trend"
         :title="$t('dashboard.deployments_trend')"
         :data="deploymentsTrend"
+        :is-loading="isLoading"
       />
 
       <!-- Credit Deducted by Plan -->
@@ -49,6 +50,7 @@
         :title="$t('dashboard.credit_deduction_by_plan')"
         :categories="planCategories"
         :series="creditDeductionSeries"
+        :is-loading="isLoading"
       />
     </transition-group>
 
@@ -63,6 +65,7 @@
         key="status-distribution"
         :title="$t('dashboard.deployment_status_distribution')"
         :data="deploymentStatusData"
+        :is-loading="isLoadingInsights"
       />
 
       <!-- Top 5 Partners by Deployments -->
@@ -71,6 +74,7 @@
         :title="$t('dashboard.top_partners_deployments')"
         :categories="topPartnersCategories"
         :series="topPartnersSeries"
+        :is-loading="isLoadingInsights"
       />
 
       <!-- Service Popularity -->
@@ -79,6 +83,7 @@
         :title="$t('dashboard.service_popularity')"
         :categories="serviceCategories"
         :series="serviceSeries"
+        :is-loading="isLoadingInsights"
       />
     </transition-group>
 
@@ -90,67 +95,24 @@
           <LineChart
             :title="$t('dashboard.monthly_revenue_trend')"
             :data="monthlyRevenueChartData"
+            :is-loading="isLoadingInsights"
           />
 
           <!-- Revenue by Partner Type -->
           <DonutChart
             :title="$t('dashboard.revenue_by_partner_type')"
             :data="revenueByPartnerType"
+            :is-loading="isLoading"
           />
         </div>
       </div>
     </transition>
 
-    <!-- Section 4: Kafka Metrics -->
-    <transition name="fade-slide-up">
-      <Card key="kafka-metrics">
-        <template #header>
-          <div class="p-4">
-            <h3 class="text-base font-semibold text-on-surface">
-              {{ $t('dashboard.kafka_metrics') }}
-              <span class="text-xs font-normal text-on-surface-variant ms-2">{{ $t('dashboard.kafka_indicative') }}</span>
-            </h3>
-          </div>
-        </template>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <transition-group
-            name="kafka-metric-fade"
-            tag="div"
-            class="contents"
-          >
-            <div
-              key="consumer-lag"
-              class="text-center p-4 bg-surface-container-lowest rounded-md kafka-metric"
-            >
-              <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.consumer_lag') }}</p>
-              <p class="text-3xl font-bold text-on-surface font-mono">{{ kafkaMetrics.consumerLag }}</p>
-              <p class="text-xs text-on-surface-variant mt-2">ms</p>
-            </div>
-            <div
-              key="messages-processed"
-              class="text-center p-4 bg-surface-container-lowest rounded-md kafka-metric"
-            >
-              <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.messages_processed') }}</p>
-              <p class="text-3xl font-bold text-on-surface font-mono">{{ formatNumber(kafkaMetrics.messagesProcessed) }}</p>
-            </div>
-            <div
-              key="failed-events"
-              class="text-center p-4 bg-surface-container-lowest rounded-md kafka-metric"
-            >
-              <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.failed_events') }}</p>
-              <p class="text-3xl font-bold text-error font-mono">{{ kafkaMetrics.failedEvents }}</p>
-            </div>
-          </transition-group>
-        </div>
-      </Card>
-    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import Card from 'primevue/card'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import LineChart from '@/components/charts/LineChart.vue'
@@ -161,8 +123,8 @@ import { useAdminInsights } from '@/composables/useAdminInsights'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType } = useAdminDashboard()
-const { statusDistribution, topPartners, serviceStats, monthlyRevenue } = useAdminInsights()
+const { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType, isLoading } = useAdminDashboard()
+const { statusDistribution, topPartners, serviceStats, monthlyRevenue, isLoading: isLoadingInsights } = useAdminInsights()
 
 interface StatCardConfig {
   id: string
@@ -207,8 +169,6 @@ const statCards: StatCardConfig[] = [
     format: 'number',
   },
 ]
-
-const kafkaMetrics = { consumerLag: '—', messagesProcessed: '—', failedEvents: '—' }
 
 const planCategories = computed(() => creditsByPlan.value.map(p => p.name))
 const creditDeductionSeries = computed(() => [
@@ -257,9 +217,6 @@ const monthlyRevenueChartData = computed(() =>
   }))
 )
 
-function formatNumber(value: string): string {
-  return value
-}
 </script>
 
 <style scoped>
@@ -285,29 +242,6 @@ function formatNumber(value: string): string {
   animation: chart-enter var(--duration-standard) var(--easing-standard) reverse;
 }
 
-.fade-slide-up-enter-active {
-  animation: fade-slide var(--duration-slow) var(--easing-standard);
-}
-
-.fade-slide-up-leave-active {
-  animation: fade-slide var(--duration-slow) var(--easing-standard) reverse;
-}
-
-.kafka-metric-fade-enter-active {
-  animation: kafka-metric-fade var(--duration-standard) var(--easing-standard) backwards;
-}
-
-.kafka-metric:nth-child(1) {
-  animation-delay: 0ms;
-}
-
-.kafka-metric:nth-child(2) {
-  animation-delay: 60ms;
-}
-
-.kafka-metric:nth-child(3) {
-  animation-delay: 120ms;
-}
 
 :deep(.trend-positive) {
   animation: pulse-trend 2s var(--easing-pulse) infinite;

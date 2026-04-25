@@ -111,9 +111,10 @@ export function useNotifications() {
    */
   function subscribeToUpdates() {
     if (!user.value?.id) return
+    if (channel) return
 
     channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${user.value.id}`)
       .on(
         'postgres_changes',
         {

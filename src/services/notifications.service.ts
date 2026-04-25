@@ -34,7 +34,7 @@ export async function listNotifications(filters: ListNotificationsFilter = {}) {
   const to = from + pageSize - 1
 
   const { data, count, error } = await query
-    .order('created_at', { ascending: false })
+    .order('created', { ascending: false })
     .range(from, to)
 
   if (error) throw error
@@ -62,7 +62,7 @@ export async function getNotification(id: string) {
 export async function getUnreadCount(partnerId: string): Promise<number> {
   const { count, error } = await supabaseFrom('notifications')
     .select('*', { count: 'exact', head: true })
-    .eq('partner_id', partnerId)
+    .eq('user_id', partnerId)
     .is('read_at', null)
 
   if (error) throw error
@@ -86,9 +86,9 @@ export async function markAsRead(id: string) {
 /**
  * Mark all notifications as read for a partner
  */
-export async function markAllAsRead(partnerId: string) {
+export async function markAllAsRead(userId: string) {
   const { error } = await supabaseFrom('notifications')
-    .eq('user_id', partnerId)
+    .eq('user_id', userId)
     .is('read_at', null)
     .update({ read_at: new Date().toISOString() })
 
@@ -113,9 +113,9 @@ export async function deleteNotification(id: string) {
 /**
  * Delete all read notifications for a partner
  */
-export async function deleteReadNotifications(partnerId: string) {
+export async function deleteReadNotifications(userId: string) {
   const { error } = await supabaseFrom('notifications')
-    .eq('user_id', partnerId)
+    .eq('user_id', userId)
     .not('read_at', 'is', null)
     .delete()
 

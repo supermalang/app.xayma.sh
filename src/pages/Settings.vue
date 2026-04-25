@@ -182,22 +182,6 @@
                 />
               </div>
 
-              <!-- Kafka Brokers -->
-              <div class="space-y-2">
-                <label for="kafka-brokers" class="block text-sm font-medium text-on-surface">
-                  {{ $t('settings.kafka_brokers') }}
-                </label>
-                <p class="text-xs text-on-surface-variant mb-2">
-                  {{ $t('settings.kafka_brokers_hint') }}
-                </p>
-                <InputText
-                  id="kafka-brokers"
-                  v-model="kafkaBrokers"
-                  :placeholder="'broker1:9092,broker2:9092'"
-                  class="w-full max-w-lg font-mono text-xs"
-                  @blur="saveSetting('KAFKA_BROKERS', kafkaBrokers)"
-                />
-              </div>
             </div>
           </AccordionTab>
         </Accordion>
@@ -240,7 +224,6 @@ const maxUsersPerPartner = ref(5)
 // Form state - Infrastructure
 const deploymentEngineUrl = ref('')
 const workflowEngineUrl = ref('')
-const kafkaBrokers = ref('')
 
 async function saveSetting(key: string, value: string): Promise<void> {
   await updateSetting(key, value)
@@ -260,7 +243,6 @@ function populateFormFromSettings(): void {
 
   deploymentEngineUrl.value = settings.value['DEPLOYMENT_ENGINE_URL'] || ''
   workflowEngineUrl.value = settings.value['WORKFLOW_ENGINE_URL'] || ''
-  kafkaBrokers.value = settings.value['KAFKA_BROKERS'] || ''
 }
 
 onMounted(async () => {
