@@ -5,9 +5,10 @@
     </h1>
 
     <Card>
+      <template #content>
       <Steps
         v-model:active-step="activeStep"
-        :items="steps"
+        :model="steps"
       />
 
       <div class="mt-8">
@@ -177,6 +178,7 @@
           </p>
 
           <Card class="bg-surface-raised">
+            <template #content>
             <div class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -234,6 +236,7 @@
                 </div>
               </div>
             </div>
+            </template>
           </Card>
 
           <Message
@@ -272,6 +275,7 @@
           />
         </div>
       </div>
+      </template>
     </Card>
   </div>
 </template>
