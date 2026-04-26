@@ -34,10 +34,6 @@ interface DeploymentRow {
   serviceplanId: number | null
 }
 
-interface DeploymentPlanIdRow {
-  serviceplanId: number | null
-}
-
 interface TxRow {
   amountPaid: number | null
   creditsUsed: number | null
@@ -64,6 +60,7 @@ interface PartnerRow {
 export function useCustomerDashboard() {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
+  const authStore = useAuthStore()
 
   const activeDeployments = ref<ActiveDeployment[]>([])
   const lastPaymentDate = ref<string | null>(null)
@@ -83,18 +80,20 @@ export function useCustomerDashboard() {
     isLoading.value = true
     error.value = null
 
+    if (!authStore.profile?.company_id) {
+      isLoading.value = false
+      return
+    }
+
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
     startOfMonth.setHours(0, 0, 0, 0)
-
-    const authStore = useAuthStore()
 
     const [
       deploymentsResult,
       txResult,
       stoppedSuspendedResult,
       archivedResult,
-      activeDeploymentsForCreditsResult,
       monthlyTxResult,
       partnerResult,
     ] = await Promise.all([
@@ -114,10 +113,6 @@ export function useCustomerDashboard() {
         .select('id', { count: 'exact', head: true })
         .eq('status', 'archived'),
 
-      supabaseFrom('deployments')
-        .select('serviceplanId')
-        .eq('status', 'active'),
-
       supabaseFrom('credit_transactions')
         .select('amountPaid')
         .eq('status', 'completed')
@@ -125,7 +120,6 @@ export function useCustomerDashboard() {
 
       supabaseFrom('partners')
         .select('name, partner_type, status, remainingCredits, creditDebtThreshold')
-        .eq('id', String(authStore.profile?.company_id ?? ''))
         .single(),
     ])
 
@@ -134,7 +128,6 @@ export function useCustomerDashboard() {
       txResult.error ||
       stoppedSuspendedResult.error ||
       archivedResult.error ||
-      activeDeploymentsForCreditsResult.error ||
       monthlyTxResult.error ||
       partnerResult.error
     ) {
@@ -192,10 +185,10 @@ export function useCustomerDashboard() {
     archivedCount.value = archivedResult.count ?? 0
 
     // New: monthly usage credits — sum monthlyCreditConsumption across active deployment plans
-    const activeForCredits = (activeDeploymentsForCreditsResult.data ?? []) as unknown as DeploymentPlanIdRow[]
-    const activePlanIds = activeForCredits
+    // Derive plan IDs from the already-fetched deploymentsData (no extra DB round-trip needed)
+    const activePlanIds = deploymentsData
       .map(d => d.serviceplanId)
-      .filter((id): id is number => id !== null && id !== undefined)
+      .filter((id): id is number => id !== null)
 
     if (activePlanIds.length > 0) {
       const { data: plansData, error: plansError } = await supabaseFrom('serviceplans')
