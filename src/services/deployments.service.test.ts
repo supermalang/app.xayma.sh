@@ -123,9 +123,9 @@ describe('Deployments Service', () => {
         domainNames: ['odoo.example.com'],
         slug: 'new-odoo-instance',
         service_id: 1,
-        serviceplan_id: 1,
+        serviceplanId: 1,
         partner_id: 1,
-        status: 'pending_deployment',
+        status: 'pending_deployment' as const,
       }
 
       const mockQuery = {
@@ -144,7 +144,7 @@ describe('Deployments Service', () => {
 
   describe('updateDeployment', () => {
     it('should update deployment status', async () => {
-      const updates = { status: 'active' }
+      const updates = { status: 'active' as const }
       const updatedDeployment = { id: 1, status: 'active' }
 
       const mockQuery = {

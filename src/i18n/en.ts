@@ -40,6 +40,7 @@ export default {
     columns: 'Columns',
     export: 'Export',
     actions: 'Actions',
+    details: 'Details',
     select: 'Select',
     view: 'View',
     days: 'days',
@@ -456,7 +457,28 @@ export default {
   // Deployments
   deployments: {
     title: 'Deployments',
+    subtitle: 'Manage your Odoo instances across distributed regions. Monitor status, domains, and billing cycles.',
     create: 'New Deployment',
+    export_csv: 'Export CSV',
+    filter: {
+      all: 'All Instances',
+    },
+    stats: {
+      instances_active: 'Instances Active',
+      monthly_cost: 'Monthly Cost',
+      uptime: 'Uptime',
+      credits_remaining: 'Credits Remaining',
+    },
+    table: {
+      name: 'Name',
+      domain: 'Domain',
+      created: 'Created',
+    },
+    help: {
+      title: 'Need help with high availability?',
+      description: 'Learn how to configure database replication and load balancing for your Enterprise Odoo instances to ensure maximum uptime during peak hours.',
+      cta: 'Read Cluster Documentation',
+    },
     create_success: 'Deployment created successfully. Provisioning is now underway.',
     delete_success: 'Deployment deleted successfully',
     terminate_success: 'Deployment termination requested',
@@ -485,6 +507,8 @@ export default {
     errors: {
       insufficient_credits: 'Insufficient credits for this deployment',
       invalid_domain: 'One or more domain names are invalid',
+      not_found: 'Deployment not found',
+      slug_taken: 'A deployment with this name already exists. Please choose a different label.',
     },
     wizard: {
       step_1: 'Select Service',

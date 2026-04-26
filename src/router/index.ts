@@ -102,14 +102,14 @@ const routes: RouteRecordRaw[] = [
         meta: { requiredRole: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
       },
       {
-        path: 'deployments/:id',
-        component: DeploymentDetail,
-        meta: { requiredRole: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
-      },
-      {
         path: 'deployments/new',
         component: DeploymentWizard,
         meta: { requiredRole: ['CUSTOMER', 'RESELLER'] },
+      },
+      {
+        path: 'deployments/:id',
+        component: DeploymentDetail,
+        meta: { requiredRole: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
       },
       {
         path: 'credits/buy',

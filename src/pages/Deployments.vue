@@ -1,104 +1,173 @@
 <template>
   <div class="space-y-6">
-    <!-- Header (permanent) -->
-    <div class="header-section flex items-center justify-between">
-      <h1 class="text-3xl font-bold text-on-surface">{{ $t('deployments.title') }}</h1>
-      <Button
-        v-if="canCreateDeployment"
-        :label="$t('deployments.create')"
-        icon="pi pi-plus"
-        @click="navigateToWizard"
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 header-section">
+      <AppPageHeader
+        :title="$t('deployments.title')"
+        :description="$t('deployments.subtitle')"
       />
-    </div>
-
-    <!-- Stats cards (if admin) -->
-    <transition name="stats-group-fade">
-      <div v-if="isAdmin" key="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <transition-group
-          name="stat-card-stagger"
-          tag="div"
-          class="contents"
-        >
-          <div
-            v-for="(card, idx) in adminStatsCards"
-            :key="card.id"
-            :style="{ '--stagger-index': idx }"
-          >
-            <StatCard :title="card.title" :value="card.value" />
-          </div>
-        </transition-group>
-      </div>
-    </transition>
-
-    <!-- Status filter -->
-    <transition name="filter-fade">
-      <div key="filter" class="flex gap-4 filter-section">
-        <SelectButton
-          v-model="selectedStatus"
-          :options="statusOptions"
-          option-label="label"
-          option-value="value"
-          @change="applyFilters"
+      <div class="flex items-center gap-3 shrink-0 pt-1">
+        <Button
+          :label="$t('deployments.export_csv')"
+          icon="pi pi-download"
+          text
+          severity="secondary"
+          @click="exportDeployments"
+        />
+        <Button
+          v-if="canCreateDeployment"
+          :label="$t('deployments.create')"
+          icon="pi pi-plus"
+          @click="navigateToWizard"
         />
       </div>
-    </transition>
+    </div>
+
+    <!-- Stats row — 4 cards, always visible -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stats-section">
+      <StatCard
+        :title="$t('deployments.stats.instances_active')"
+        :value="String(activeCount).padStart(2, '0')"
+      />
+      <StatCard
+        :title="$t('deployments.stats.monthly_cost')"
+        :value="formatCurrency(monthlyCost)"
+      />
+      <StatCard
+        :title="$t('deployments.stats.uptime')"
+        value="99.98%"
+      />
+      <!-- Credits Remaining — dark card variant -->
+      <div class="rounded-lg p-6 bg-primary text-on-primary flex items-start justify-between credits-card">
+        <div class="space-y-2">
+          <p class="text-xs font-bold uppercase tracking-widest" style="opacity: 0.75">
+            {{ $t('deployments.stats.credits_remaining') }}
+          </p>
+          <p class="text-3xl font-bold">{{ formatCurrency(partnerCredits) }}</p>
+        </div>
+        <router-link to="/billing" class="opacity-60 hover:opacity-100 transition-opacity mt-1">
+          <i class="pi pi-chevron-down" />
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Tab-style filter -->
+    <div class="flex items-center justify-between border-b border-outline-variant filter-section">
+      <div class="flex">
+        <button
+          v-for="tab in filterTabs"
+          :key="String(tab.value)"
+          class="px-4 py-2 text-sm font-medium transition-colors -mb-px border-b-2"
+          :class="activeTabFilter === tab.value
+            ? 'border-primary text-primary'
+            : 'border-transparent text-on-surface-variant hover:text-on-surface'"
+          @click="setTabFilter(tab.value)"
+        >
+          {{ tab.label }}
+          <span v-if="tab.count !== null" class="ms-1 text-xs opacity-70">{{ tab.count }}</span>
+        </button>
+      </div>
+      <div class="flex gap-1 pb-2">
+        <Button icon="pi pi-filter" text size="small" severity="secondary" aria-label="Filter" />
+        <Button icon="pi pi-ellipsis-v" text size="small" severity="secondary" aria-label="More options" />
+      </div>
+    </div>
 
     <!-- DataTable -->
-    <transition name="table-fade">
-      <div key="table" class="table-container">
-        <AppDataTable
-          :rows="deployments"
-          :columns="tableColumns"
-          :loading="isLoading"
-          :total-records="totalRecords"
-          :page-size="pageSize"
-          paginator
-          lazy
-          @page-change="handlePageChange"
-          @search="handleSearch"
-        >
-          <!-- Service name column -->
-          <template #body-service_name="{ data }">
-            <span>{{ data.service?.name || 'N/A' }}</span>
-          </template>
-
-          <!-- Domain column -->
-          <template #body-domains="{ data }">
-            <div class="text-sm">
-              <div v-for="domain in (data.domainNames || [])" :key="domain" class="text-on-surface-variant">
-                {{ domain }}
+    <div class="table-section">
+      <DataTable
+        :value="filteredDeployments"
+        :loading="isLoading"
+        paginator
+        :rows="pageSize"
+        striped-rows
+        :rows-per-page-options="[10, 20, 50]"
+      >
+        <!-- NAME column -->
+        <Column :header="$t('deployments.table.name')">
+          <template #body="{ data }">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold shrink-0"
+                :style="{ backgroundColor: labelColor(data.label) }"
+              >
+                {{ data.label?.[0]?.toUpperCase() ?? '?' }}
               </div>
+              <span class="font-medium text-on-surface">{{ data.label || '—' }}</span>
             </div>
           </template>
+        </Column>
 
-          <!-- Status column -->
-          <template #body-status="{ data }">
-            <DeploymentStatusBadge
-              :status="data.status"
-              :class="{ 'status-badge-pulse': ['deploying', 'failed'].includes(data.status) }"
+        <!-- DOMAIN column -->
+        <Column :header="$t('deployments.table.domain')">
+          <template #body="{ data }">
+            <a
+              v-if="firstDomain(data)"
+              :href="`https://${firstDomain(data)}`"
+              target="_blank"
+              rel="noopener"
+              class="font-mono text-sm text-primary hover:underline"
+            >{{ firstDomain(data) }}</a>
+            <span v-else class="text-on-surface-variant text-sm">—</span>
+          </template>
+        </Column>
+
+        <!-- STATUS column -->
+        <Column :header="$t('common.status')">
+          <template #body="{ data }">
+            <DeploymentStatusBadge :status="data.status" />
+          </template>
+        </Column>
+
+        <!-- CREATED column -->
+        <Column :header="$t('deployments.table.created')">
+          <template #body="{ data }">
+            <span class="text-sm text-on-surface-variant font-mono">{{ formatDateTime(data.created) }}</span>
+          </template>
+        </Column>
+
+        <!-- ACTIONS column -->
+        <Column class="w-20">
+          <template #header>{{ $t('common.actions') }}</template>
+          <template #body="{ data }">
+            <Button
+              icon="pi pi-eye"
+              text
+              rounded
+              size="small"
+              :title="$t('common.view')"
+              @click="navigateToDetail(data.id)"
             />
           </template>
+        </Column>
 
-          <!-- Actions column -->
-          <template #actions="{ data }">
-            <div class="flex gap-2 action-buttons">
-              <Button
-                icon="pi pi-eye"
-                class="p-button-rounded p-button-text p-button-sm"
-                :title="$t('common.view')"
-                @click="navigateToDetail(data.id)"
-              />
-              <Button
-                icon="pi pi-trash"
-                class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                :title="$t('common.delete')"
-                @click="deleteDeployment(data.id)"
-              />
-            </div>
-          </template>
-        </AppDataTable>
+        <template #empty>
+          <div class="text-center text-on-surface-variant py-8">
+            {{ $t('common.no_data') }}
+          </div>
+        </template>
+      </DataTable>
+    </div>
+
+    <!-- Help section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 mt-2 border-t border-outline-variant help-section">
+      <div class="p-6 bg-surface-container-low rounded-lg space-y-3">
+        <h3 class="font-semibold text-on-surface text-base">{{ $t('deployments.help.title') }}</h3>
+        <p class="text-sm text-on-surface-variant leading-relaxed" style="max-width: 65ch">
+          {{ $t('deployments.help.description') }}
+        </p>
+        <a
+          href="/docs/cluster"
+          class="text-sm text-primary font-medium inline-flex items-center gap-1 hover:underline"
+        >
+          {{ $t('deployments.help.cta') }}
+          <i class="pi pi-arrow-right text-xs" />
+        </a>
       </div>
-    </transition>
+      <div class="bg-surface-container rounded-lg flex items-center justify-center min-h-36">
+        <i class="pi pi-file text-5xl text-outline" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -107,14 +176,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
-import SelectButton from 'primevue/selectbutton'
-import AppDataTable from '@/components/common/AppDataTable.vue'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import StatCard from '@/components/common/StatCard.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
 import { useNotificationStore } from '@/stores/notifications.store'
+import { formatCurrency } from '@/lib/formatters'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -123,62 +194,72 @@ const { loadDeployments, deployments, isLoading, subscribeToDeploymentUpdates } 
 const partnerStore = usePartnerStore()
 const notificationStore = useNotificationStore()
 
-const totalRecords = ref(0)
 const pageSize = ref(20)
-const currentPage = ref(1)
-const selectedStatus = ref(null)
+const activeTabFilter = ref<string | null>(null)
 
 const canCreateDeployment = computed(() => !isAdmin)
 
-const activeCount = computed(() => {
-  return deployments.value.filter((d: any) => d.status === 'active').length
+const activeCount = computed(() =>
+  deployments.value.filter((d: any) => d.status === 'active').length
+)
+
+const suspendedCount = computed(() =>
+  deployments.value.filter((d: any) => d.status === 'suspended').length
+)
+
+const monthlyCost = computed(() =>
+  deployments.value.reduce((total: number, d: any) =>
+    total + (d.serviceplan?.monthlyCreditConsumption || 0), 0)
+)
+
+const partnerCredits = computed(() =>
+  partnerStore.selectedPartner?.remainingCredits ?? 0
+)
+
+const filterTabs = computed(() => [
+  { label: t('deployments.filter.all'), value: null, count: null },
+  { label: t('deployments.status.active'), value: 'active', count: activeCount.value },
+  { label: t('deployments.status.suspended'), value: 'suspended', count: suspendedCount.value },
+])
+
+const filteredDeployments = computed(() => {
+  if (!activeTabFilter.value) return deployments.value
+  return deployments.value.filter((d: any) => d.status === activeTabFilter.value)
 })
 
-const monthlyCost = computed(() => {
-  return deployments.value.reduce((total: number, d: any) => {
-    return total + (d.serviceplan?.monthlyCreditConsumption || 0)
-  }, 0)
-})
-
-interface AdminStatsCard {
-  id: string
-  title: string
-  value: string
+// Deterministic avatar color based on first character
+const AVATAR_COLORS = [
+  '#00288e', // primary
+  '#1e40af', // primary-container
+  '#003d28', // tertiary
+  '#9d4300', // secondary
+  '#0e5a8a', // tonal blue
+  '#5c2d91', // tonal purple
+]
+function labelColor(label: string): string {
+  if (!label) return AVATAR_COLORS[0]
+  return AVATAR_COLORS[label.charCodeAt(0) % AVATAR_COLORS.length]
 }
 
-const adminStatsCards = computed<AdminStatsCard[]>(() => [
-  {
-    id: 'total-deployments',
-    title: 'Total Deployments',
-    value: totalRecords.value.toString(),
-  },
-  {
-    id: 'active-deployments',
-    title: 'Active Deployments',
-    value: activeCount.value.toString(),
-  },
-  {
-    id: 'monthly-cost',
-    title: 'Monthly Cost',
-    value: `${monthlyCost.value} XOF`,
-  },
-])
+function firstDomain(data: any): string | null {
+  const domains = data.domainNames ?? data.domain_names
+  return Array.isArray(domains) && domains.length > 0 ? domains[0] : null
+}
 
-const tableColumns = computed(() => [
-  { field: 'service_name', header: t('deployments.form.service') },
-  { field: 'domains', header: t('deployments.form.domains') },
-  { field: 'status', header: t('common.status') },
-  { field: 'created', header: 'Created' },
-  { field: 'actions', header: t('common.actions') },
-])
+function formatDateTime(iso: string): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const yy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${yy}-${mm}-${dd} ${hh}:${min}`
+}
 
-const statusOptions = [
-  { label: t('common.status'), value: null },
-  { label: t('deployments.status.active'), value: 'active' },
-  { label: t('deployments.status.pending_deployment'), value: 'pending_deployment' },
-  { label: t('deployments.status.deploying'), value: 'deploying' },
-  { label: t('deployments.status.stopped'), value: 'stopped' },
-]
+function setTabFilter(value: string | null) {
+  activeTabFilter.value = value
+}
 
 function navigateToWizard() {
   router.push('/deployments/new')
@@ -188,60 +269,52 @@ function navigateToDetail(id: number) {
   router.push(`/deployments/${id}`)
 }
 
-function applyFilters() {
-  currentPage.value = 1
-  loadDeploymentsList()
-}
-
-function handlePageChange(event: any) {
-  currentPage.value = event.page + 1
-  pageSize.value = event.rows
-  loadDeploymentsList()
-}
-
-function handleSearch() {
-  currentPage.value = 1
-  loadDeploymentsList()
-}
-
-async function deleteDeployment(id: number) {
-  const confirmed = window.confirm(t('common.confirm_delete'))
-  if (!confirmed) return
-
-  try {
-    const { deleteDeployment: deleteDeploymentFn } = useDeployments()
-    await deleteDeploymentFn(id)
-  } catch (error) {
-    notificationStore.addError(t('deployments.delete_error'))
-  }
+function exportDeployments() {
+  if (!deployments.value.length) return
+  const rows = filteredDeployments.value
+  const headers = [
+    t('deployments.table.name'),
+    t('deployments.table.domain'),
+    t('common.status'),
+    t('deployments.table.created'),
+  ]
+  const csvRows = rows.map((d: any) => [
+    `"${(d.label ?? '').replace(/"/g, '""')}"`,
+    `"${(firstDomain(d) ?? '').replace(/"/g, '""')}"`,
+    `"${(d.status ?? '').replace(/"/g, '""')}"`,
+    `"${formatDateTime(d.created)}"`,
+  ].join(','))
+  const csv = [headers.map((h) => `"${h}"`).join(','), ...csvRows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', `deployments-${new Date().toISOString().split('T')[0]}.csv`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 async function loadDeploymentsList() {
   try {
-    // Admins see all deployments; customers/resellers see only their own
     const partnerId = isAdmin ? undefined : partnerStore.selectedPartner?.id
-
     if (!isAdmin && !partnerId) {
       notificationStore.addError(t('errors.fetch_failed'))
       return
     }
-
-    await loadDeployments(partnerId)
-    // Deployments are loaded via the composable, which updates the deployments ref
-    totalRecords.value = deployments.value.length
-  } catch (error) {
+    await loadDeployments(partnerId as number)
+  } catch {
     notificationStore.addError(t('errors.fetch_failed'))
   }
 }
 
 onMounted(async () => {
-  // Load initial deployments
   if (isAdmin) {
-    // Admin: load all deployments
     await loadDeploymentsList()
-    subscribeToDeploymentUpdates() // Subscribe to all changes
+    subscribeToDeploymentUpdates()
   } else if (partnerStore.selectedPartner?.id) {
-    // Customer/Reseller: load only their own deployments
     await loadDeploymentsList()
     subscribeToDeploymentUpdates(partnerStore.selectedPartner.id)
   }
@@ -253,49 +326,32 @@ onMounted(async () => {
   animation: header-enter var(--duration-standard) var(--easing-standard);
 }
 
-.stats-group-fade-enter-active {
-  animation: fade-in var(--duration-standard) var(--easing-standard);
-}
-
-.stat-card-stagger-enter-active {
-  animation: stat-card-fade var(--duration-standard) var(--easing-standard) backwards;
-  animation-delay: calc(var(--stagger-index, 0) * 80ms);
+.stats-section {
+  animation: fade-in var(--duration-standard) var(--easing-standard) 60ms backwards;
 }
 
 .filter-section {
-  animation: filter-bar-enter var(--duration-standard) var(--easing-standard) 100ms backwards;
+  animation: fade-in var(--duration-standard) var(--easing-standard) 120ms backwards;
 }
 
-.filter-fade-enter-active,
-.filter-fade-leave-active {
-  animation: filter-bar-enter var(--duration-micro) var(--easing-standard);
+.table-section {
+  animation: fade-in var(--duration-standard) var(--easing-standard) 180ms backwards;
 }
 
-.filter-fade-leave-active {
-  animation-direction: reverse;
+.help-section {
+  animation: fade-in var(--duration-standard) var(--easing-standard) 240ms backwards;
 }
 
-.table-container {
-  animation: table-enter var(--duration-standard) var(--easing-standard) 200ms backwards;
+.credits-card {
+  cursor: default;
 }
 
-.table-fade-enter-active {
-  animation: table-enter var(--duration-standard) var(--easing-standard);
-}
-
-.table-fade-leave-active {
-  animation: table-enter var(--duration-micro) var(--easing-standard) reverse;
-}
-
-:deep(.status-badge-pulse) {
-  animation: status-badge-pulse 1.5s var(--easing-pulse) infinite;
-}
-
-:deep(.action-buttons button) {
-  transition: var(--transition-smooth);
-}
-
-:deep(.action-buttons button:hover) {
-  transform: scale(1.1);
+:deep(.p-datatable-thead > tr > th) {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  background-color: var(--surface-container);
 }
 </style>

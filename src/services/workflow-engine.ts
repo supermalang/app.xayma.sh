@@ -122,7 +122,7 @@ interface CreateDeploymentPayload extends WebhookPayload {
   partnerId: number
   serviceId: number
   servicePlanId: number
-  serviceVersion: string
+  serviceVersion?: string
   domainNames: string[]
   label: string
   controlNodeId?: number

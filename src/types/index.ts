@@ -28,26 +28,6 @@ export interface Partner {
   updatedAt: string
 }
 
-// Deployment types
-export interface Deployment {
-  id: string
-  partnerId: string
-  name: string
-  status: 'ACTIVE' | 'PENDING' | 'DEPLOYING' | 'SUSPENDED' | 'TERMINATED'
-  type: 'ODOO_COMMUNITY' | 'CUSTOM_DOCKER'
-  domain: string
-  subdomain: string
-  nodeId?: string
-  cpuCores?: number
-  ramGb?: number
-  storageGb?: number
-  monthlyCredits: number
-  createdAt: string
-  expiresAt?: string
-  terminatedAt?: string
-  updatedAt: string
-}
-
 // Credit transaction types
 export interface CreditTransaction {
   id: string

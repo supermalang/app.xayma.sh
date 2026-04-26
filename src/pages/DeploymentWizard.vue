@@ -312,7 +312,7 @@ import Chips from 'primevue/chips'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import { listServices, getServicePlansByServiceId } from '@/services/services.service'
-import { supabase } from '@/services/supabase'
+import { validateDomains as validateDomainsService } from '@/services/deployments.service'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
 import { useNotificationStore } from '@/stores/notifications.store'
@@ -447,24 +447,10 @@ async function validateDomains() {
   isDomainValidating.value = true
 
   try {
-    const { data, error } = await supabase
-      .schema('xayma_app')
-      .rpc('valid_domain_array', { domains: form.value.domainNames })
-
-    if (error) {
-      console.error('Domain validation error:', error)
-      domainValidationError.value = t('deployments.errors.invalid_domain')
-      return
-    }
-
-    if (data === false) {
-      domainValidationError.value = t('deployments.errors.invalid_domain')
-      return
-    }
-
-    domainValidationError.value = null
+    const isValid = await validateDomainsService(form.value.domainNames)
+    domainValidationError.value = isValid ? null : t('deployments.errors.invalid_domain')
   } catch (error) {
-    console.error('Domain validation exception:', error)
+    console.error('Domain validation error:', error)
     domainValidationError.value = t('deployments.errors.invalid_domain')
   } finally {
     isDomainValidating.value = false

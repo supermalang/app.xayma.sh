@@ -1,5 +1,6 @@
 <template>
   <div class="space-y-6">
+    <ConfirmDialog />
     <Button
       icon="pi pi-arrow-left"
       class="p-button-text"
@@ -19,7 +20,7 @@
             {{ deployment.service?.name }}
           </p>
         </div>
-        <DeploymentStatusBadge :status="deployment.status" />
+        <DeploymentStatusBadge :status="deployment.status ?? ''" />
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -65,7 +66,7 @@
           </template>
           <div class="text-center py-4">
             <p class="text-on-surface-variant text-sm mb-2">
-              {{ $t('deployments.form.created') }}
+              {{ $t('deployments.table.created') }}
             </p>
             <p class="text-on-surface font-medium">
               {{ deployment.created ? new Date(deployment.created).toLocaleString() : '—' }}
@@ -75,28 +76,45 @@
       </div>
 
       <!-- Actions -->
-      <Card v-if="isActive">
+      <Card v-if="isActive || isStopped || isSuspended">
         <template #title>
-          Actions
+          {{ $t('common.actions') }}
         </template>
         <div class="flex gap-2">
           <Button
-            label="Stop"
+            v-if="isActive"
+            :label="$t('deployments.actions.stop')"
             icon="pi pi-pause"
             class="p-button-secondary"
+            :loading="isLoading"
+            :disabled="isLoading"
             @click="stopDeployment"
           />
           <Button
-            label="Restart"
+            v-if="isActive"
+            :label="$t('deployments.actions.restart')"
             icon="pi pi-replay"
             class="p-button-secondary"
+            :loading="isLoading"
+            :disabled="isLoading"
             @click="restartDeployment"
           />
           <Button
-            label="Delete"
+            v-if="isStopped || isSuspended"
+            :label="$t('deployments.actions.start')"
+            icon="pi pi-play"
+            class="p-button-secondary"
+            :loading="isLoading"
+            :disabled="isLoading"
+            @click="startDeployment"
+          />
+          <Button
+            :label="$t('common.delete')"
             icon="pi pi-trash"
             class="p-button-danger"
-            @click="deleteDeployment"
+            :loading="isLoading"
+            :disabled="isLoading"
+            @click="confirmDelete"
           />
         </div>
       </Card>
@@ -105,7 +123,7 @@
     <Message
       v-else
       severity="warn"
-      text="Deployment not found"
+      :text="$t('deployments.errors.not_found')"
     />
   </div>
 </template>
@@ -114,9 +132,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
+import ConfirmDialog from 'primevue/confirmdialog'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import { useDeployments } from '@/composables/useDeployments'
 import { useNotificationStore } from '@/stores/notifications.store'
@@ -124,12 +144,15 @@ import { useNotificationStore } from '@/stores/notifications.store'
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
+const confirm = useConfirm()
 const { loadDeployment, performDeploymentAction, terminateDeployment, subscribeToDeploymentUpdates, selectedDeployment } = useDeployments()
 const notificationStore = useNotificationStore()
 
 const isLoading = ref(false)
 const deployment = computed(() => selectedDeployment.value)
 const isActive = computed(() => deployment.value?.status === 'active')
+const isStopped = computed(() => deployment.value?.status === 'stopped')
+const isSuspended = computed(() => deployment.value?.status === 'suspended')
 
 function goBack() {
   router.push('/deployments')
@@ -153,6 +176,27 @@ async function restartDeployment() {
   } finally {
     isLoading.value = false
   }
+}
+
+async function startDeployment() {
+  if (!deployment.value) return
+  isLoading.value = true
+  try {
+    await performDeploymentAction(deployment.value.id, 'start')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function confirmDelete() {
+  if (!deployment.value) return
+  confirm.require({
+    message: t('common.confirm_delete'),
+    header: t('common.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: () => deleteDeployment(),
+  })
 }
 
 async function deleteDeployment() {

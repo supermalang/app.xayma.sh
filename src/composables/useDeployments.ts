@@ -7,6 +7,7 @@ import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@/services/supabase'
 import * as deploymentService from '@/services/deployments.service'
+import type { DeploymentWithRelations } from '@/services/deployments.service'
 import * as workflowEngineService from '@/services/workflow-engine'
 import { useNotificationStore } from '@/stores/notifications.store'
 
@@ -23,11 +24,11 @@ export function useDeployments() {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
 
-  const deployments = ref<any[]>([])
+  const deployments = ref<DeploymentWithRelations[]>([])
   const isLoading = ref(false)
   const partnerCredits = ref(0)
-  const selectedDeployment = ref<any>(null)
-  let realtimeChannel: any = null
+  const selectedDeployment = ref<DeploymentWithRelations | null>(null)
+  let realtimeChannel: ReturnType<typeof supabase.channel> | null = null
 
   /**
    * Load deployments for current user/partner
@@ -114,18 +115,25 @@ export function useDeployments() {
 
     isLoading.value = true
     try {
+      const slug = generateSlug(formData.label)
+      const isSlugUnique = await deploymentService.isDeploymentSlugUnique(slug)
+      if (!isSlugUnique) {
+        notificationStore.addError(t('deployments.errors.slug_taken'))
+        return null
+      }
+
       // Step 2: Create deployment record
       const newDeployment = await deploymentService.createDeployment({
         label: formData.label,
         domainNames: formData.domainNames,
-        slug: generateSlug(formData.label),
+        slug,
         service_id: formData.serviceId!,
-        serviceplan_id: formData.servicePlanId!,
-        serviceVersion: formData.serviceVersion || '15.0',
-        deploymentPlan: formData.deploymentPlan,
+        serviceplanId: formData.servicePlanId!,
+        serviceVersion: formData.serviceVersion ?? null,
+        deploymentPlan: formData.deploymentPlan ?? null,
         partner_id: partnerId,
         status: 'pending_deployment',
-      } as any)
+      })
 
       if (!newDeployment) {
         notificationStore.addError(t('errors.webhook_failed'))
@@ -139,7 +147,7 @@ export function useDeployments() {
           partnerId,
           serviceId: formData.serviceId!,
           servicePlanId: formData.servicePlanId!,
-          serviceVersion: formData.serviceVersion || '15.0',
+          serviceVersion: formData.serviceVersion,
           domainNames: formData.domainNames,
           label: formData.label,
           controlNodeId,
@@ -172,21 +180,25 @@ export function useDeployments() {
     action: 'stop' | 'start' | 'restart'
   ) {
     isLoading.value = true
+    const deployment = deployments.value.find((d) => d.id === deploymentId)
+    const previousStatus = deployment?.status ?? null
     try {
-      // Call workflow engine webhook
+      // Optimistic update before the webhook call
+      if (deployment) {
+        deployment.status = action === 'stop' ? 'stopped' : 'deploying'
+      }
+
       await workflowEngineService.performDeploymentAction({
         deploymentId,
         action,
       })
 
-      // Update local state optimistically
-      const deployment = deployments.value.find((d) => d.id === deploymentId)
-      if (deployment) {
-        deployment.status = action === 'stop' ? 'stopped' : 'deploying'
-      }
-
       notificationStore.addSuccess(t(`deployments.action_${action}_success`))
     } catch (error) {
+      // Revert optimistic update on failure
+      if (deployment) {
+        deployment.status = previousStatus
+      }
       console.error(`Error performing ${action} action:`, error)
       notificationStore.addError(t('errors.webhook_failed'))
     } finally {
@@ -284,12 +296,18 @@ export function useDeployments() {
           // Update deployment in local array
           const index = deployments.value.findIndex((d) => d.id === payload.new.id)
           if (index !== -1) {
-            deployments.value[index] = { ...deployments.value[index], ...payload.new }
+            deployments.value[index] = {
+              ...deployments.value[index],
+              ...(payload.new as Partial<DeploymentWithRelations>),
+            } as DeploymentWithRelations
           }
 
           // Update selected deployment if it matches
           if (selectedDeployment.value?.id === payload.new.id) {
-            selectedDeployment.value = { ...selectedDeployment.value, ...payload.new }
+            selectedDeployment.value = {
+              ...selectedDeployment.value,
+              ...(payload.new as Partial<DeploymentWithRelations>),
+            } as DeploymentWithRelations
           }
         }
       )

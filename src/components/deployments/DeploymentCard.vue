@@ -129,7 +129,7 @@ const menuItems = computed(() => [
   {
     label: t('deployments.actions.view_details'),
     icon: 'pi pi-eye',
-    command: () => router.push(`/app/deployments/${props.deployment.id}`),
+    command: () => router.push(`/deployments/${props.deployment.id}`),
   },
   ...(isActive.value
     ? [
@@ -151,7 +151,7 @@ const menuItems = computed(() => [
 function onPrimaryAction() {
   if (isActive.value) emit('stop', props.deployment.id)
   else if (isStopped.value) emit('start', props.deployment.id)
-  else router.push(`/app/deployments/${props.deployment.id}`)
+  else router.push(`/deployments/${props.deployment.id}`)
 }
 </script>
 

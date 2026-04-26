@@ -40,6 +40,7 @@ export default {
     columns: 'Colonnes',
     export: 'Exporter',
     actions: 'Actions',
+    details: 'Détails',
     select: 'Sélectionner',
     view: 'Voir',
     days: 'jours',
@@ -456,7 +457,28 @@ export default {
   // Deployments
   deployments: {
     title: 'Déploiements',
+    subtitle: 'Gérez vos instances Odoo dans des régions distribuées. Surveillez le statut, les domaines et les cycles de facturation.',
     create: 'Nouveau déploiement',
+    export_csv: 'Exporter CSV',
+    filter: {
+      all: 'Toutes les instances',
+    },
+    stats: {
+      instances_active: 'Instances actives',
+      monthly_cost: 'Coût mensuel',
+      uptime: 'Disponibilité',
+      credits_remaining: 'Crédits restants',
+    },
+    table: {
+      name: 'Nom',
+      domain: 'Domaine',
+      created: 'Créé le',
+    },
+    help: {
+      title: 'Besoin d\'aide pour la haute disponibilité ?',
+      description: 'Apprenez à configurer la réplication de base de données et l\'équilibrage de charge pour vos instances Odoo Enterprise afin d\'assurer une disponibilité maximale.',
+      cta: 'Lire la documentation cluster',
+    },
     create_success: 'Déploiement créé avec succès. L\'approvisionnement est en cours.',
     delete_success: 'Déploiement supprimé avec succès',
     terminate_success: 'Arrêt du déploiement demandé',
@@ -485,6 +507,8 @@ export default {
     errors: {
       insufficient_credits: 'Crédits insuffisants pour ce déploiement',
       invalid_domain: 'Un ou plusieurs noms de domaine sont invalides',
+      not_found: 'Déploiement introuvable',
+      slug_taken: 'Un déploiement avec ce nom existe déjà. Veuillez choisir un autre libellé.',
     },
     wizard: {
       step_1: 'Sélectionner le service',

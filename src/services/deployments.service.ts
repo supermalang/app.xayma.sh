@@ -3,12 +3,21 @@
  * CRUD operations for xayma_app.deployments table
  */
 
-import { supabaseFrom } from '@/services/supabase'
+import { supabase, supabaseFrom } from '@/services/supabase'
+import type { Database } from '@/types/supabase'
 
-// Deployment types (auto-generated from Supabase schema)
-export type Deployment = any
-export type DeploymentInsert = any
-export type DeploymentUpdate = any
+export type Deployment = Database['xayma_app']['Tables']['deployments']['Row']
+export type DeploymentInsert = Database['xayma_app']['Tables']['deployments']['Insert']
+export type DeploymentUpdate = Database['xayma_app']['Tables']['deployments']['Update']
+export type Service = Database['xayma_app']['Tables']['services']['Row']
+export type ServicePlan = Database['xayma_app']['Tables']['serviceplans']['Row']
+export type Partner = Database['xayma_app']['Tables']['partners']['Row']
+
+export interface DeploymentWithRelations extends Deployment {
+  service?: Service
+  serviceplan?: ServicePlan
+  partner?: Partner
+}
 
 export interface ListDeploymentsFilter {
   partner_id?: number
@@ -22,16 +31,6 @@ export interface ListDeploymentsOptions extends ListDeploymentsFilter {
   pageSize?: number
   orderBy?: string
   orderDirection?: 'asc' | 'desc'
-}
-
-export type Service = any
-export type ServicePlan = any
-export type Partner = any
-
-export interface DeploymentWithRelations extends Deployment {
-  service?: Service
-  serviceplan?: ServicePlan
-  partner?: Partner
 }
 
 /**
@@ -88,7 +87,7 @@ export async function listDeployments(options: ListDeploymentsOptions = {}) {
   }
 
   return {
-    data: data || [],
+    data: (data || []) as unknown as DeploymentWithRelations[],
     count: count || 0,
     page,
     pageSize,
@@ -115,7 +114,7 @@ export async function getDeployment(id: number): Promise<DeploymentWithRelations
     throw error
   }
 
-  return data
+  return data as unknown as DeploymentWithRelations | null
 }
 
 /**
@@ -142,7 +141,7 @@ export async function getDeploymentsByPartnerId(partnerId: number) {
 /**
  * Create a new deployment
  */
-export async function createDeployment(deployment: DeploymentInsert) {
+export async function createDeployment(deployment: DeploymentInsert): Promise<Deployment | undefined> {
   const { data, error } = await supabaseFrom('deployments').insert([deployment]).select()
 
   if (error) {
@@ -150,7 +149,7 @@ export async function createDeployment(deployment: DeploymentInsert) {
     throw error
   }
 
-  return data?.[0]
+  return (data?.[0]) as unknown as Deployment | undefined
 }
 
 /**
@@ -201,6 +200,25 @@ export async function deleteDeployment(id: number) {
 }
 
 /**
+ * Validate domain names via database function valid_domain_array.
+ * Returns true if all domains are valid.
+ */
+export async function validateDomains(domains: string[]): Promise<boolean> {
+  if (domains.length === 0) return false
+
+  const { data, error } = await supabase
+    .schema('xayma_app')
+    .rpc('valid_domain_array', { domains })
+
+  if (error) {
+    console.error('Error validating domains:', error)
+    throw error
+  }
+
+  return data === true
+}
+
+/**
  * Check if a slug is unique
  */
 export async function isDeploymentSlugUnique(slug: string, excludeId?: number) {
@@ -238,7 +256,8 @@ export async function hasPartnerSufficientCredits(
     throw error
   }
 
-  return (data?.remainingCredits || 0) >= monthlyCreditConsumption
+  const row = data as unknown as { remainingCredits: number } | null
+  return (row?.remainingCredits || 0) >= monthlyCreditConsumption
 }
 
 /**
@@ -275,8 +294,7 @@ export async function getPartnerTotalMonthlyConsumption(partnerId: number): Prom
 
   if (!data) return 0
 
-  return data.reduce((total, deployment) => {
-    const plan = deployment.serviceplan as ServicePlan | undefined
-    return total + (plan?.monthlyCreditConsumption || 0)
+  return (data as Array<{ serviceplan?: ServicePlan }>).reduce((total, deployment) => {
+    return total + (deployment.serviceplan?.monthlyCreditConsumption || 0)
   }, 0)
 }

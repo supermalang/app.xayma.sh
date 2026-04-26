@@ -32,5 +32,77 @@
     "framework": "vue3",
     "language": "typescript"
   },
-  "enabledMcpjsonServers": ["stitch"]
+  "enabledMcpjsonServers": ["stitch"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "description": "Block direct edits to auto-generated database types",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/guard-generated-files.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "description": "Block direct n8n fetch() calls in frontend source",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/guard-n8n-direct-calls.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "description": "ESLint + tsc after any .ts/.vue file edit",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/lint-and-typecheck.sh",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "description": "i18n key parity check after translation file edits",
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/check-i18n-parity.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "description": "Remind Claude to run /verify-task before marking done",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-task-reminder.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"additionalContext\": \"Preserve: architecture decisions, failing tests, blocked tasks, schema changes made this session\"}'"
+          }
+        ]
+      }
+    ]
+  }
 }
