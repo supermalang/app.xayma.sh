@@ -41,11 +41,11 @@ describe('useCustomerDashboardStore', () => {
     expect(store.isLoading).toBe(false)
   })
 
-  it('sets isRefreshing on cache hit and clears after refresh', async () => {
+  it('sets isRefreshing=true on cache hit (fire-and-forget background refresh)', async () => {
     const store = useCustomerDashboardStore()
     store.fetchedAt = Date.now()
-    await store.loadWithCache()
-    expect(store.isRefreshing).toBe(false)
+    store.loadWithCache() // intentionally not awaited — returns immediately
+    expect(store.isRefreshing).toBe(true)
   })
 
   it('resets to initial state after $reset()', () => {

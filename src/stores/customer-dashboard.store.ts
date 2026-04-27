@@ -131,7 +131,7 @@ export const useCustomerDashboardStore = defineStore('customerDashboard', () => 
     const cached = fetchedAt.value !== null && Date.now() - fetchedAt.value < DASHBOARD_CACHE_TTL_MS
     if (cached) {
       isRefreshing.value = true
-      await fetchAll()
+      fetchAll()
       return
     }
     isLoading.value = true
