@@ -2,248 +2,275 @@
   <div class="space-y-6">
     <!-- Header -->
     <AppPageHeader
-      :title="$t('dashboard.admin_title')"
-      :description="$t('dashboard.admin_description')"
+      :title="t('dashboard.admin_title')"
+      :description="t('dashboard.admin_description')"
       icon="pi-chart-bar"
     />
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <transition-group
-        name="stat-card-stagger"
-        tag="div"
-        class="contents"
+    <!-- Section 1: System Health Bar -->
+    <div class="rounded-lg bg-surface-container p-4 flex flex-wrap items-center gap-6">
+      <span class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide me-4">
+        {{ t('dashboard.system_health_title') }}
+      </span>
+      <div
+        v-for="service in healthServices"
+        :key="service"
+        class="flex items-center gap-2"
       >
-        <div
-          v-for="(card, idx) in statCards"
-          :key="card.id"
-          :style="{ '--stagger-index': idx }"
-        >
-          <StatCard
-            :label="$t(card.labelKey)"
-            :value="stats[card.valueKey]"
-            :icon="card.icon"
-            :color="card.color"
-            :format="card.format"
-          />
-        </div>
-      </transition-group>
+        <Skeleton width="8rem" height="1.5rem" border-radius="1rem" />
+      </div>
     </div>
 
-    <!-- Section 1: Overview Charts -->
-    <transition-group
-      name="chart-slide-up"
-      tag="div"
-      class="grid grid-cols-1 lg:grid-cols-2 gap-6"
-    >
-      <!-- Deployments Over Time -->
-      <LineChart
-        key="deployments-trend"
-        :title="$t('dashboard.deployments_trend')"
-        :data="deploymentsTrend"
-        :is-loading="isLoading"
-      />
+    <!-- Section 2: Financial Ledger -->
+    <div>
+      <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-3">
+        {{ t('dashboard.financial_ledger_title') }}
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Global Credits Used -->
+        <Card>
+          <template #content>
+            <div v-if="isLoading" class="space-y-2">
+              <Skeleton height="1rem" width="60%" />
+              <Skeleton height="2.5rem" />
+            </div>
+            <div v-else>
+              <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1">
+                {{ t('dashboard.global_credits_used') }}
+              </p>
+              <p class="text-3xl font-bold text-on-surface">{{ formatLargeNumber(globalCreditsUsed) }}</p>
+              <p class="text-xs text-on-surface-variant mt-1">{{ t('dashboard.credits_unit') }}</p>
+            </div>
+          </template>
+        </Card>
 
-      <!-- Credit Deducted by Plan -->
-      <BarChart
-        key="credit-deduction"
-        :title="$t('dashboard.credit_deduction_by_plan')"
-        :categories="planCategories"
-        :series="creditDeductionSeries"
-        :is-loading="isLoading"
-      />
-    </transition-group>
+        <!-- Budget Today -->
+        <Card>
+          <template #content>
+            <div v-if="isLoading" class="space-y-2">
+              <Skeleton height="1rem" width="60%" />
+              <Skeleton height="2.5rem" />
+            </div>
+            <div v-else>
+              <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1">
+                {{ t('dashboard.budget_today_credits') }}
+              </p>
+              <p class="text-3xl font-bold text-on-surface">{{ formatLargeNumber(stats.revenueTodayFCFA) }}</p>
+              <p class="text-xs text-on-surface-variant mt-1">{{ formatCurrency(stats.revenueTodayFCFA) }}</p>
+            </div>
+          </template>
+        </Card>
 
-    <!-- Section 2: Breakdown Charts -->
-    <transition-group
-      name="chart-slide-up"
-      tag="div"
-      class="grid grid-cols-1 lg:grid-cols-3 gap-6"
-    >
-      <!-- Deployment Status Distribution -->
-      <DonutChart
-        key="status-distribution"
-        :title="$t('dashboard.deployment_status_distribution')"
-        :data="deploymentStatusData"
-        :is-loading="isLoadingInsights"
-      />
+        <!-- Monthly Intake -->
+        <Card>
+          <template #content>
+            <div v-if="isLoading" class="space-y-2">
+              <Skeleton height="1rem" width="60%" />
+              <Skeleton height="2.5rem" />
+            </div>
+            <div v-else>
+              <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1">
+                {{ t('dashboard.monthly_intake') }}
+              </p>
+              <p class="text-3xl font-bold text-on-surface">{{ formatLargeNumber(monthlyIntakeCredits) }}</p>
+              <p class="text-xs text-on-surface-variant mt-1">{{ formatCurrency(monthlyIntakeFCFA) }}</p>
+            </div>
+          </template>
+        </Card>
 
-      <!-- Top 5 Partners by Deployments -->
-      <BarChart
-        key="top-partners"
-        :title="$t('dashboard.top_partners_deployments')"
-        :categories="topPartnersCategories"
-        :series="topPartnersSeries"
-        :is-loading="isLoadingInsights"
-      />
+        <!-- Monthly Forecast (skeleton placeholder) -->
+        <Card>
+          <template #content>
+            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1">
+              {{ t('dashboard.monthly_forecast') }}
+            </p>
+            <Skeleton height="4rem" />
+          </template>
+        </Card>
+      </div>
+    </div>
 
-      <!-- Service Popularity -->
-      <BarChart
-        key="service-popularity"
-        :title="$t('dashboard.service_popularity')"
-        :categories="serviceCategories"
-        :series="serviceSeries"
-        :is-loading="isLoadingInsights"
-      />
-    </transition-group>
+    <!-- Section 3: Two-column row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: Infrastructure Capacity (2/3) -->
+      <Card class="lg:col-span-2">
+        <template #content>
+          <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">
+            {{ t('dashboard.infrastructure_capacity_title') }}
+          </h3>
 
-    <!-- Section 3: Revenue Analytics -->
-    <transition name="chart-slide-up">
-      <div key="revenue-section">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Monthly Revenue Trend -->
-          <LineChart
-            :title="$t('dashboard.monthly_revenue_trend')"
-            :data="monthlyRevenueChartData"
-            :is-loading="isLoadingInsights"
-          />
+          <!-- Instance Saturation -->
+          <div class="mb-6">
+            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">
+              {{ t('dashboard.instance_saturation') }}
+            </p>
+            <div v-if="isLoading">
+              <Skeleton height="3rem" class="mb-2" />
+            </div>
+            <div v-else>
+              <p class="text-5xl font-bold text-on-surface mb-3">{{ stats.activeDeployments }}</p>
+              <div class="flex flex-wrap gap-2">
+                <Tag severity="secondary">
+                  {{ t('dashboard.archived') }}: {{ archivedDeployments }}
+                </Tag>
+                <Tag severity="warn">
+                  {{ t('dashboard.suspended') }}: {{ suspendedDeployments }}
+                </Tag>
+                <Tag severity="info">
+                  {{ t('dashboard.stopped') }}: {{ stoppedDeployments }}
+                </Tag>
+              </div>
+            </div>
+          </div>
 
-          <!-- Revenue by Partner Type -->
-          <DonutChart
-            :title="$t('dashboard.revenue_by_partner_type')"
-            :data="revenueByPartnerType"
-            :is-loading="isLoading"
-          />
+          <!-- Cluster Containers -->
+          <div>
+            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">
+              {{ t('dashboard.cluster_containers') }}
+            </p>
+            <Skeleton height="4rem" />
+          </div>
+        </template>
+      </Card>
+
+      <!-- Right: Partners (1/3) -->
+      <Card>
+        <template #content>
+          <div v-if="isLoading">
+            <Skeleton height="3rem" class="mb-2" />
+            <Skeleton height="1rem" width="60%" class="mb-4" />
+            <Skeleton height="2rem" />
+          </div>
+          <div v-else>
+            <p class="text-5xl font-bold text-on-surface mb-1">{{ stats.totalPartners }}</p>
+            <p class="text-xs text-on-surface-variant mb-4">{{ t('dashboard.active_partners') }}</p>
+            <Button
+              :label="t('dashboard.view_partner_directory')"
+              outlined
+              class="w-full mb-6"
+              @click="router.push('/partners')"
+            />
+          </div>
+
+          <!-- Partner Distribution -->
+          <div>
+            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">
+              {{ t('dashboard.partner_distribution_title') }}
+            </p>
+            <p class="text-sm text-on-surface-variant">
+              {{ t('dashboard.partner_distribution_unavailable') }}
+            </p>
+          </div>
+        </template>
+      </Card>
+    </div>
+
+    <!-- Section 4: System Event Log -->
+    <div>
+      <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-3">
+        {{ t('dashboard.system_event_log_title') }}
+      </h3>
+
+      <!-- Loading state -->
+      <div v-if="activityLoading" class="space-y-2">
+        <Skeleton v-for="i in 3" :key="i" height="2rem" />
+      </div>
+
+      <!-- Empty state -->
+      <div
+        v-else-if="auditEntries.length === 0"
+        class="text-center py-6 text-on-surface-variant text-sm"
+      >
+        {{ t('dashboard.no_activity') }}
+      </div>
+
+      <!-- Entries -->
+      <div v-else class="space-y-2">
+        <div
+          v-for="entry in auditEntries"
+          :key="entry.audit_id"
+          class="flex items-center gap-3 p-3 bg-surface-container-low rounded-md text-sm"
+        >
+          <i :class="activityIcon(entry.action)" class="text-on-surface-variant" />
+          <span class="flex-1 text-on-surface">{{ entry.description ?? entry.table_name ?? '—' }}</span>
+          <Tag :value="entry.action ?? '—'" severity="secondary" />
+          <span class="text-xs text-on-surface-variant font-mono">{{ formatRelativeTime(entry.created) }}</span>
         </div>
       </div>
-    </transition>
-
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import AppPageHeader from '@/components/common/AppPageHeader.vue'
-import StatCard from '@/components/charts/StatCard.vue'
-import LineChart from '@/components/charts/LineChart.vue'
-import BarChart from '@/components/charts/BarChart.vue'
-import DonutChart from '@/components/charts/DonutChart.vue'
-import { useAdminDashboard } from '@/composables/useAdminDashboard'
-import { useAdminInsights } from '@/composables/useAdminInsights'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import Card from 'primevue/card'
+import Button from 'primevue/button'
+import Tag from 'primevue/tag'
+import Skeleton from 'primevue/skeleton'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import { useAdminDashboard } from '@/composables/useAdminDashboard'
+import { useActivityLog } from '@/composables/useActivityLog'
 
 const { t } = useI18n()
-const { stats, deploymentsTrend, creditsByPlan, revenueByPartnerType, isLoading } = useAdminDashboard()
-const { statusDistribution, topPartners, serviceStats, monthlyRevenue, isLoading: isLoadingInsights } = useAdminInsights()
+const router = useRouter()
 
-interface StatCardConfig {
-  id: string
-  labelKey: string
-  valueKey: keyof typeof stats.value
-  icon: string
-  color: 'primary' | 'secondary' | 'tertiary' | 'error'
-  format: 'number' | 'currency' | 'percent'
+const {
+  stats,
+  archivedDeployments,
+  suspendedDeployments,
+  stoppedDeployments,
+  monthlyIntakeCredits,
+  monthlyIntakeFCFA,
+  globalCreditsUsed,
+  isLoading,
+} = useAdminDashboard()
+
+// Activity log — all companies (companyId = null), last 10 entries
+const { auditEntries, isLoading: activityLoading } = useActivityLog(null, 10)
+
+const healthServices = computed(() => [
+  t('dashboard.health_workflow_engine'),
+  t('dashboard.health_deploy_engine'),
+  t('dashboard.health_control_db'),
+])
+
+function formatLargeNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`
+  return String(n)
 }
 
-const statCards: StatCardConfig[] = [
-  {
-    id: 'total-partners',
-    labelKey: 'dashboard.total_partners',
-    valueKey: 'totalPartners',
-    icon: 'pi pi-users',
-    color: 'primary',
-    format: 'number',
-  },
-  {
-    id: 'active-deployments',
-    labelKey: 'dashboard.active_deployments',
-    valueKey: 'activeDeployments',
-    icon: 'pi pi-server',
-    color: 'tertiary',
-    format: 'number',
-  },
-  {
-    id: 'revenue-today',
-    labelKey: 'dashboard.revenue_today',
-    valueKey: 'revenueTodayFCFA',
-    icon: 'pi pi-wallet',
-    color: 'secondary',
-    format: 'currency',
-  },
-  {
-    id: 'failed-deployments',
-    labelKey: 'dashboard.failed_deployments',
-    valueKey: 'failedDeployments',
-    icon: 'pi pi-times-circle',
-    color: 'error',
-    format: 'number',
-  },
-]
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('fr-SN', {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
 
-const planCategories = computed(() => creditsByPlan.value.map(p => p.name))
-const creditDeductionSeries = computed(() => [
-  {
-    name: t('dashboard.credit_deduction_by_plan'),
-    data: creditsByPlan.value.map(p => p.value),
-    color: '#00288e',
-  },
-])
+function activityIcon(action: string | null): string {
+  if (action === 'INSERT') return 'pi pi-plus-circle'
+  if (action === 'UPDATE') return 'pi pi-pencil'
+  if (action === 'DELETE') return 'pi pi-trash'
+  return 'pi pi-info-circle'
+}
 
-const deploymentStatusData = computed(() =>
-  statusDistribution.value.map(s => ({
-    name: `${s.status} (${s.count})`,
-    value: s.count,
-  }))
-)
-
-const topPartnersCategories = computed(() =>
-  topPartners.value.map(p => p.partner_name)
-)
-
-const topPartnersSeries = computed(() => [
-  {
-    name: t('dashboard.deployments'),
-    data: topPartners.value.map(p => p.deployment_count),
-    color: '#667eea',
-  },
-])
-
-const serviceCategories = computed(() =>
-  serviceStats.value.map(s => s.service_name)
-)
-
-const serviceSeries = computed(() => [
-  {
-    name: t('dashboard.deployments'),
-    data: serviceStats.value.map(s => s.count),
-    color: '#48bb78',
-  },
-])
-
-const monthlyRevenueChartData = computed(() =>
-  monthlyRevenue.value.map(m => ({
-    name: m.month,
-    value: m.revenue,
-  }))
-)
-
+function formatRelativeTime(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return t('dashboard.time_minutes_ago', { n: minutes })
+  const hours = Math.floor(diff / 3600000)
+  if (hours < 24) return t('dashboard.time_hours_ago', { n: hours })
+  return t('dashboard.time_days_ago', { n: Math.floor(hours / 24) })
+}
 </script>
 
 <style scoped>
 :deep(.p-card) {
   border: 1px solid var(--outline-variant);
   background: var(--surface-container-low);
-}
-
-/* Stat Card Stagger Animation
- * Sequentially fade in cards (left to right) with 80ms stagger
- * Creates scanning effect that guides visual flow
- */
-.stat-card-stagger-enter-active {
-  animation: stat-card-fade var(--duration-standard) var(--easing-standard) backwards;
-  animation-delay: calc(var(--stagger-index, 0) * 80ms);
-}
-
-.chart-slide-up-enter-active {
-  animation: chart-enter var(--duration-standard) var(--easing-standard);
-}
-
-.chart-slide-up-leave-active {
-  animation: chart-enter var(--duration-standard) var(--easing-standard) reverse;
-}
-
-
-:deep(.trend-positive) {
-  animation: pulse-trend 2s var(--easing-pulse) infinite;
 }
 </style>

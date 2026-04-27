@@ -4,7 +4,7 @@
  * Automatically subscribes to balance changes and keeps UI in sync
  */
 
-import { onMounted, onUnmounted, ref, computed } from 'vue'
+import { onMounted, onUnmounted, ref, computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { supabase, supabaseFrom } from '@/services/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -16,7 +16,7 @@ interface PartnerCredits {
   status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE'
 }
 
-export function usePartnerCredits(partnerId: string) {
+export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
   const credits = ref<PartnerCredits | null>(null)
   const loading = ref(true)
   const error = ref<string | null>(null)
@@ -27,7 +27,8 @@ export function usePartnerCredits(partnerId: string) {
    * Fetch partner credits from database
    */
   async function fetchCredits() {
-    if (!partnerId) {
+    const id = toValue(partnerId)
+    if (!id) {
       loading.value = false
       return
     }
@@ -38,12 +39,12 @@ export function usePartnerCredits(partnerId: string) {
 
       const { data, error: fetchError } = await supabaseFrom('partners')
         .select('id, remainingCredits, totalCreditsEarned, creditExpiryDate, status')
-        .eq('id', partnerId)
+        .eq('id', id)
         .single()
 
       if (fetchError) throw fetchError
 
-      credits.value = data as PartnerCredits
+      credits.value = data as unknown as PartnerCredits
     } catch (err) {
       console.error('Error fetching partner credits:', err)
       error.value = 'Failed to load credits'
@@ -57,17 +58,18 @@ export function usePartnerCredits(partnerId: string) {
    * Automatically updates local state when database changes
    */
   function subscribeToCredits() {
-    if (!partnerId) return
+    const id = toValue(partnerId)
+    if (!id) return
 
     channel = supabase
-      .channel(`partner-credits-${partnerId}`)
+      .channel(`partner-credits-${id}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'xayma_app',
           table: 'partners',
-          filter: `id=eq.${partnerId}`,
+          filter: `id=eq.${id}`,
         },
         (payload) => {
           if (credits.value) {
@@ -79,13 +81,7 @@ export function usePartnerCredits(partnerId: string) {
           }
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log(`Realtime subscription active for partner ${partnerId}`)
-        } else if (status === 'CLOSED') {
-          console.log(`Realtime subscription closed for partner ${partnerId}`)
-        }
-      })
+      .subscribe()
   }
 
   /**

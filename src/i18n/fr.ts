@@ -176,6 +176,63 @@ export default {
     view_portfolio: 'Voir le portefeuille',
     view_commissions: 'Voir les commissions',
     view_details: 'Voir les détails',
+
+    // Customer dashboard
+    partner_overview_subtitle: 'Aperçu Partenaire & Santé Infrastructure',
+    credit_balance_title: 'Solde de Crédits',
+    monthly_usage: 'Utilisation Mensuelle',
+    total_cost_this_month: 'Coût Total Ce Mois',
+    infrastructure_title: 'Infrastructure',
+    active_instances: 'Instances Actives',
+    stopped_suspended: 'Arrêtées ou Suspendues',
+    archived_instances: 'Archivées',
+    new_deployment_btn: 'Nouveau Déploiement',
+    customer_profile_title: 'Profil Client',
+    partner_name_label: 'Nom du Partenaire',
+    tier_label: 'Niveau',
+    account_manager_label: 'Chargé de Compte',
+    recent_activity_log: 'Journal d\'Activité Récente',
+    view_full_audit_trail: 'Voir la Piste d\'Audit Complète',
+    credit_usage_over_time: 'Utilisation de Crédits dans le Temps',
+    no_activity: 'Aucune activité récente',
+    top_up_credits: 'Recharger les Crédits',
+    status_label: 'Statut',
+    credits_unit: 'Crédits',
+
+    // Admin dashboard
+    system_health_title: 'Clusters de Santé Système',
+    financial_ledger_title: 'Grand Livre Financier',
+    global_credits_used: 'Crédits Globaux Utilisés',
+    budget_today_credits: 'Budget du Jour',
+    monthly_intake: 'Revenus Mensuels',
+    monthly_forecast: 'Prévisions Mensuelles',
+    infrastructure_capacity_title: 'Capacité Infrastructure',
+    instance_saturation: 'Saturation des Instances',
+    cluster_containers: 'Conteneurs de Cluster',
+    partner_distribution_title: 'Distribution des Partenaires',
+    partner_distribution_unavailable: 'Données de pays non disponibles',
+    system_event_log_title: 'Journal des Événements Système',
+    view_partner_directory: 'Voir le Répertoire Partenaires',
+    archived: 'Archivés',
+    suspended: 'Suspendus',
+    stopped: 'Arrêtés',
+    active_partners: 'Partenaires Actifs',
+
+    // Relative time
+    time_minutes_ago: 'il y a {n}min',
+    time_hours_ago: 'il y a {n}h',
+    time_days_ago: 'il y a {n}j',
+
+    // Partner tier labels
+    tier_customer: 'Client',
+    tier_affiliate: 'Affilié',
+    tier_reseller: 'Revendeur',
+    tier_pro_reseller: 'Pro Revendeur',
+
+    // System health service names
+    health_workflow_engine: 'Workflow Engine',
+    health_deploy_engine: 'Deployment Engine',
+    health_control_db: 'Base de Contrôle',
   },
 
   // Notifications

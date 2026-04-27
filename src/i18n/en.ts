@@ -176,6 +176,63 @@ export default {
     view_portfolio: 'View Portfolio',
     view_commissions: 'View Commissions',
     view_details: 'View Details',
+
+    // Customer dashboard
+    partner_overview_subtitle: 'Partner Overview & Infrastructure Health',
+    credit_balance_title: 'Credit Balance',
+    monthly_usage: 'Monthly Usage',
+    total_cost_this_month: 'Total Cost This Month',
+    infrastructure_title: 'Infrastructure',
+    active_instances: 'Active Instances',
+    stopped_suspended: 'Stopped or Suspended',
+    archived_instances: 'Archived',
+    new_deployment_btn: 'New Deployment',
+    customer_profile_title: 'Customer Profile',
+    partner_name_label: 'Partner Name',
+    tier_label: 'Tier',
+    account_manager_label: 'Account Manager',
+    recent_activity_log: 'Recent Activity Log',
+    view_full_audit_trail: 'View Full Audit Trail',
+    credit_usage_over_time: 'Credit Usage Over Time',
+    no_activity: 'No recent activity',
+    top_up_credits: 'Top Up Credits',
+    status_label: 'Status',
+    credits_unit: 'Credits',
+
+    // Admin dashboard
+    system_health_title: 'System Health Clusters',
+    financial_ledger_title: 'Financial Ledger',
+    global_credits_used: 'Global Credits Used',
+    budget_today_credits: 'Budget Today',
+    monthly_intake: 'Monthly Intake',
+    monthly_forecast: 'Monthly Forecast',
+    infrastructure_capacity_title: 'Infrastructure Capacity',
+    instance_saturation: 'Instance Saturation',
+    cluster_containers: 'Cluster Containers',
+    partner_distribution_title: 'Partner Distribution',
+    partner_distribution_unavailable: 'Country data not available',
+    system_event_log_title: 'System Event Log',
+    view_partner_directory: 'View Partner Directory',
+    archived: 'Archived',
+    suspended: 'Suspended',
+    stopped: 'Stopped',
+    active_partners: 'Active Partners',
+
+    // Relative time
+    time_minutes_ago: '{n}m ago',
+    time_hours_ago: '{n}h ago',
+    time_days_ago: '{n}d ago',
+
+    // Partner tier labels
+    tier_customer: 'Customer',
+    tier_affiliate: 'Affiliate',
+    tier_reseller: 'Reseller',
+    tier_pro_reseller: 'Pro Reseller',
+
+    // System health service names
+    health_workflow_engine: 'Workflow Engine',
+    health_deploy_engine: 'Deployment Engine',
+    health_control_db: 'Control Database',
   },
 
   // Notifications

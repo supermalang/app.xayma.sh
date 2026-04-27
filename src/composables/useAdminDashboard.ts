@@ -26,6 +26,43 @@ interface PartnerTypeRevenue {
   value: number
 }
 
+interface CreditTransactionRow {
+  creditsPurchased: number | null
+  amountPaid: number | null
+}
+
+interface CreditUsedRow {
+  creditsUsed: number | null
+}
+
+interface ServicePlanRow {
+  id: number
+  label: string
+  monthlyCreditConsumption: number
+}
+
+interface DeploymentServicePlanRow {
+  serviceplanId: number | null
+}
+
+interface PartnerTypeRow {
+  id: number
+  partner_type: string | null
+}
+
+interface RevenueByTypeRow {
+  amountPaid: number | null
+  partner_id: number
+}
+
+interface RevenueRow {
+  amountPaid: number | null
+}
+
+interface DeploymentCreatedRow {
+  created: string
+}
+
 export function useAdminDashboard() {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
@@ -40,20 +77,23 @@ export function useAdminDashboard() {
   const deploymentsTrend = ref<TrendPoint[]>([])
   const creditsByPlan = ref<PlanCredit[]>([])
   const revenueByPartnerType = ref<PartnerTypeRevenue[]>([])
+  const archivedDeployments = ref<number>(0)
+  const suspendedDeployments = ref<number>(0)
+  const stoppedDeployments = ref<number>(0)
+  const monthlyIntakeCredits = ref<number>(0)
+  const monthlyIntakeFCFA = ref<number>(0)
+  const globalCreditsUsed = ref<number>(0)
   const isLoading = ref(true)
   const error = ref<string | null>(null)
 
   async function fetchAll() {
     isLoading.value = true
     error.value = null
-    console.log('[AdminDashboard] fetchAll() started')
 
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
-    sevenDaysAgo.setHours(0, 0, 0, 0)
+    const now = new Date()
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const sevenDaysAgo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6))
+    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
 
     const [
       partnersResult,
@@ -64,6 +104,11 @@ export function useAdminDashboard() {
       plansResult,
       txResult,
       revenueByTypeResult,
+      archivedResult,
+      suspendedResult,
+      stoppedResult,
+      monthlyIntakeResult,
+      globalCreditsUsedResult,
     ] = await Promise.all([
       supabaseFrom('partners')
         .select('id', { count: 'exact', head: true })
@@ -96,12 +141,29 @@ export function useAdminDashboard() {
       supabaseFrom('credit_transactions')
         .select('amountPaid, partner_id')
         .eq('status', 'completed')
-        .gte('created', (() => {
-          const d = new Date()
-          d.setDate(d.getDate() - 30)
-          d.setHours(0, 0, 0, 0)
-          return d.toISOString()
-        })()),
+        .gte('created', new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 30)).toISOString()),
+
+      supabaseFrom('deployments')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'archived'),
+
+      supabaseFrom('deployments')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'suspended'),
+
+      supabaseFrom('deployments')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'stopped'),
+
+      supabaseFrom('credit_transactions')
+        .select('creditsPurchased, amountPaid')
+        .eq('status', 'completed')
+        .eq('transactionType', 'credit')
+        .gte('created', startOfMonth.toISOString()),
+
+      supabaseFrom('credit_transactions')
+        .select('creditsUsed')
+        .eq('status', 'completed'),
     ])
 
     if (
@@ -112,35 +174,43 @@ export function useAdminDashboard() {
       deploymentsTrendResult.error ||
       plansResult.error ||
       txResult.error ||
-      revenueByTypeResult.error
+      revenueByTypeResult.error ||
+      archivedResult.error ||
+      suspendedResult.error ||
+      stoppedResult.error ||
+      monthlyIntakeResult.error ||
+      globalCreditsUsedResult.error
     ) {
-      console.error('[AdminDashboard] Query error:', {
-        partners: partnersResult.error?.message,
-        activeDeployments: activeDeploymentsResult.error?.message,
-        failedDeployments: failedDeploymentsResult.error?.message,
-        revenue: revenueResult.error?.message,
-        deploymentsTrend: deploymentsTrendResult.error?.message,
-        plans: plansResult.error?.message,
-        tx: txResult.error?.message,
-        revenueByType: revenueByTypeResult.error?.message,
-      })
       notificationStore.addError(t('errors.fetch_failed'))
       error.value = 'fetch_failed'
       isLoading.value = false
       return
     }
-    console.log('[AdminDashboard] All queries succeeded')
 
     // Stats
     stats.value = {
       totalPartners: partnersResult.count ?? 0,
       activeDeployments: activeDeploymentsResult.count ?? 0,
       failedDeployments: failedDeploymentsResult.count ?? 0,
-      revenueTodayFCFA: (revenueResult.data ?? []).reduce(
+      revenueTodayFCFA: ((revenueResult.data ?? []) as unknown as RevenueRow[]).reduce(
         (sum, row) => sum + (row.amountPaid ?? 0),
         0,
       ),
     }
+
+    // Deployment status breakdown
+    archivedDeployments.value = archivedResult.count ?? 0
+    suspendedDeployments.value = suspendedResult.count ?? 0
+    stoppedDeployments.value = stoppedResult.count ?? 0
+
+    // Monthly intake
+    const intakeRows = (monthlyIntakeResult.data ?? []) as unknown as CreditTransactionRow[]
+    monthlyIntakeCredits.value = intakeRows.reduce((sum, row) => sum + (row.creditsPurchased ?? 0), 0)
+    monthlyIntakeFCFA.value = intakeRows.reduce((sum, row) => sum + (row.amountPaid ?? 0), 0)
+
+    // Global credits used
+    const usedRows = (globalCreditsUsedResult.data ?? []) as unknown as CreditUsedRow[]
+    globalCreditsUsed.value = usedRows.reduce((sum, row) => sum + (row.creditsUsed ?? 0), 0)
 
     // Deployments trend: 7-day chart
     const dayCounts: Record<string, number> = {}
@@ -150,7 +220,7 @@ export function useAdminDashboard() {
       const key = d.toISOString().slice(0, 10)
       dayCounts[key] = 0
     }
-    for (const row of deploymentsTrendResult.data ?? []) {
+    for (const row of (deploymentsTrendResult.data ?? []) as unknown as DeploymentCreatedRow[]) {
       const key = row.created.slice(0, 10)
       if (key in dayCounts) dayCounts[key]++
     }
@@ -166,12 +236,13 @@ export function useAdminDashboard() {
 
     // Credits by plan: active deployments × their plan's monthly credit consumption
     const planDetails: Record<number, { label: string; monthly: number }> = {}
-    for (const plan of plansResult.data ?? []) {
-      planDetails[plan.id] = { label: plan.label, monthly: (plan as any).monthlyCreditConsumption ?? 0 }
+    for (const plan of (plansResult.data ?? []) as unknown as ServicePlanRow[]) {
+      planDetails[plan.id] = { label: plan.label, monthly: plan.monthlyCreditConsumption ?? 0 }
     }
     const planCounts: Record<string, number> = {}
-    for (const d of txResult.data ?? []) {
-      const planId = (d as any).serviceplanId
+    for (const d of (txResult.data ?? []) as unknown as DeploymentServicePlanRow[]) {
+      const planId = d.serviceplanId
+      if (planId === null) continue
       const detail = planDetails[planId]
       if (detail) {
         planCounts[detail.label] = (planCounts[detail.label] ?? 0) + detail.monthly
@@ -182,13 +253,13 @@ export function useAdminDashboard() {
     // Revenue by partner type: fetch partners to map types
     const { data: partnersData } = await supabaseFrom('partners').select('id, partner_type')
     const partnerToType: Record<number, string> = {}
-    for (const p of partnersData ?? []) {
+    for (const p of (partnersData ?? []) as unknown as PartnerTypeRow[]) {
       partnerToType[p.id] = p.partner_type ?? 'unknown'
     }
 
     const typeMap: Record<string, number> = {}
-    for (const row of revenueByTypeResult.data ?? []) {
-      const partnerId = (row as any).partner_id
+    for (const row of (revenueByTypeResult.data ?? []) as unknown as RevenueByTypeRow[]) {
+      const partnerId = row.partner_id
       const type = partnerToType[partnerId] ?? 'unknown'
       typeMap[type] = (typeMap[type] ?? 0) + (row.amountPaid ?? 0)
     }
@@ -198,25 +269,15 @@ export function useAdminDashboard() {
     }))
 
     isLoading.value = false
-    console.log('[AdminDashboard] Data loaded successfully', {
-      statsValue: stats.value,
-      trendLength: deploymentsTrend.value.length,
-      creditsLength: creditsByPlan.value.length,
-      revenueLength: revenueByPartnerType.value.length,
-    })
   }
 
-  onMounted(() => {
-    console.log('[AdminDashboard] Mounted, authStore.isInitialized =', authStore.isInitialized)
+  onMounted(async () => {
     // Wait for auth to be initialized before fetching
     if (authStore.isInitialized) {
-      console.log('[AdminDashboard] Auth already initialized, calling fetchAll()')
-      fetchAll()
+      await fetchAll()
     } else {
-      console.log('[AdminDashboard] Waiting for auth initialization...')
       watch(() => authStore.isInitialized, (initialized) => {
         if (initialized) {
-          console.log('[AdminDashboard] Auth initialized, calling fetchAll()')
           fetchAll()
         }
       }, { once: true })
@@ -228,6 +289,12 @@ export function useAdminDashboard() {
     deploymentsTrend,
     creditsByPlan,
     revenueByPartnerType,
+    archivedDeployments,
+    suspendedDeployments,
+    stoppedDeployments,
+    monthlyIntakeCredits,
+    monthlyIntakeFCFA,
+    globalCreditsUsed,
     isLoading,
     error,
   }
