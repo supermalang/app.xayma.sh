@@ -1,0 +1,1 @@
+export const DASHBOARD_CACHE_TTL_MS = 10 * 60 * 1000
