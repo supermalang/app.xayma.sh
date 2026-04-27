@@ -65,7 +65,7 @@ export const useActivityLogStore = defineStore('activityLog', () => {
     const cached = fetchedAt.value !== null && Date.now() - fetchedAt.value < DASHBOARD_CACHE_TTL_MS
     if (cached) {
       isRefreshing.value = true
-      await fetchActivityLog(companyId, limit)
+      fetchActivityLog(companyId, limit)
       return
     }
     isLoading.value = true
