@@ -111,13 +111,13 @@
               <p class="text-5xl font-bold text-on-surface mb-3">{{ stats.activeDeployments }}</p>
               <div class="flex flex-wrap gap-2">
                 <Tag severity="secondary">
-                  ARCHIVED: {{ archivedDeployments }}
+                  {{ t('dashboard.archived') }}: {{ archivedDeployments }}
                 </Tag>
                 <Tag severity="warn">
-                  SUSPENDED: {{ suspendedDeployments }}
+                  {{ t('dashboard.suspended') }}: {{ suspendedDeployments }}
                 </Tag>
                 <Tag severity="info">
-                  STOPPED: {{ stoppedDeployments }}
+                  {{ t('dashboard.stopped') }}: {{ stoppedDeployments }}
                 </Tag>
               </div>
             </div>
@@ -143,7 +143,7 @@
           </div>
           <div v-else>
             <p class="text-5xl font-bold text-on-surface mb-1">{{ stats.totalPartners }}</p>
-            <p class="text-xs text-on-surface-variant mb-4">Active Partners</p>
+            <p class="text-xs text-on-surface-variant mb-4">{{ t('dashboard.active_partners') }}</p>
             <Button
               :label="t('dashboard.view_partner_directory')"
               outlined

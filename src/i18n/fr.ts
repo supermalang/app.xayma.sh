@@ -213,6 +213,10 @@ export default {
     partner_distribution_unavailable: 'Données de pays non disponibles',
     system_event_log_title: 'Journal des Événements Système',
     view_partner_directory: 'Voir le Répertoire Partenaires',
+    archived: 'Archivés',
+    suspended: 'Suspendus',
+    stopped: 'Arrêtés',
+    active_partners: 'Partenaires Actifs',
   },
 
   // Notifications

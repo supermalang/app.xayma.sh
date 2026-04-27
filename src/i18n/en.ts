@@ -213,6 +213,10 @@ export default {
     partner_distribution_unavailable: 'Country data not available',
     system_event_log_title: 'System Event Log',
     view_partner_directory: 'View Partner Directory',
+    archived: 'Archived',
+    suspended: 'Suspended',
+    stopped: 'Stopped',
+    active_partners: 'Active Partners',
   },
 
   // Notifications
