@@ -7,6 +7,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/services/supabase'
 import type { User } from '@supabase/supabase-js'
+import { useAdminDashboardStore } from '@/stores/admin-dashboard.store'
+import { useCustomerDashboardStore } from '@/stores/customer-dashboard.store'
+import { useActivityLogStore } from '@/stores/activity-log.store'
 
 // Mock users for testing (when VITE_MOCK_AUTH=true)
 const MOCK_USERS = {
@@ -169,6 +172,9 @@ export const useAuthStore = defineStore('auth', () => {
       await supabase.auth.signOut()
       user.value = null
       profile.value = null
+      useAdminDashboardStore().$reset()
+      useCustomerDashboardStore().$reset()
+      useActivityLogStore().$reset()
     } finally {
       isLoading.value = false
     }

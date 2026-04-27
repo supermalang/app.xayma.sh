@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAdminDashboardStore } from '@/stores/admin-dashboard.store'
+import { useCustomerDashboardStore } from '@/stores/customer-dashboard.store'
+import { useActivityLogStore } from '@/stores/activity-log.store'
 
 // Mock Supabase
 const mockQueryChain = {
@@ -28,6 +31,25 @@ vi.mock('@/services/supabase', () => ({
       })),
     })),
   },
+}))
+
+// Mock dashboard stores
+vi.mock('@/stores/admin-dashboard.store', () => ({
+  useAdminDashboardStore: vi.fn(() => ({
+    $reset: vi.fn(),
+  })),
+}))
+
+vi.mock('@/stores/customer-dashboard.store', () => ({
+  useCustomerDashboardStore: vi.fn(() => ({
+    $reset: vi.fn(),
+  })),
+}))
+
+vi.mock('@/stores/activity-log.store', () => ({
+  useActivityLogStore: vi.fn(() => ({
+    $reset: vi.fn(),
+  })),
 }))
 
 import { supabase } from '@/services/supabase'
@@ -122,6 +144,25 @@ describe('auth.store', () => {
       await store.signOut()
 
       expect(store.user).toBeNull()
+    })
+
+    it('resets dashboard stores on sign-out', async () => {
+      const store = useAuthStore()
+      store.user = { id: '123', email: 'test@example.com' } as any
+
+      ;(supabase.auth.signOut as any).mockResolvedValue({ error: null })
+
+      // Get the mocked store functions to track calls
+      const adminDashMock = vi.mocked(useAdminDashboardStore)
+      const customerDashMock = vi.mocked(useCustomerDashboardStore)
+      const activityLogMock = vi.mocked(useActivityLogStore)
+
+      await store.signOut()
+
+      // Verify the stores were called (which triggers $reset)
+      expect(adminDashMock).toHaveBeenCalled()
+      expect(customerDashMock).toHaveBeenCalled()
+      expect(activityLogMock).toHaveBeenCalled()
     })
   })
 
