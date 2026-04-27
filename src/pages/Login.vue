@@ -46,7 +46,7 @@
             class="w-full mt-6"
             :loading="isLoading"
             :label="$t('auth.login')"
-            @click="handleSubmit"
+            @click.prevent="handleSubmit"
           />
           <!-- Hidden native submit button: catches Enter-key implicit submission
                (PrimeVue 4 Button always renders type="button") -->
@@ -122,6 +122,8 @@ const validate = () => {
 }
 
 const handleSubmit = async () => {
+  touched.email = true
+  touched.password = true
   if (!validate()) return
 
   isLoading.value = true

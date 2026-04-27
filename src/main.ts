@@ -7,6 +7,7 @@ import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 import * as Sentry from '@sentry/vue'
 import PrimeVue from 'primevue/config'
+import { definePreset } from '@primeuix/themes'
 import Aura from '@primevue/themes/aura'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
@@ -55,9 +56,69 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
+const XaymaPreset = definePreset(Aura, {
+  primitive: {
+    borderRadius: {
+      none: '0',
+      xs: '0',
+      sm: '0',
+      md: '0',
+      lg: '0',
+      xl: '0',
+    },
+    // Blue palette derived from design token primary-container (#1e40af)
+    blue: {
+      50:  '#eff4ff',
+      100: '#dce9ff',
+      200: '#b8c4ff',
+      300: '#7b96f5',
+      400: '#4d6fdf',
+      500: '#1e40af',
+      600: '#00288e',
+      700: '#001f6e',
+      800: '#001550',
+      900: '#000c32',
+      950: '#000618',
+    },
+  },
+  semantic: {
+    primary: {
+      50:  '{blue.50}',
+      100: '{blue.100}',
+      200: '{blue.200}',
+      300: '{blue.300}',
+      400: '{blue.400}',
+      500: '{blue.500}',
+      600: '{blue.600}',
+      700: '{blue.700}',
+      800: '{blue.800}',
+      900: '{blue.900}',
+      950: '{blue.950}',
+    },
+  },
+  components: {
+    card: {
+      root: {
+        borderRadius: '0',
+        shadow: 'none',
+      },
+    },
+    button: {
+      root: {
+        borderRadius: '0',
+      },
+    },
+    inputtext: {
+      root: {
+        borderRadius: '0',
+      },
+    },
+  },
+})
+
 app.use(PrimeVue, {
   theme: {
-    preset: Aura,
+    preset: XaymaPreset,
     options: {
       darkModeSelector: '.dark',
     },
