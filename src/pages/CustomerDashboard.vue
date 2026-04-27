@@ -225,7 +225,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 
-const { credits, refresh: refreshCredits } = usePartnerCredits(partnerId.value)
+const { credits, refresh: refreshCredits } = usePartnerCredits(partnerId)
 
 const {
   activeDeployments,
@@ -238,7 +238,7 @@ const {
   isLoading,
 } = useCustomerDashboard()
 
-const { auditEntries, isLoading: activityLoading, refresh: refreshActivity } = useActivityLog(partnerId.value, 5)
+const { auditEntries, isLoading: activityLoading, refresh: refreshActivity } = useActivityLog(partnerId, 5)
 
 watch(() => authStore.profile?.company_id, (id) => {
   if (id) {
@@ -251,10 +251,10 @@ const activePeriod = ref<'HOUR' | 'DAY' | 'WEEK' | 'MONTH'>('MONTH')
 
 function tierLabel(partnerType: string | null): string {
   const map: Record<string, string> = {
-    customer: 'Customer',
-    affiliate: 'Affiliate',
-    reseller: 'Reseller',
-    pro_reseller: 'Pro Reseller',
+    customer: t('dashboard.tier_customer'),
+    affiliate: t('dashboard.tier_affiliate'),
+    reseller: t('dashboard.tier_reseller'),
+    pro_reseller: t('dashboard.tier_pro_reseller'),
   }
   return map[partnerType ?? ''] ?? '—'
 }
@@ -296,9 +296,11 @@ function activityIcon(action: string | null): string {
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return '—'
   const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return t('dashboard.time_minutes_ago', { n: minutes })
   const hours = Math.floor(diff / 3600000)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return t('dashboard.time_hours_ago', { n: hours })
+  return t('dashboard.time_days_ago', { n: Math.floor(hours / 24) })
 }
 
 function formatCurrency(value: number): string {

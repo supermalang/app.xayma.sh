@@ -271,10 +271,10 @@ export function useAdminDashboard() {
     isLoading.value = false
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     // Wait for auth to be initialized before fetching
     if (authStore.isInitialized) {
-      fetchAll()
+      await fetchAll()
     } else {
       watch(() => authStore.isInitialized, (initialized) => {
         if (initialized) {

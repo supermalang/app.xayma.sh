@@ -217,6 +217,22 @@ export default {
     suspended: 'Suspended',
     stopped: 'Stopped',
     active_partners: 'Active Partners',
+
+    // Relative time
+    time_minutes_ago: '{n}m ago',
+    time_hours_ago: '{n}h ago',
+    time_days_ago: '{n}d ago',
+
+    // Partner tier labels
+    tier_customer: 'Customer',
+    tier_affiliate: 'Affiliate',
+    tier_reseller: 'Reseller',
+    tier_pro_reseller: 'Pro Reseller',
+
+    // System health service names
+    health_workflow_engine: 'Workflow Engine',
+    health_deploy_engine: 'Deployment Engine',
+    health_control_db: 'Control Database',
   },
 
   // Notifications

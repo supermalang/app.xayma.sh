@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, toValue, type MaybeRefOrGetter } from 'vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { useI18n } from 'vue-i18n'
@@ -14,7 +14,7 @@ export interface AuditEntry {
   user_role: string | null
 }
 
-export function useActivityLog(companyId: string | null, limit = 5) {
+export function useActivityLog(companyId: MaybeRefOrGetter<string> | null, limit = 5) {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
 
@@ -29,8 +29,9 @@ export function useActivityLog(companyId: string | null, limit = 5) {
       .order('created', { ascending: false })
       .limit(limit)
 
-    if (companyId) {
-      query = query.eq('company_id', companyId)
+    const resolvedId = companyId !== null ? toValue(companyId) : null
+    if (resolvedId) {
+      query = query.eq('company_id', resolvedId)
     }
 
     const { data, error } = await query

@@ -39,7 +39,7 @@ function makeQuery(resolved: unknown) {
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain)
   }
-  ;(chain as any).then = (resolve: (v: unknown) => unknown) =>
+  ;(chain as Record<string, unknown>).then = (resolve: (v: unknown) => unknown) =>
     Promise.resolve(resolved).then(resolve)
   return chain
 }
@@ -54,6 +54,7 @@ describe('useCustomerDashboard', () => {
   it('returns early without fetching when auth profile is missing', async () => {
     const store = useAuthStore()
     store.profile = null
+    store.isInitialized = true
 
     useCustomerDashboard()
 
@@ -68,6 +69,7 @@ describe('useCustomerDashboard', () => {
     // Arrange: valid auth profile
     const store = useAuthStore()
     store.profile = { user_role: 'CUSTOMER', firstname: 'Test', lastname: null, company_id: 42 }
+    store.isInitialized = true
 
     let callIndex = 0
     ;(supabaseFrom as ReturnType<typeof vi.fn>).mockImplementation(() => {
@@ -156,6 +158,7 @@ describe('useCustomerDashboard', () => {
   it('sets error state when a query fails', async () => {
     const store = useAuthStore()
     store.profile = { user_role: 'CUSTOMER', firstname: 'Test', lastname: null, company_id: 42 }
+    store.isInitialized = true
 
     ;(supabaseFrom as ReturnType<typeof vi.fn>).mockImplementation(() =>
       makeQuery({ data: null, error: { message: 'DB error' }, count: null })

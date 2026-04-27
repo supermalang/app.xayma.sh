@@ -13,7 +13,7 @@
         {{ t('dashboard.system_health_title') }}
       </span>
       <div
-        v-for="service in ['Workflow Engine', 'Deployment Engine', 'Control Database']"
+        v-for="service in healthServices"
         :key="service"
         class="flex items-center gap-2"
       >
@@ -202,6 +202,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
@@ -229,6 +230,12 @@ const {
 // Activity log — all companies (companyId = null), last 10 entries
 const { auditEntries, isLoading: activityLoading } = useActivityLog(null, 10)
 
+const healthServices = computed(() => [
+  t('dashboard.health_workflow_engine'),
+  t('dashboard.health_deploy_engine'),
+  t('dashboard.health_control_db'),
+])
+
 function formatLargeNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`
@@ -254,10 +261,10 @@ function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return '—'
   const diff = Date.now() - new Date(dateStr).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return t('dashboard.time_minutes_ago', { n: minutes })
   const hours = Math.floor(diff / 3600000)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return t('dashboard.time_hours_ago', { n: hours })
+  return t('dashboard.time_days_ago', { n: Math.floor(hours / 24) })
 }
 </script>
 

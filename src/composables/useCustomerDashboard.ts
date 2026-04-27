@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -235,7 +235,17 @@ export function useCustomerDashboard() {
     isLoading.value = false
   }
 
-  onMounted(fetchAll)
+  onMounted(async () => {
+    if (authStore.isInitialized) {
+      await fetchAll()
+    } else {
+      watch(() => authStore.isInitialized, (initialized) => {
+        if (initialized) {
+          fetchAll()
+        }
+      }, { once: true })
+    }
+  })
 
   return {
     activeDeployments,
