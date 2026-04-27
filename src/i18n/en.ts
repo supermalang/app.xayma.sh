@@ -195,6 +195,8 @@ export default {
     view_full_audit_trail: 'View Full Audit Trail',
     credit_usage_over_time: 'Credit Usage Over Time',
     no_activity: 'No recent activity',
+    top_up_credits: 'Top Up Credits',
+    status_label: 'Status',
 
     // Admin dashboard
     system_health_title: 'System Health Clusters',

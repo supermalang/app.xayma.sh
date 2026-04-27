@@ -195,6 +195,8 @@ export default {
     view_full_audit_trail: 'Voir la Piste d\'Audit Complète',
     credit_usage_over_time: 'Utilisation de Crédits dans le Temps',
     no_activity: 'Aucune activité récente',
+    top_up_credits: 'Recharger les Crédits',
+    status_label: 'Statut',
 
     // Admin dashboard
     system_health_title: 'Clusters de Santé Système',

@@ -1,164 +1,309 @@
 <template>
   <div class="space-y-6">
-    <!-- Header -->
+    <!-- Page Header -->
     <AppPageHeader
-      :title="$t('dashboard.customer_title')"
-      :description="$t('dashboard.customer_description')"
+      :title="partnerProfile?.name ?? t('dashboard.customer_title')"
+      :description="t('dashboard.partner_overview_subtitle')"
       icon="pi-home"
     />
 
-    <!-- Credit Status Section -->
-    <Card>
-      <template #header>
-        <div class="p-4">
-          <h3 class="text-base font-semibold text-on-surface">{{ $t('dashboard.credit_status') }}</h3>
-        </div>
-      </template>
-
-      <div class="space-y-6">
-        <!-- Credit Meter -->
-        <CreditMeter
-          :balance="credits?.remainingCredits ?? 0"
-          :total-credits-earned="credits?.totalCreditsEarned ?? 0"
-          :expiry-date="credits?.creditExpiryDate"
-          @topup="navigateToTopUp"
-        />
-
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-outline-variant">
-          <div class="text-center">
-            <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.total_spent') }}</p>
-            <p class="text-2xl font-bold text-on-surface font-mono">{{ formatCurrency(totalSpend) }}</p>
+    <!-- Row 1: 3-column summary cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Credit Balance Card -->
+      <Card>
+        <template #content>
+          <div v-if="isLoading" class="space-y-3">
+            <Skeleton height="1.25rem" width="60%" />
+            <Skeleton height="2.5rem" />
+            <Skeleton height="1rem" />
+            <Skeleton height="1rem" />
+            <Skeleton height="0.75rem" />
+            <Skeleton height="2.5rem" />
           </div>
-          <div class="text-center">
-            <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.last_payment') }}</p>
-            <p class="text-sm font-mono text-on-surface">{{ formatDate(lastPaymentDate) }}</p>
+          <div v-else class="space-y-3">
+            <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+              {{ t('dashboard.credit_balance_title') }}
+            </p>
+            <p class="text-3xl font-bold text-on-surface font-mono">
+              {{ credits?.remainingCredits ?? 0 }} <span class="text-base font-normal">Credits</span>
+            </p>
+            <div class="text-sm text-on-surface-variant space-y-1">
+              <div class="flex justify-between">
+                <span>{{ t('dashboard.monthly_usage') }}</span>
+                <span class="font-mono font-medium text-on-surface">{{ monthlyUsageCredits }} Credits</span>
+              </div>
+              <div class="flex justify-between">
+                <span>{{ t('dashboard.total_cost_this_month') }}</span>
+                <span class="font-mono font-medium text-on-surface">{{ formatCurrency(totalCostThisMonthFCFA) }}</span>
+              </div>
+            </div>
+            <ProgressBar
+              :value="creditProgressValue"
+              :severity="creditProgressSeverity"
+              class="h-2"
+            />
+            <Button
+              :label="t('dashboard.top_up_credits')"
+              icon="pi pi-wallet"
+              class="w-full"
+              @click="navigateToTopUp"
+            />
           </div>
-          <div class="text-center">
-            <p class="text-sm text-on-surface-variant mb-2">{{ $t('dashboard.days_remaining') }}</p>
-            <p class="text-2xl font-bold text-on-surface font-mono">{{ daysRemaining }}</p>
-          </div>
-        </div>
-      </div>
-    </Card>
+        </template>
+      </Card>
 
-    <!-- Active Deployments -->
+      <!-- Infrastructure Card -->
+      <Card>
+        <template #content>
+          <div v-if="isLoading" class="space-y-3">
+            <Skeleton height="1.25rem" width="60%" />
+            <Skeleton height="2.5rem" />
+            <Skeleton height="1rem" />
+            <Skeleton height="1rem" />
+            <Skeleton height="2.5rem" />
+          </div>
+          <div v-else class="space-y-3">
+            <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+              {{ t('dashboard.infrastructure_title') }}
+            </p>
+            <p class="text-3xl font-bold text-on-surface font-mono">
+              {{ activeDeployments.length }} <span class="text-base font-normal">{{ t('dashboard.active_instances') }}</span>
+            </p>
+            <div class="text-sm space-y-1">
+              <div class="flex items-center gap-2 text-red-500">
+                <span>•</span>
+                <span>{{ stoppedSuspendedCount }} {{ t('dashboard.stopped_suspended') }}</span>
+              </div>
+              <div class="flex items-center gap-2 text-on-surface-variant">
+                <span>•</span>
+                <span>{{ archivedCount }} {{ t('dashboard.archived_instances') }}</span>
+              </div>
+            </div>
+            <Button
+              :label="'+ ' + t('dashboard.new_deployment_btn')"
+              icon="pi pi-plus"
+              class="w-full"
+              severity="secondary"
+              @click="router.push('/deployments/new')"
+            />
+          </div>
+        </template>
+      </Card>
+
+      <!-- Customer Profile Card -->
+      <Card>
+        <template #content>
+          <div v-if="isLoading" class="space-y-3">
+            <Skeleton height="1.25rem" width="60%" />
+            <Skeleton height="1rem" />
+            <Skeleton height="1rem" />
+            <Skeleton height="1.5rem" width="40%" />
+            <Skeleton height="1rem" />
+          </div>
+          <div v-else class="space-y-3">
+            <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+              {{ t('dashboard.customer_profile_title') }}
+            </p>
+            <div class="text-sm space-y-2">
+              <div class="flex justify-between">
+                <span class="text-on-surface-variant">{{ t('dashboard.partner_name_label') }}</span>
+                <span class="font-medium text-on-surface">{{ partnerProfile?.name ?? '—' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-on-surface-variant">{{ t('dashboard.tier_label') }}</span>
+                <span class="font-medium text-on-surface">{{ tierLabel(partnerProfile?.partner_type ?? null) }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-on-surface-variant">{{ t('dashboard.status_label') }}</span>
+                <Tag
+                  :value="partnerProfile?.status ?? '—'"
+                  :severity="partnerStatusSeverity(partnerProfile?.status ?? null)"
+                />
+              </div>
+              <div class="flex justify-between">
+                <span class="text-on-surface-variant">{{ t('dashboard.account_manager_label') }}</span>
+                <span class="font-medium text-on-surface">—</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </Card>
+    </div>
+
+    <!-- Row 2: Recent Activity Log -->
     <Card>
       <template #header>
         <div class="p-4 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-on-surface">{{ $t('dashboard.active_deployments') }}</h3>
+          <h3 class="text-base font-semibold text-on-surface">{{ t('dashboard.recent_activity_log') }}</h3>
           <router-link
-            to="/deployments"
-            class="text-xs font-medium text-primary hover:text-primary-container"
+            to="/audit"
+            class="text-xs font-medium text-primary hover:underline"
           >
-            {{ $t('common.view') }} →
+            {{ t('dashboard.view_full_audit_trail') }}
           </router-link>
         </div>
       </template>
-
-      <div v-if="activeDeployments.length === 0" class="text-center py-8 text-on-surface-variant">
-        <i class="pi pi-inbox text-3xl mb-2 block opacity-50" />
-        <p class="text-sm">{{ $t('dashboard.no_deployments') }}</p>
-        <router-link
-          to="/deployments/new"
-          class="mt-4 inline-block px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-container transition-colors"
-        >
-          {{ $t('deployments.create') }}
-        </router-link>
-      </div>
-
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div
-          v-for="deployment in activeDeployments.slice(0, 5)"
-          :key="deployment.id"
-          class="p-4 bg-surface-container-lowest rounded-md border border-outline-variant hover:border-primary transition-colors"
-        >
-          <div class="flex items-start justify-between mb-3">
-            <div>
-              <p class="font-medium text-on-surface">{{ deployment.label }}</p>
-              <p class="text-xs text-on-surface-variant font-mono">{{ deployment.domain }}</p>
-            </div>
-            <Tag
-              :value="deployment.status"
-              :severity="getStatusSeverity(deployment.status)"
-              class="text-xs"
-            />
-          </div>
-          <p class="text-xs font-mono text-on-surface-variant mt-1">
-            {{ deployment.domain }}
-          </p>
+      <template #content>
+        <div v-if="activityLoading" class="space-y-3">
+          <Skeleton v-for="n in 3" :key="n" height="2.5rem" />
         </div>
-
-        <!-- View All Link -->
-        <router-link
-          v-if="activeDeployments.length > 5"
-          to="/deployments"
-          class="p-4 bg-surface-container-highest rounded-md border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+        <div
+          v-else-if="auditEntries.length === 0"
+          class="text-center py-8 text-on-surface-variant text-sm"
         >
-          <span class="text-sm font-medium text-primary">{{ $t('dashboard.view_all') }} →</span>
-        </router-link>
-      </div>
+          {{ t('dashboard.no_activity') }}
+        </div>
+        <ul v-else class="divide-y divide-outline-variant">
+          <li
+            v-for="entry in auditEntries"
+            :key="entry.audit_id"
+            class="flex items-center gap-3 py-3"
+          >
+            <i :class="[activityIcon(entry.action), 'text-on-surface-variant text-lg flex-shrink-0']" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-on-surface truncate">{{ entry.description ?? entry.table_name ?? '—' }}</p>
+            </div>
+            <span class="text-xs text-on-surface-variant flex-shrink-0">{{ formatRelativeTime(entry.created) }}</span>
+            <Tag
+              v-if="entry.action"
+              :value="entry.action"
+              severity="secondary"
+              class="text-xs flex-shrink-0"
+            />
+          </li>
+        </ul>
+      </template>
     </Card>
 
-    <!-- Monthly Consumption Chart -->
-    <LineChart
-      :title="$t('dashboard.monthly_consumption')"
-      :data="monthlyConsumption"
-    />
+    <!-- Row 3: Credit Usage Over Time -->
+    <Card>
+      <template #header>
+        <div class="p-4 flex items-center justify-between">
+          <h3 class="text-base font-semibold text-on-surface">{{ t('dashboard.credit_usage_over_time') }}</h3>
+          <div class="flex gap-2">
+            <button
+              v-for="period in (['HOUR', 'DAY', 'WEEK', 'MONTH'] as const)"
+              :key="period"
+              @click="activePeriod = period"
+              :class="[
+                'px-3 py-1 text-xs font-medium rounded',
+                activePeriod === period
+                  ? 'bg-primary text-white'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              ]"
+            >
+              {{ period }}
+            </button>
+          </div>
+        </div>
+      </template>
+      <template #content>
+        <LineChart
+          :title="''"
+          :data="monthlyConsumption"
+          :is-loading="isLoading"
+        />
+      </template>
+    </Card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
+import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import ProgressBar from 'primevue/progressbar'
+import Skeleton from 'primevue/skeleton'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
-import CreditMeter from '@/components/credits/CreditMeter.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
 import { useCustomerDashboard } from '@/composables/useCustomerDashboard'
+import { useActivityLog } from '@/composables/useActivityLog'
 import { useAuthStore } from '@/stores/auth.store'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
-const { credits, refresh } = usePartnerCredits(partnerId.value)
 
-watch(() => authStore.profile?.company_id, (id) => {
-  if (id) refresh()
+const { credits } = usePartnerCredits(partnerId.value)
+
+const {
+  activeDeployments,
+  monthlyConsumption,
+  stoppedSuspendedCount,
+  archivedCount,
+  monthlyUsageCredits,
+  totalCostThisMonthFCFA,
+  partnerProfile,
+  isLoading,
+} = useCustomerDashboard()
+
+const { auditEntries, isLoading: activityLoading } = useActivityLog(partnerId.value, 5)
+
+const activePeriod = ref<'HOUR' | 'DAY' | 'WEEK' | 'MONTH'>('MONTH')
+
+function tierLabel(partnerType: string | null): string {
+  const map: Record<string, string> = {
+    customer: 'Customer',
+    affiliate: 'Affiliate',
+    reseller: 'Reseller',
+    pro_reseller: 'Pro Reseller',
+  }
+  return map[partnerType ?? ''] ?? '—'
+}
+
+function partnerStatusSeverity(status: string | null): string {
+  const map: Record<string, string> = {
+    active: 'success',
+    disabled: 'danger',
+    low_credit: 'warn',
+    no_credit: 'danger',
+    on_debt: 'danger',
+    suspended: 'danger',
+    archived: 'secondary',
+    pending_deletion: 'warn',
+  }
+  return map[status ?? ''] ?? 'secondary'
+}
+
+const creditProgressValue = computed(() => {
+  const remaining = credits.value?.remainingCredits ?? 0
+  const threshold = partnerProfile.value?.creditDebtThreshold ?? 1000
+  return Math.min(100, Math.round((remaining / threshold) * 100))
 })
 
-const { activeDeployments, lastPaymentDate, totalSpend, monthlyConsumption } = useCustomerDashboard()
-
-const daysRemaining = computed(() => {
-  const today = new Date()
-  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-  return Math.ceil((nextMonth.getTime() - today.getTime()) / (1000 * 3600 * 24))
+const creditProgressSeverity = computed(() => {
+  const v = creditProgressValue.value
+  if (v < 25) return 'danger'
+  if (v < 50) return 'warn'
+  return undefined
 })
+
+function activityIcon(action: string | null): string {
+  if (action === 'INSERT') return 'pi pi-plus-circle'
+  if (action === 'UPDATE') return 'pi pi-pencil'
+  if (action === 'DELETE') return 'pi pi-trash'
+  return 'pi pi-info-circle'
+}
+
+function formatRelativeTime(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const hours = Math.floor(diff / 3600000)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
+}
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('fr-SN', { style: 'currency', currency: 'XOF' }).format(value)
-}
-
-function formatDate(dateString: string | null): string {
-  if (!dateString) return '—'
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-function getStatusSeverity(status: string): string {
-  const severities: Record<string, string> = {
-    active: 'success',
-    stopped: 'warning',
-    suspended: 'danger',
-    failed: 'danger',
-    deploying: 'info',
-  }
-  return severities[status] || 'secondary'
+  return new Intl.NumberFormat('fr-SN', {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0,
+  }).format(value)
 }
 
 function navigateToTopUp() {
