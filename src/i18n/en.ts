@@ -197,6 +197,7 @@ export default {
     no_activity: 'No recent activity',
     top_up_credits: 'Top Up Credits',
     status_label: 'Status',
+    credits_unit: 'Credits',
 
     // Admin dashboard
     system_health_title: 'System Health Clusters',

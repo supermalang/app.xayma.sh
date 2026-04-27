@@ -25,12 +25,12 @@
               {{ t('dashboard.credit_balance_title') }}
             </p>
             <p class="text-3xl font-bold text-on-surface font-mono">
-              {{ credits?.remainingCredits ?? 0 }} <span class="text-base font-normal">Credits</span>
+              {{ credits?.remainingCredits ?? 0 }} <span class="text-base font-normal">{{ t('dashboard.credits_unit') }}</span>
             </p>
             <div class="text-sm text-on-surface-variant space-y-1">
               <div class="flex justify-between">
                 <span>{{ t('dashboard.monthly_usage') }}</span>
-                <span class="font-mono font-medium text-on-surface">{{ monthlyUsageCredits }} Credits</span>
+                <span class="font-mono font-medium text-on-surface">{{ monthlyUsageCredits }} {{ t('dashboard.credits_unit') }}</span>
               </div>
               <div class="flex justify-between">
                 <span>{{ t('dashboard.total_cost_this_month') }}</span>
@@ -70,7 +70,7 @@
               {{ activeDeployments.length }} <span class="text-base font-normal">{{ t('dashboard.active_instances') }}</span>
             </p>
             <div class="text-sm space-y-1">
-              <div class="flex items-center gap-2 text-red-500">
+              <div class="flex items-center gap-2 text-error">
                 <span>•</span>
                 <span>{{ stoppedSuspendedCount }} {{ t('dashboard.stopped_suspended') }}</span>
               </div>
@@ -181,19 +181,15 @@
         <div class="p-4 flex items-center justify-between">
           <h3 class="text-base font-semibold text-on-surface">{{ t('dashboard.credit_usage_over_time') }}</h3>
           <div class="flex gap-2">
-            <button
+            <Button
               v-for="period in (['HOUR', 'DAY', 'WEEK', 'MONTH'] as const)"
               :key="period"
-              @click="activePeriod = period"
-              :class="[
-                'px-3 py-1 text-xs font-medium rounded',
-                activePeriod === period
-                  ? 'bg-primary text-white'
-                  : 'text-on-surface-variant hover:text-on-surface'
-              ]"
-            >
-              {{ period }}
-            </button>
+              :label="period"
+              size="small"
+              :severity="activePeriod === period ? undefined : 'secondary'"
+              :text="activePeriod !== period"
+              @click="activePeriod = period as 'HOUR' | 'DAY' | 'WEEK' | 'MONTH'"
+            />
           </div>
         </div>
       </template>
@@ -209,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from 'primevue/card'
@@ -229,7 +225,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const partnerId = computed(() => String(authStore.profile?.company_id ?? ''))
 
-const { credits } = usePartnerCredits(partnerId.value)
+const { credits, refresh: refreshCredits } = usePartnerCredits(partnerId.value)
 
 const {
   activeDeployments,
@@ -242,7 +238,14 @@ const {
   isLoading,
 } = useCustomerDashboard()
 
-const { auditEntries, isLoading: activityLoading } = useActivityLog(partnerId.value, 5)
+const { auditEntries, isLoading: activityLoading, refresh: refreshActivity } = useActivityLog(partnerId.value, 5)
+
+watch(() => authStore.profile?.company_id, (id) => {
+  if (id) {
+    refreshCredits()
+    refreshActivity()
+  }
+})
 
 const activePeriod = ref<'HOUR' | 'DAY' | 'WEEK' | 'MONTH'>('MONTH')
 

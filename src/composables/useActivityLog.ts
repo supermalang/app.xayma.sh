@@ -14,18 +14,6 @@ export interface AuditEntry {
   user_role: string | null
 }
 
-// Raw row shape returned from the general_audit query
-interface AuditRow {
-  audit_id: number
-  action: string | null
-  description: string | null
-  table_name: string | null
-  created: string | null
-  firstname: string | null
-  lastname: string | null
-  user_role: string | null
-}
-
 export function useActivityLog(companyId: string | null, limit = 5) {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
@@ -53,7 +41,7 @@ export function useActivityLog(companyId: string | null, limit = 5) {
       return
     }
 
-    const rows = (data ?? []) as unknown as AuditRow[]
+    const rows = (data ?? []) as unknown as AuditEntry[]
     auditEntries.value = rows.map(row => ({
       audit_id: row.audit_id,
       action: row.action,
@@ -73,5 +61,6 @@ export function useActivityLog(companyId: string | null, limit = 5) {
   return {
     auditEntries,
     isLoading,
+    refresh: fetchActivityLog,
   }
 }

@@ -197,6 +197,7 @@ export default {
     no_activity: 'Aucune activité récente',
     top_up_credits: 'Recharger les Crédits',
     status_label: 'Statut',
+    credits_unit: 'Crédits',
 
     // Admin dashboard
     system_health_title: 'Clusters de Santé Système',
