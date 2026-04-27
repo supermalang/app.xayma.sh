@@ -35,6 +35,34 @@ interface CreditUsedRow {
   creditsUsed: number | null
 }
 
+interface ServicePlanRow {
+  id: number
+  label: string
+  monthlyCreditConsumption: number
+}
+
+interface DeploymentServicePlanRow {
+  serviceplanId: number | null
+}
+
+interface PartnerTypeRow {
+  id: number
+  partner_type: string | null
+}
+
+interface RevenueByTypeRow {
+  amountPaid: number | null
+  partner_id: number
+}
+
+interface RevenueRow {
+  amountPaid: number | null
+}
+
+interface DeploymentCreatedRow {
+  created: string
+}
+
 export function useAdminDashboard() {
   const { t } = useI18n()
   const notificationStore = useNotificationStore()
@@ -62,16 +90,10 @@ export function useAdminDashboard() {
     isLoading.value = true
     error.value = null
 
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
-    sevenDaysAgo.setHours(0, 0, 0, 0)
-
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+    const now = new Date()
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const sevenDaysAgo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6))
+    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
 
     const [
       partnersResult,
@@ -119,12 +141,7 @@ export function useAdminDashboard() {
       supabaseFrom('credit_transactions')
         .select('amountPaid, partner_id')
         .eq('status', 'completed')
-        .gte('created', (() => {
-          const d = new Date()
-          d.setDate(d.getDate() - 30)
-          d.setHours(0, 0, 0, 0)
-          return d.toISOString()
-        })()),
+        .gte('created', new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 30)).toISOString()),
 
       supabaseFrom('deployments')
         .select('id', { count: 'exact', head: true })
@@ -175,7 +192,7 @@ export function useAdminDashboard() {
       totalPartners: partnersResult.count ?? 0,
       activeDeployments: activeDeploymentsResult.count ?? 0,
       failedDeployments: failedDeploymentsResult.count ?? 0,
-      revenueTodayFCFA: (revenueResult.data ?? []).reduce(
+      revenueTodayFCFA: ((revenueResult.data ?? []) as unknown as RevenueRow[]).reduce(
         (sum, row) => sum + (row.amountPaid ?? 0),
         0,
       ),
@@ -203,7 +220,7 @@ export function useAdminDashboard() {
       const key = d.toISOString().slice(0, 10)
       dayCounts[key] = 0
     }
-    for (const row of deploymentsTrendResult.data ?? []) {
+    for (const row of (deploymentsTrendResult.data ?? []) as unknown as DeploymentCreatedRow[]) {
       const key = row.created.slice(0, 10)
       if (key in dayCounts) dayCounts[key]++
     }
@@ -219,12 +236,13 @@ export function useAdminDashboard() {
 
     // Credits by plan: active deployments × their plan's monthly credit consumption
     const planDetails: Record<number, { label: string; monthly: number }> = {}
-    for (const plan of plansResult.data ?? []) {
-      planDetails[plan.id] = { label: plan.label, monthly: (plan as any).monthlyCreditConsumption ?? 0 }
+    for (const plan of (plansResult.data ?? []) as unknown as ServicePlanRow[]) {
+      planDetails[plan.id] = { label: plan.label, monthly: plan.monthlyCreditConsumption ?? 0 }
     }
     const planCounts: Record<string, number> = {}
-    for (const d of txResult.data ?? []) {
-      const planId = (d as any).serviceplanId
+    for (const d of (txResult.data ?? []) as unknown as DeploymentServicePlanRow[]) {
+      const planId = d.serviceplanId
+      if (planId === null) continue
       const detail = planDetails[planId]
       if (detail) {
         planCounts[detail.label] = (planCounts[detail.label] ?? 0) + detail.monthly
@@ -235,13 +253,13 @@ export function useAdminDashboard() {
     // Revenue by partner type: fetch partners to map types
     const { data: partnersData } = await supabaseFrom('partners').select('id, partner_type')
     const partnerToType: Record<number, string> = {}
-    for (const p of partnersData ?? []) {
+    for (const p of (partnersData ?? []) as unknown as PartnerTypeRow[]) {
       partnerToType[p.id] = p.partner_type ?? 'unknown'
     }
 
     const typeMap: Record<string, number> = {}
-    for (const row of revenueByTypeResult.data ?? []) {
-      const partnerId = (row as any).partner_id
+    for (const row of (revenueByTypeResult.data ?? []) as unknown as RevenueByTypeRow[]) {
+      const partnerId = row.partner_id
       const type = partnerToType[partnerId] ?? 'unknown'
       typeMap[type] = (typeMap[type] ?? 0) + (row.amountPaid ?? 0)
     }
