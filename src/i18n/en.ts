@@ -218,6 +218,7 @@ export default {
     stopped: 'Stopped',
     active_partners: 'Active Partners',
 
+    refreshing: 'Updating...',
     // Relative time
     time_minutes_ago: '{n}m ago',
     time_hours_ago: '{n}h ago',

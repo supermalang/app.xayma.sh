@@ -218,6 +218,7 @@ export default {
     stopped: 'Arrêtés',
     active_partners: 'Partenaires Actifs',
 
+    refreshing: 'Mise à jour...',
     // Relative time
     time_minutes_ago: 'il y a {n}min',
     time_hours_ago: 'il y a {n}h',
