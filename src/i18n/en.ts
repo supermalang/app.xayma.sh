@@ -777,28 +777,107 @@ export default {
 
   // Settings
   settings: {
-    title: 'Platform Settings',
-    description: 'Configure platform-wide settings for payments, notifications, limits, and infrastructure',
-    payments_header: 'Payments',
-    payment_gateway_api_key: 'Payment Gateway API Key',
-    payment_gateway_api_key_hint: 'Used for processing credit purchases. Keep this secure.',
-    wave_merchant_id: 'Wave Merchant ID',
-    orange_merchant_id: 'Orange Money Merchant ID',
-    notifications_header: 'Notifications',
-    credit_warning_threshold: 'Credit Warning Threshold (%)',
-    credit_warning_threshold_hint: 'Send warning when partner credits fall below this percentage',
-    enable_email_notifications: 'Enable Email Notifications',
-    enable_sms_notifications: 'Enable SMS Notifications',
-    limits_header: 'Limits',
-    max_deployments_per_partner: 'Max Deployments per Partner',
-    max_users_per_partner: 'Max Users per Partner',
-    infrastructure_header: 'Infrastructure',
-    deployment_engine_url: 'Deployment Engine URL',
-    deployment_engine_url_hint: 'Base URL of the deployment engine service',
-    workflow_engine_url: 'Workflow Engine URL',
-    saved: 'Setting saved successfully',
+    title: 'Platform Configuration',
+    description: 'Manage the backbone infrastructure, credit economics, and data lifecycle policies for the Xayma.sh ecosystem.',
+
+    // Section headlines
+    infrastructure_engines: 'Infrastructure Engines',
+    credits_management: 'Credits Management',
+    deployment_lifecycle: 'Deployment Lifecycle',
+    recent_transactions: 'Recent Transactions',
+
+    // Infrastructure
+    workflow_engine: 'Workflow Engine',
+    deployment_engine: 'Deployment Engine',
+    container_management: 'Container Management (K8s)',
+    platform_url: 'Platform URL',
+    api_key: 'API Key',
+    cluster_endpoint: 'Cluster Endpoint',
+    management_secret: 'Management Secret',
+
+    // Connection test
+    test_connection: 'Test connection',
+    connection_idle: 'Not tested',
+    connection_testing: 'Testing…',
+    connection_ok: 'Connected',
+    connection_failed: 'Connection failed',
+    connection_test_failed: 'Could not reach the platform. Check URL and credentials.',
+
+    // Credits
+    credit_price: 'Credit Price',
+    credit_price_hint: 'Default unit price per deployment credit',
+    low_credit_threshold: 'Low Credit Threshold',
+    max_credit_debt: 'Max Credit Debt',
+    revenue_target: 'Revenue Target',
+    revenue_achieved: '{percent}% Achieved',
+    credits_unit_short: 'Cr',
+
+    // Lifecycle
+    archive_deployments: 'Archive Deployments',
+    delete_deployments: 'Delete Deployments',
+    archive_organizations: 'Archive Organizations',
+    delete_organizations: 'Delete Organizations',
+    days: 'Days',
+    lifecycle_footnote: 'Automatic pruning jobs run at 00:00 UTC daily. Archived data remains in read-only cold storage.',
+
+    // Transactions
+    view_all_transactions: 'View All Transactions',
+    transactions_empty: 'No recent transactions.',
+    transactions_columns: {
+      date: 'Date',
+      partner: 'Partner',
+      type: 'Type',
+      amount: 'Amount',
+    },
+    transaction_type: {
+      credit_refill: 'Credit Refill',
+      automated_debit: 'Automated Debit',
+      failed_payment: 'Failed Payment',
+      refund: 'Refund',
+      expiry: 'Expiry',
+    },
+
+    // Footer actions
+    discard_changes: 'Discard Changes',
+    save_platform_settings: 'Save Platform Settings',
+
+    // Toasts
+    saved: 'Platform settings saved',
     error_loading: 'Failed to load settings',
-    error_saving: 'Failed to save setting',
+    error_saving: 'Failed to save settings',
+    error_loading_transactions: 'Failed to load recent transactions',
+
+    // Payment gateways
+    payment_gateways: 'Payment Gateways',
+    add_gateway: 'Add gateway',
+    edit_gateway: 'Edit gateway',
+    no_gateways_yet: 'No gateways configured yet.',
+    gateway_provider: 'Provider',
+    gateway_mode: 'Mode',
+    gateway_mode_sandbox: 'Sandbox',
+    gateway_mode_live: 'Live',
+    gateway_provider_wave: 'Wave',
+    gateway_provider_orange_money: 'Orange Money',
+    gateway_provider_paytech: 'Paytech',
+    gateway_section_auth: 'Authentication',
+    gateway_section_endpoints: 'Endpoints',
+    gateway_section_environment: 'Environment',
+    gateway_section_transaction: 'Transaction',
+    gateway_field_api_key: 'API Key',
+    gateway_field_secret_key: 'Secret Key',
+    gateway_field_public_key: 'Public Key',
+    gateway_field_webhook_secret: 'Webhook Secret',
+    gateway_field_merchant_id: 'Merchant ID',
+    gateway_field_ipn_url: 'IPN URL',
+    gateway_field_success_url: 'Success URL',
+    gateway_field_cancel_url: 'Cancel URL',
+    gateway_field_error_url: 'Error URL',
+    gateway_field_base_url: 'Base URL (optional)',
+    gateway_field_currency: 'Currency',
+    gateway_saved_local_only: 'Saved locally — backend wiring coming soon.',
+    gateway_required: 'This field is required',
+    gateway_url_invalid: 'Must be a valid URL',
+    gateway_delete_confirm: 'Remove this gateway from the list?',
   },
 
   // Accessibility (ARIA labels)

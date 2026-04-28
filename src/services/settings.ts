@@ -63,10 +63,10 @@ export async function getAllSettings(): Promise<Record<string, unknown>> {
  * Update a setting (admin only)
  */
 export async function updateSetting(key: string, value: unknown): Promise<void> {
-  const { error } = await supabaseFrom('settings').upsert({
-    key,
-    value: String(value),
-  })
+  const { error } = await supabaseFrom('settings').upsert(
+    { key, value: String(value) },
+    { onConflict: 'key' }
+  )
 
   if (error) {
     console.error(`Failed to update setting ${key}:`, error)

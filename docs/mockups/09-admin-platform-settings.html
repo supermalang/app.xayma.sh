@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Xayma.sh Admin Platform Settings</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#eff4ff",
+                    "secondary-fixed": "#ffdbca",
+                    "secondary": "#9d4300",
+                    "on-tertiary-container": "#5bcf9e",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#b8c4ff",
+                    "on-primary-fixed-variant": "#173bab",
+                    "on-tertiary-fixed": "#002114",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface-variant": "#444653",
+                    "on-primary-fixed": "#001453",
+                    "surface-tint": "#3755c3",
+                    "on-background": "#0b1c30",
+                    "on-secondary-fixed": "#341100",
+                    "surface-container-high": "#dce9ff",
+                    "tertiary-fixed-dim": "#68dba9",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#85f8c4",
+                    "surface-variant": "#d3e4fe",
+                    "surface-dim": "#cbdbf5",
+                    "on-secondary-fixed-variant": "#783200",
+                    "surface-container-highest": "#d3e4fe",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#ffb690",
+                    "primary": "#00288e",
+                    "secondary-container": "#fd761a",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-container": "#e5eeff",
+                    "outline-variant": "#c4c5d5",
+                    "surface-bright": "#f8f9ff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-tertiary-fixed-variant": "#005137",
+                    "primary-fixed": "#dde1ff",
+                    "tertiary-container": "#00563a",
+                    "on-error-container": "#93000a",
+                    "on-primary-container": "#a8b8ff",
+                    "tertiary": "#003d28",
+                    "outline": "#757684",
+                    "on-secondary-container": "#5c2400",
+                    "inverse-primary": "#b8c4ff",
+                    "primary-container": "#1e40af",
+                    "surface": "#f8f9ff",
+                    "inverse-surface": "#213145",
+                    "on-surface": "#0b1c30"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "display": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "technical": ["IBM Plex Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        input::placeholder {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            color: #757684;
+        }
+        .technical-data {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="flex flex-col h-screen w-64 fixed left-0 top-0 bg-slate-50 border-r border-slate-200 z-50">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-on-primary">settings_system_daydream</span>
+</div>
+<div>
+<h1 class="text-blue-900 font-bold text-sm leading-tight">Odoo Management</h1>
+<p class="text-[10px] text-slate-500 font-medium tracking-wider uppercase">Enterprise Tier</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-blue-700 transition-opacity font-['Inter'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">lan</span>
+<span>Infrastructure</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-blue-700 transition-opacity font-['Inter'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+<span>Credits</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-blue-700 transition-opacity font-['Inter'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">rocket_launch</span>
+<span>Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-blue-700 transition-opacity font-['Inter'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+<span>Transactions</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-4 border-t border-slate-200">
+<nav class="space-y-1 mb-4">
+<a class="flex items-center gap-3 px-3 py-2 bg-white text-blue-800 shadow-sm rounded-md font-['Inter'] text-sm font-bold" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-blue-700 transition-opacity font-['Inter'] text-sm font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">contact_support</span>
+<span>Support</span>
+</a>
+</nav>
+<button class="w-full py-2 bg-primary text-on-primary rounded text-sm font-bold tracking-tight hover:brightness-110 transition-all">
+                New Deployment
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 py-3 w-full border-b border-slate-100 bg-white sticky top-0 z-40">
+<div class="flex items-center gap-6">
+<span class="text-lg font-bold text-blue-900 tracking-tighter">Admin Console</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-slate-50 border-none rounded-md text-sm focus:ring-1 focus:ring-primary w-64 font-['Inter']" placeholder="Search parameters..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined text-xl">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden ml-2">
+<img alt="Administrator Avatar" data-alt="Professional headshot of a mid-career male administrator in a modern office, soft bokeh background, clean lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIyWVHIUqqinGGDZa2iyZ9G5oJYeibsGvZ0CRy7IMy9ZBQMhnP6GRH4Q4m8FXRKLknCpz-fhHmjMTkBlLXylRj_qhhFhw4o476ADCCB-1I8MghszXYJ8tP5bGWsc7QnzODyDJnR95IxZxDTnXfqZuCJxXXMQacuJ7apeh72tMyH30EkjueMxkwiRf6z00ePPBBaJgzbz30hkMObvTF_fqfZPoeTOQmV2LhJUOncoYfCpeCGfIBWLnuNYhp0nnqZYaGxYIhbFtjNZeH"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="p-10 max-w-7xl mx-auto">
+<div class="mb-12">
+<h2 class="text-3xl font-bold tracking-tight text-on-background mb-2">Platform Configuration</h2>
+<p class="text-on-surface-variant max-w-2xl">Manage the backbone infrastructure, credit economics, and data lifecycle policies for the Xayma.sh Odoo ecosystem.</p>
+</div>
+<!-- Bento Grid Settings -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Infrastructure Engines Section -->
+<section class="col-span-12 lg:col-span-8 space-y-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">hub</span>
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Infrastructure Engines</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Workflow Engine -->
+<div class="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/20">
+<div class="flex items-center justify-between mb-6">
+<label class="text-sm font-semibold text-primary">Workflow Engine</label>
+<span class="material-symbols-outlined text-slate-300">sync_alt</span>
+</div>
+<div class="space-y-4">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-1 block">Platform URL</span>
+<input class="w-full technical-data text-sm bg-surface-container-low border-none rounded px-3 py-2 focus:ring-1 focus:ring-primary" type="text" value="https://wf-engine.xayma.sh/v1"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-1 block">API Key</span>
+<input class="w-full technical-data text-sm bg-surface-container-low border-none rounded px-3 py-2 focus:ring-1 focus:ring-primary" type="password" value="xk_prod_live_88421092"/>
+</div>
+</div>
+</div>
+<!-- Deployment Engine -->
+<div class="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/20">
+<div class="flex items-center justify-between mb-6">
+<label class="text-sm font-semibold text-primary">Deployment Engine</label>
+<span class="material-symbols-outlined text-slate-300">rocket</span>
+</div>
+<div class="space-y-4">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-1 block">Platform URL</span>
+<input class="w-full technical-data text-sm bg-surface-container-low border-none rounded px-3 py-2 focus:ring-1 focus:ring-primary" type="text" value="https://deploy-api.xayma.sh"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-1 block">API Key</span>
+<input class="w-full technical-data text-sm bg-surface-container-low border-none rounded px-3 py-2 focus:ring-1 focus:ring-primary" type="password" value="sk_prod_55001122"/>
+</div>
+</div>
+</div>
+<!-- Container Management -->
+<div class="md:col-span-2 bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/20">
+<div class="flex items-center justify-between mb-6">
+<label class="text-sm font-semibold text-primary">Container Management (K8s)</label>
+<span class="material-symbols-outlined text-slate-300">grid_view</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-1 block">Cluster Endpoint</span>
+<input class="w-full technical-data text-sm bg-surface-container-low border-none rounded px-3 py-2 focus:ring-1 focus:ring-primary" type="text" value="https://k8s-cluster.central-1.cloud.xayma"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-1 block">Management Secret</span>
+<input class="w-full technical-data text-sm bg-surface-container-low border-none rounded px-3 py-2 focus:ring-1 focus:ring-primary" type="password" value="cert_live_abcdef123456"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Credits Management Section -->
+<section class="col-span-12 lg:col-span-4 space-y-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-secondary">payments</span>
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Credits Management</h3>
+</div>
+<div class="bg-surface-container-low p-8 rounded-lg border border-primary/5">
+<div class="space-y-8">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-on-surface">Credit Price</label>
+<div class="flex items-baseline gap-2">
+<input class="technical-data text-2xl font-bold bg-transparent border-b-2 border-primary/20 focus:border-primary outline-none w-24" type="number" value="150"/>
+<span class="technical-data text-on-surface-variant">FCFA</span>
+</div>
+<p class="text-[10px] text-on-surface-variant italic">Default unit price per deployment credit</p>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm">Low Credit Threshold</span>
+<div class="flex items-center gap-2">
+<input class="technical-data text-sm font-medium text-right bg-surface-container-lowest rounded px-2 py-1 w-20 outline-none border border-outline-variant/20" type="number" value="5000"/>
+<span class="text-[10px] text-on-surface-variant">Cr</span>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm">Max Credit Debt</span>
+<div class="flex items-center gap-2">
+<input class="technical-data text-sm font-medium text-right bg-surface-container-lowest rounded px-2 py-1 w-20 outline-none border border-outline-variant/20" type="number" value="10000"/>
+<span class="text-[10px] text-on-surface-variant">Cr</span>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-primary/10">
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold uppercase text-on-surface-variant">Revenue Target</span>
+<span class="technical-data text-xs text-primary">82% Achieved</span>
+</div>
+<div class="h-1 bg-surface-container-highest w-full overflow-hidden">
+<div class="h-full bg-primary w-[82%]"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Deployment Lifecycle Section -->
+<section class="col-span-12 lg:col-span-5 space-y-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-on-surface-variant">history</span>
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Deployment Lifecycle</h3>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/20 h-full">
+<div class="space-y-6">
+<div class="grid grid-cols-2 gap-x-8 gap-y-6">
+<div>
+<label class="text-xs font-semibold block mb-2">Archive Deployments</label>
+<div class="flex items-center gap-2">
+<input class="technical-data text-sm bg-surface-container-low rounded border-none px-3 py-2 w-16" type="number" value="30"/>
+<span class="text-xs text-on-surface-variant">Days</span>
+</div>
+</div>
+<div>
+<label class="text-xs font-semibold block mb-2">Delete Deployments</label>
+<div class="flex items-center gap-2">
+<input class="technical-data text-sm bg-surface-container-low rounded border-none px-3 py-2 w-16" type="number" value="90"/>
+<span class="text-xs text-on-surface-variant">Days</span>
+</div>
+</div>
+<div>
+<label class="text-xs font-semibold block mb-2">Archive Organizations</label>
+<div class="flex items-center gap-2">
+<input class="technical-data text-sm bg-surface-container-low rounded border-none px-3 py-2 w-16" type="number" value="180"/>
+<span class="text-xs text-on-surface-variant">Days</span>
+</div>
+</div>
+<div>
+<label class="text-xs font-semibold block mb-2">Delete Organizations</label>
+<div class="flex items-center gap-2">
+<input class="technical-data text-sm bg-surface-container-low rounded border-none px-3 py-2 w-16" type="number" value="365"/>
+<span class="text-xs text-on-surface-variant">Days</span>
+</div>
+</div>
+</div>
+<p class="text-[11px] text-on-surface-variant bg-surface-container-low p-3 rounded leading-relaxed">
+<span class="material-symbols-outlined text-[14px] mr-1">info</span>
+                                Automatic pruning jobs run at 00:00 UTC daily. Archived data remains in read-only cold storage.
+                            </p>
+</div>
+</div>
+</section>
+<!-- Transactions Section -->
+<section class="col-span-12 lg:col-span-7 space-y-6">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Recent Transactions</h3>
+</div>
+<button class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider hover:bg-primary-container/10 px-3 py-1.5 rounded transition-all">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+                            Create New Transaction
+                        </button>
+</div>
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/20 overflow-hidden">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/20">
+<th class="text-left px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Date</th>
+<th class="text-left px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Partner</th>
+<th class="text-left px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Type</th>
+<th class="text-right px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Amount</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 technical-data text-xs text-on-surface-variant">2023-10-27 14:32</td>
+<td class="px-6 py-4 text-sm font-medium">Sahel Logistics S.A.</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full text-on-tertiary-fixed-variant text-[10px] font-bold uppercase flex items-center gap-1 w-fit bg-transparent text-on-tertiary-fixed-variant border border-on-tertiary-fixed-variant/20"><span class="material-symbols-outlined text-[12px]">check_circle</span> Credit Refill</span>
+</td>
+<td class="px-6 py-4 text-right technical-data text-sm font-semibold">1,250,000 FCFA</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 technical-data text-xs text-on-surface-variant">2023-10-27 09:15</td>
+<td class="px-6 py-4 text-sm font-medium">Boutique Horizon</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-primary text-[10px] font-bold uppercase flex items-center gap-1 w-fit bg-transparent text-secondary border border-secondary/20"><span class="material-symbols-outlined text-[12px]">schedule</span> Automated Debit</span>
+</td>
+<td class="px-6 py-4 text-right technical-data text-sm font-semibold">45,000 FCFA</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 technical-data text-xs text-on-surface-variant">2023-10-26 18:44</td>
+<td class="px-6 py-4 text-sm font-medium">Global Tech GIE</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full text-on-tertiary-fixed-variant text-[10px] font-bold uppercase flex items-center gap-1 w-fit bg-transparent text-on-tertiary-fixed-variant border border-on-tertiary-fixed-variant/20"><span class="material-symbols-outlined text-[12px]">check_circle</span> Credit Refill</span>
+</td>
+<td class="px-6 py-4 text-right technical-data text-sm font-semibold">500,000 FCFA</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 technical-data text-xs text-on-surface-variant">2023-10-26 11:20</td>
+<td class="px-6 py-4 text-sm font-medium">Dakar Immo Group</td>
+<td class="px-6 py-4">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[10px] font-bold uppercase flex items-center gap-1 w-fit bg-transparent text-error border border-error/20"><span class="material-symbols-outlined text-[12px]">error</span> Failed Payment</span>
+</td>
+<td class="px-6 py-4 text-right technical-data text-sm font-semibold text-error">75,000 FCFA</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Global Actions -->
+<div class="mt-16 flex items-center justify-end gap-4 border-t border-outline-variant/20 pt-8">
+<button class="px-6 py-2.5 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors">Discard Changes</button>
+<button class="px-8 py-2.5 bg-primary text-on-primary rounded text-sm font-bold tracking-tight shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">
+                    Save Platform Settings
+                </button>
+</div>
+</div>
+</main>
+</body></html>

@@ -73,6 +73,27 @@ export interface Settings {
   updatedAt: string
 }
 
+// Payment gateway types (frontend-only shell — not yet persisted)
+export type PaymentGatewayProvider = 'wave' | 'orange_money' | 'paytech'
+export type PaymentGatewayMode = 'sandbox' | 'live'
+
+export interface PaymentGateway {
+  id: string
+  provider: PaymentGatewayProvider
+  mode: PaymentGatewayMode
+  apiKey: string
+  secretKey: string
+  publicKey?: string
+  webhookSecret?: string
+  merchantId?: string
+  ipnUrl: string
+  successUrl: string
+  cancelUrl: string
+  errorUrl?: string
+  baseUrl?: string
+  currency: string
+}
+
 // Audit log types
 export interface AuditLog {
   id: string

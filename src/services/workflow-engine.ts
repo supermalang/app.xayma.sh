@@ -223,6 +223,57 @@ export async function redeemVoucher(payload: RedeemVoucherPayload): Promise<void
 }
 
 /**
+ * Connection-test helpers
+ *
+ * Each posts {url, apiKey} to a dedicated n8n test webhook that pings the target
+ * platform and returns 200 on success. Intentionally awaited (not fire-and-forget):
+ * these are validation pings, not domain mutations.
+ *
+ * TODO: the corresponding n8n workflows need to be authored — see
+ * `workflow-engine-specialist` agent. Until then these will simply return ok=false.
+ */
+const TEST_CONNECTION_TIMEOUT_MS = 5000
+
+async function pingTestWebhook(path: string, payload: WebhookPayload): Promise<{ ok: boolean }> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TEST_CONNECTION_TIMEOUT_MS)
+  try {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+    return { ok: response.ok }
+  } catch {
+    return { ok: false }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+export async function testWorkflowEngineConnection(
+  url: string,
+  apiKey: string
+): Promise<{ ok: boolean }> {
+  return pingTestWebhook('/webhook/test-workflow-engine', { url, apiKey })
+}
+
+export async function testDeploymentEngineConnection(
+  url: string,
+  apiKey: string
+): Promise<{ ok: boolean }> {
+  return pingTestWebhook('/webhook/test-deployment-engine', { url, apiKey })
+}
+
+export async function testK8sConnection(
+  endpoint: string,
+  secret: string
+): Promise<{ ok: boolean }> {
+  return pingTestWebhook('/webhook/test-k8s', { endpoint, secret })
+}
+
+/**
  * Notification webhooks
  */
 export async function sendNotification(

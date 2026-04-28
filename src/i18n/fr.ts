@@ -777,28 +777,107 @@ export default {
 
   // Settings
   settings: {
-    title: 'Paramètres de la Plateforme',
-    description: 'Configurez les paramètres de la plateforme pour les paiements, les notifications, les limites et l\'infrastructure',
-    payments_header: 'Paiements',
-    payment_gateway_api_key: 'Clé API de la Passerelle de Paiement',
-    payment_gateway_api_key_hint: 'Utilisée pour traiter les achats de crédits. Gardez cela sécurisé.',
-    wave_merchant_id: 'ID Commerçant Wave',
-    orange_merchant_id: 'ID Commerçant Orange Money',
-    notifications_header: 'Notifications',
-    credit_warning_threshold: 'Seuil d\'Alerte de Crédit (%)',
-    credit_warning_threshold_hint: 'Envoyer une alerte lorsque les crédits du partenaire tombent en dessous de ce pourcentage',
-    enable_email_notifications: 'Activer les Notifications par E-mail',
-    enable_sms_notifications: 'Activer les Notifications par SMS',
-    limits_header: 'Limites',
-    max_deployments_per_partner: 'Max de Déploiements par Partenaire',
-    max_users_per_partner: 'Max d\'Utilisateurs par Partenaire',
-    infrastructure_header: 'Infrastructure',
-    deployment_engine_url: 'URL du Moteur de Déploiement',
-    deployment_engine_url_hint: 'URL de base du service du moteur de déploiement',
-    workflow_engine_url: 'URL du Moteur de Flux de Travail',
-    saved: 'Paramètre enregistré avec succès',
+    title: 'Configuration de la Plateforme',
+    description: 'Gérez l\'infrastructure, l\'économie des crédits et les politiques de cycle de vie des données de l\'écosystème Xayma.sh.',
+
+    // Section headlines
+    infrastructure_engines: 'Moteurs d\'Infrastructure',
+    credits_management: 'Gestion des Crédits',
+    deployment_lifecycle: 'Cycle de Vie des Déploiements',
+    recent_transactions: 'Transactions Récentes',
+
+    // Infrastructure
+    workflow_engine: 'Moteur de Workflow',
+    deployment_engine: 'Moteur de Déploiement',
+    container_management: 'Gestion des Conteneurs (K8s)',
+    platform_url: 'URL de la Plateforme',
+    api_key: 'Clé API',
+    cluster_endpoint: 'Point d\'Accès du Cluster',
+    management_secret: 'Secret de Gestion',
+
+    // Connection test
+    test_connection: 'Tester la connexion',
+    connection_idle: 'Non testée',
+    connection_testing: 'Test en cours…',
+    connection_ok: 'Connectée',
+    connection_failed: 'Échec de connexion',
+    connection_test_failed: 'Impossible de joindre la plateforme. Vérifiez l\'URL et les identifiants.',
+
+    // Credits
+    credit_price: 'Prix du Crédit',
+    credit_price_hint: 'Prix unitaire par défaut d\'un crédit de déploiement',
+    low_credit_threshold: 'Seuil de Crédit Bas',
+    max_credit_debt: 'Dette Max de Crédit',
+    revenue_target: 'Objectif de Revenu',
+    revenue_achieved: '{percent}% Atteint',
+    credits_unit_short: 'Cr',
+
+    // Lifecycle
+    archive_deployments: 'Archiver les Déploiements',
+    delete_deployments: 'Supprimer les Déploiements',
+    archive_organizations: 'Archiver les Organisations',
+    delete_organizations: 'Supprimer les Organisations',
+    days: 'Jours',
+    lifecycle_footnote: 'Les tâches d\'élagage automatique s\'exécutent quotidiennement à 00h00 UTC. Les données archivées restent en stockage froid en lecture seule.',
+
+    // Transactions
+    view_all_transactions: 'Voir toutes les transactions',
+    transactions_empty: 'Aucune transaction récente.',
+    transactions_columns: {
+      date: 'Date',
+      partner: 'Partenaire',
+      type: 'Type',
+      amount: 'Montant',
+    },
+    transaction_type: {
+      credit_refill: 'Recharge de Crédit',
+      automated_debit: 'Débit Automatisé',
+      failed_payment: 'Paiement Échoué',
+      refund: 'Remboursement',
+      expiry: 'Expiration',
+    },
+
+    // Footer actions
+    discard_changes: 'Annuler les Modifications',
+    save_platform_settings: 'Enregistrer les Paramètres',
+
+    // Toasts
+    saved: 'Paramètres de la plateforme enregistrés',
     error_loading: 'Échec du chargement des paramètres',
-    error_saving: 'Échec de l\'enregistrement du paramètre',
+    error_saving: 'Échec de l\'enregistrement des paramètres',
+    error_loading_transactions: 'Échec du chargement des transactions récentes',
+
+    // Payment gateways
+    payment_gateways: 'Passerelles de Paiement',
+    add_gateway: 'Ajouter une passerelle',
+    edit_gateway: 'Modifier la passerelle',
+    no_gateways_yet: 'Aucune passerelle configurée.',
+    gateway_provider: 'Fournisseur',
+    gateway_mode: 'Mode',
+    gateway_mode_sandbox: 'Bac à sable',
+    gateway_mode_live: 'Production',
+    gateway_provider_wave: 'Wave',
+    gateway_provider_orange_money: 'Orange Money',
+    gateway_provider_paytech: 'Paytech',
+    gateway_section_auth: 'Authentification',
+    gateway_section_endpoints: 'Points de terminaison',
+    gateway_section_environment: 'Environnement',
+    gateway_section_transaction: 'Transaction',
+    gateway_field_api_key: 'Clé API',
+    gateway_field_secret_key: 'Clé secrète',
+    gateway_field_public_key: 'Clé publique',
+    gateway_field_webhook_secret: 'Secret du webhook',
+    gateway_field_merchant_id: 'ID marchand',
+    gateway_field_ipn_url: 'URL IPN',
+    gateway_field_success_url: 'URL de succès',
+    gateway_field_cancel_url: 'URL d\'annulation',
+    gateway_field_error_url: 'URL d\'erreur',
+    gateway_field_base_url: 'URL de base (optionnel)',
+    gateway_field_currency: 'Devise',
+    gateway_saved_local_only: 'Enregistré localement — intégration backend à venir.',
+    gateway_required: 'Ce champ est requis',
+    gateway_url_invalid: 'Doit être une URL valide',
+    gateway_delete_confirm: 'Retirer cette passerelle de la liste ?',
   },
 
   // Accessibility (ARIA labels)
