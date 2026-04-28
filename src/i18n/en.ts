@@ -843,6 +843,7 @@ export default {
 
     // Toasts
     saved: 'Platform settings saved',
+    saved_partial: 'Saved {saved} of {total} settings — please retry.',
     error_loading: 'Failed to load settings',
     error_saving: 'Failed to save settings',
     error_loading_transactions: 'Failed to load recent transactions',
@@ -874,7 +875,7 @@ export default {
     gateway_field_error_url: 'Error URL',
     gateway_field_base_url: 'Base URL (optional)',
     gateway_field_currency: 'Currency',
-    gateway_saved_local_only: 'Saved locally — backend wiring coming soon.',
+    connection_test_caption: 'Connection tests are live — re-test after editing the URL or key.',
     gateway_required: 'This field is required',
     gateway_url_invalid: 'Must be a valid URL',
     gateway_delete_confirm: 'Remove this gateway from the list?',

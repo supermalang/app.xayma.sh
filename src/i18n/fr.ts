@@ -843,6 +843,7 @@ export default {
 
     // Toasts
     saved: 'Paramètres de la plateforme enregistrés',
+    saved_partial: 'Enregistré {saved} sur {total} paramètres — veuillez réessayer.',
     error_loading: 'Échec du chargement des paramètres',
     error_saving: 'Échec de l\'enregistrement des paramètres',
     error_loading_transactions: 'Échec du chargement des transactions récentes',
@@ -874,7 +875,7 @@ export default {
     gateway_field_error_url: 'URL d\'erreur',
     gateway_field_base_url: 'URL de base (optionnel)',
     gateway_field_currency: 'Devise',
-    gateway_saved_local_only: 'Enregistré localement — intégration backend à venir.',
+    connection_test_caption: 'Les tests de connexion sont en direct — retestez après modification de l\'URL ou de la clé.',
     gateway_required: 'Ce champ est requis',
     gateway_url_invalid: 'Doit être une URL valide',
     gateway_delete_confirm: 'Retirer cette passerelle de la liste ?',
