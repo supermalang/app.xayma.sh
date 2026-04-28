@@ -444,12 +444,12 @@ function removeGateway(id: string): void {
 function saveGateway(payload: Omit<PaymentGateway, 'id'> & { id?: string }): void {
   if (payload.id) {
     gateways.value = gateways.value.map((g) =>
-      g.id === payload.id ? ({ ...payload, id: payload.id } as PaymentGateway) : g
+      g.id === payload.id ? ({ id: payload.id, ...payload } as PaymentGateway) : g
     )
   } else {
     gateways.value = [
       ...gateways.value,
-      { ...payload, id: crypto.randomUUID() } as PaymentGateway,
+      { id: crypto.randomUUID(), ...payload } as PaymentGateway,
     ]
   }
   gatewayDialogVisible.value = false
