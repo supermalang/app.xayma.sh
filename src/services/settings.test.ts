@@ -49,6 +49,7 @@ describe('getPaymentGateways', () => {
   })
 
   it('returns [] when row missing', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockSelect.mockReturnValueOnce({
       eq: () => ({
         single: () => Promise.resolve({ data: null, error: { code: 'PGRST116' } }),
@@ -56,6 +57,7 @@ describe('getPaymentGateways', () => {
     })
     const result = await getPaymentGateways()
     expect(result).toEqual([])
+    errSpy.mockRestore()
   })
 
   it('returns [] and logs on malformed JSON', async () => {
