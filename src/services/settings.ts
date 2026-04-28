@@ -5,6 +5,7 @@
  */
 
 import { supabaseFrom } from './supabase'
+import type { PaymentGateway } from '@/types'
 
 const cache = new Map<string, unknown>()
 const cacheTTL = 5 * 60 * 1000 // 5 minutes
@@ -89,4 +90,30 @@ export function invalidateSettingCache(key?: string): void {
     cache.clear()
     cacheTimestamps.clear()
   }
+}
+
+const PAYMENT_GATEWAYS_KEY = 'PAYMENT_GATEWAYS'
+
+/**
+ * Fetch payment gateways stored as JSON in xayma_app.settings.
+ * Returns [] for missing rows or malformed JSON.
+ */
+export async function getPaymentGateways(): Promise<PaymentGateway[]> {
+  const raw = (await getSetting(PAYMENT_GATEWAYS_KEY)) as string | null
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as PaymentGateway[]) : []
+  } catch (err) {
+    console.error('Failed to parse PAYMENT_GATEWAYS:', err)
+    return []
+  }
+}
+
+/**
+ * Persist payment gateways as JSON in xayma_app.settings.
+ * Atomic — either the whole array writes or it throws.
+ */
+export async function updatePaymentGateways(gateways: PaymentGateway[]): Promise<void> {
+  await updateSetting(PAYMENT_GATEWAYS_KEY, JSON.stringify(gateways))
 }
