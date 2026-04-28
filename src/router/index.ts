@@ -132,7 +132,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'credits/history',
         component: CreditsHistory,
-        meta: { requiredRole: ['CUSTOMER', 'RESELLER'] },
+        meta: { requiredRole: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
         name: 'credits-history',
       },
       {

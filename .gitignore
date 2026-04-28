@@ -10,6 +10,7 @@ sqlbkps/
 .env.local
 .env.*.local
 .env.test
+.env.*.test
 
 # Build output
 dist/
