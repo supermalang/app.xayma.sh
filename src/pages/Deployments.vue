@@ -15,7 +15,6 @@
           @click="exportDeployments"
         />
         <Button
-          v-if="canCreateDeployment"
           :label="$t('deployments.create')"
           icon="pi pi-plus"
           @click="navigateToWizard"
@@ -25,47 +24,65 @@
 
     <!-- Stats row — 4 cards, always visible -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stats-section">
-      <StatCard
-        :title="$t('deployments.stats.instances_active')"
-        :value="String(activeCount).padStart(2, '0')"
-      />
-      <StatCard
-        :title="$t('deployments.stats.monthly_cost')"
-        :value="formatCurrency(monthlyCost)"
-      />
-      <StatCard
-        :title="$t('deployments.stats.uptime')"
-        value="99.98%"
-      />
-      <!-- Credits Remaining — dark card variant -->
-      <div class="rounded-lg p-6 bg-primary text-on-primary flex items-start justify-between credits-card">
+      <div class="stat-stagger" style="--stat-delay: 0ms">
+        <StatCard
+          :title="$t('deployments.stats.instances_active')"
+          :value="String(activeCount).padStart(2, '0')"
+        />
+      </div>
+      <div class="stat-stagger" style="--stat-delay: 60ms">
+        <StatCard
+          :title="$t('deployments.stats.credits_remaining')"
+          :value="String(partnerCredits)"
+        />
+      </div>
+      <div class="stat-stagger" style="--stat-delay: 120ms">
+        <StatCard
+          :title="$t('deployments.stats.uptime')"
+          value="99.98%"
+        />
+      </div>
+      <!-- Monthly Cost — dark card variant -->
+      <div
+        class="stat-stagger rounded-lg p-6 bg-primary text-on-primary flex items-start justify-between monthly-cost-card"
+        style="--stat-delay: 180ms"
+      >
         <div class="space-y-2">
           <p class="text-xs font-bold uppercase tracking-widest" style="opacity: 0.75">
-            {{ $t('deployments.stats.credits_remaining') }}
+            {{ $t('deployments.stats.monthly_cost') }}
           </p>
-          <p class="text-3xl font-bold">{{ formatCurrency(partnerCredits) }}</p>
+          <p class="text-3xl font-bold">{{ formatCurrency(monthlyCost) }}</p>
         </div>
-        <router-link to="/billing" class="opacity-60 hover:opacity-100 transition-opacity mt-1">
-          <i class="pi pi-chevron-down" />
-        </router-link>
+        <span class="wallet-icon opacity-75 mt-1" aria-hidden="true">
+          <i class="pi pi-wallet" />
+        </span>
       </div>
     </div>
 
     <!-- Tab-style filter -->
     <div class="flex items-center justify-between border-b border-outline-variant filter-section">
-      <div class="flex">
+      <div ref="tabsContainerRef" class="flex relative">
         <button
           v-for="tab in filterTabs"
           :key="String(tab.value)"
-          class="px-4 py-2 text-sm font-medium transition-colors -mb-px border-b-2"
+          :ref="(el) => registerTabRef(el, tab.value)"
+          class="tab-button px-4 py-2 text-sm font-medium -mb-px"
           :class="activeTabFilter === tab.value
-            ? 'border-primary text-primary'
-            : 'border-transparent text-on-surface-variant hover:text-on-surface'"
+            ? 'text-primary'
+            : 'text-on-surface-variant hover:text-on-surface'"
           @click="setTabFilter(tab.value)"
         >
           {{ tab.label }}
           <span v-if="tab.count !== null" class="ms-1 text-xs opacity-70">{{ tab.count }}</span>
         </button>
+        <span
+          class="tab-indicator"
+          :style="{
+            transform: `translateX(${tabIndicator.left}px)`,
+            width: `${tabIndicator.width}px`,
+          }"
+          aria-hidden="true"
+        />
       </div>
       <div class="flex gap-1 pb-2">
         <Button icon="pi pi-filter" text size="small" severity="secondary" aria-label="Filter" />
@@ -75,78 +92,78 @@
 
     <!-- DataTable -->
     <div class="table-section">
-      <DataTable
-        :value="filteredDeployments"
-        :loading="isLoading"
-        paginator
-        :rows="pageSize"
-        striped-rows
-        :rows-per-page-options="[10, 20, 50]"
-      >
-        <!-- NAME column -->
-        <Column :header="$t('deployments.table.name')">
-          <template #body="{ data }">
-            <div class="flex items-center gap-3">
-              <div
-                class="w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold shrink-0"
-                :style="{ backgroundColor: labelColor(data.label) }"
-              >
-                {{ data.label?.[0]?.toUpperCase() ?? '?' }}
+      <Transition name="filter-swap" mode="out-in">
+        <DataTable
+          :key="String(activeTabFilter)"
+          :value="filteredDeployments"
+          :loading="isLoading"
+          paginator
+          :rows="pageSize"
+          striped-rows
+          row-hover
+          :rows-per-page-options="[10, 20, 50]"
+        >
+          <!-- NAME column -->
+          <Column :header="$t('deployments.table.name')">
+            <template #body="{ data }">
+              <div class="flex items-center gap-3 name-cell">
+                <div
+                  class="avatar-chip w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold shrink-0"
+                  :style="{ backgroundColor: labelColor(data.label) }"
+                >
+                  {{ data.label?.[0]?.toUpperCase() ?? '?' }}
+                </div>
+                <router-link
+                  v-if="data.label"
+                  :to="`/deployments/${data.id}`"
+                  class="font-medium text-on-surface hover:underline"
+                >
+                  {{ data.label }}
+                </router-link>
+                <span v-else class="font-medium text-on-surface">—</span>
               </div>
-              <span class="font-medium text-on-surface">{{ data.label || '—' }}</span>
+            </template>
+          </Column>
+
+          <!-- DOMAIN column -->
+          <Column :header="$t('deployments.table.domain')">
+            <template #body="{ data }">
+              <a
+                v-if="firstDomain(data) && data.status === 'active'"
+                :href="`https://${firstDomain(data)}`"
+                target="_blank"
+                rel="noopener"
+                class="font-mono text-sm text-primary hover:underline"
+              >{{ firstDomain(data) }}</a>
+              <span
+                v-else-if="firstDomain(data)"
+                class="font-mono text-sm text-on-surface-variant"
+              >{{ firstDomain(data) }}</span>
+              <span v-else class="text-on-surface-variant text-sm">—</span>
+            </template>
+          </Column>
+
+          <!-- STATUS column -->
+          <Column :header="$t('common.status')">
+            <template #body="{ data }">
+              <DeploymentStatusBadge :status="data.status" />
+            </template>
+          </Column>
+
+          <!-- CREATED column -->
+          <Column :header="$t('deployments.table.created')">
+            <template #body="{ data }">
+              <span class="text-sm text-on-surface-variant font-mono">{{ formatDateTime(data.created) }}</span>
+            </template>
+          </Column>
+
+          <template #empty>
+            <div class="text-center text-on-surface-variant py-8">
+              {{ $t('common.no_data') }}
             </div>
           </template>
-        </Column>
-
-        <!-- DOMAIN column -->
-        <Column :header="$t('deployments.table.domain')">
-          <template #body="{ data }">
-            <a
-              v-if="firstDomain(data)"
-              :href="`https://${firstDomain(data)}`"
-              target="_blank"
-              rel="noopener"
-              class="font-mono text-sm text-primary hover:underline"
-            >{{ firstDomain(data) }}</a>
-            <span v-else class="text-on-surface-variant text-sm">—</span>
-          </template>
-        </Column>
-
-        <!-- STATUS column -->
-        <Column :header="$t('common.status')">
-          <template #body="{ data }">
-            <DeploymentStatusBadge :status="data.status" />
-          </template>
-        </Column>
-
-        <!-- CREATED column -->
-        <Column :header="$t('deployments.table.created')">
-          <template #body="{ data }">
-            <span class="text-sm text-on-surface-variant font-mono">{{ formatDateTime(data.created) }}</span>
-          </template>
-        </Column>
-
-        <!-- ACTIONS column -->
-        <Column class="w-20">
-          <template #header>{{ $t('common.actions') }}</template>
-          <template #body="{ data }">
-            <Button
-              icon="pi pi-eye"
-              text
-              rounded
-              size="small"
-              :title="$t('common.view')"
-              @click="navigateToDetail(data.id)"
-            />
-          </template>
-        </Column>
-
-        <template #empty>
-          <div class="text-center text-on-surface-variant py-8">
-            {{ $t('common.no_data') }}
-          </div>
-        </template>
-      </DataTable>
+        </DataTable>
+      </Transition>
     </div>
 
     <!-- Help section -->
@@ -158,10 +175,10 @@
         </p>
         <a
           href="/docs/cluster"
-          class="text-sm text-primary font-medium inline-flex items-center gap-1 hover:underline"
+          class="help-cta text-sm text-primary font-medium inline-flex items-center gap-1 hover:underline"
         >
           {{ $t('deployments.help.cta') }}
-          <i class="pi pi-arrow-right text-xs" />
+          <i class="pi pi-arrow-right text-xs help-cta-arrow" />
         </a>
       </div>
       <div class="bg-surface-container rounded-lg flex items-center justify-center min-h-36">
@@ -172,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick, watch, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
@@ -197,7 +214,32 @@ const notificationStore = useNotificationStore()
 const pageSize = ref(20)
 const activeTabFilter = ref<string | null>(null)
 
-const canCreateDeployment = computed(() => !isAdmin)
+// Tab underline indicator: slides between active tabs instead of redrawing
+const tabsContainerRef = ref<HTMLElement | null>(null)
+const tabRefs = new Map<string, HTMLElement>()
+const tabIndicator = reactive({ left: 0, width: 0 })
+
+function registerTabRef(el: unknown, value: string | null) {
+  const key = String(value)
+  if (el instanceof HTMLElement) {
+    tabRefs.set(key, el)
+  } else {
+    tabRefs.delete(key)
+  }
+}
+
+function updateTabIndicator() {
+  const key = String(activeTabFilter.value)
+  const el = tabRefs.get(key)
+  const container = tabsContainerRef.value
+  if (!el || !container) return
+  const containerLeft = container.getBoundingClientRect().left
+  const rect = el.getBoundingClientRect()
+  tabIndicator.left = rect.left - containerLeft
+  tabIndicator.width = rect.width
+}
+
+watch(activeTabFilter, () => nextTick(updateTabIndicator))
 
 const activeCount = computed(() =>
   deployments.value.filter((d: any) => d.status === 'active').length
@@ -265,10 +307,6 @@ function navigateToWizard() {
   router.push('/deployments/new')
 }
 
-function navigateToDetail(id: number) {
-  router.push(`/deployments/${id}`)
-}
-
 function exportDeployments() {
   if (!deployments.value.length) return
   const rows = filteredDeployments.value
@@ -311,6 +349,10 @@ async function loadDeploymentsList() {
 }
 
 onMounted(async () => {
+  await nextTick()
+  updateTabIndicator()
+  window.addEventListener('resize', updateTabIndicator)
+
   if (isAdmin) {
     await loadDeploymentsList()
     subscribeToDeploymentUpdates()
@@ -318,6 +360,8 @@ onMounted(async () => {
     await loadDeploymentsList()
     subscribeToDeploymentUpdates(partnerStore.selectedPartner.id)
   }
+  await nextTick()
+  updateTabIndicator()
 })
 </script>
 
@@ -326,24 +370,96 @@ onMounted(async () => {
   animation: header-enter var(--duration-standard) var(--easing-standard);
 }
 
-.stats-section {
-  animation: fade-in var(--duration-standard) var(--easing-standard) 60ms backwards;
-}
-
 .filter-section {
-  animation: fade-in var(--duration-standard) var(--easing-standard) 120ms backwards;
-}
-
-.table-section {
-  animation: fade-in var(--duration-standard) var(--easing-standard) 180ms backwards;
-}
-
-.help-section {
   animation: fade-in var(--duration-standard) var(--easing-standard) 240ms backwards;
 }
 
-.credits-card {
-  cursor: default;
+.table-section {
+  animation: fade-in var(--duration-standard) var(--easing-standard) 300ms backwards;
+}
+
+.help-section {
+  animation: fade-in var(--duration-standard) var(--easing-standard) 360ms backwards;
+}
+
+/* Stat cards: individual stagger so the row builds in sequence */
+.stat-stagger {
+  animation: stat-card-fade var(--duration-standard) var(--easing-standard) backwards;
+  animation-delay: var(--stat-delay, 0ms);
+}
+
+.monthly-cost-card {
+  transition: transform var(--duration-standard) var(--easing-standard),
+              box-shadow var(--duration-standard) var(--easing-standard);
+  will-change: transform;
+}
+.monthly-cost-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -12px rgba(0, 40, 142, 0.45);
+}
+.monthly-cost-card .wallet-icon {
+  display: inline-block;
+  transition: transform var(--duration-standard) var(--easing-standard);
+}
+.monthly-cost-card:hover .wallet-icon {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+/* Tab underline that slides between active tabs */
+.tab-button {
+  position: relative;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--duration-micro) var(--easing-standard);
+}
+.tab-button:active {
+  transform: scale(0.97);
+}
+.tab-indicator {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  background-color: var(--primary);
+  transform: translateX(0);
+  transition:
+    transform var(--duration-standard) var(--easing-standard),
+    width var(--duration-standard) var(--easing-standard);
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+/* Filter swap: short crossfade when switching tabs */
+.filter-swap-enter-active,
+.filter-swap-leave-active {
+  transition: opacity var(--duration-micro) var(--easing-standard);
+}
+.filter-swap-enter-from,
+.filter-swap-leave-to {
+  opacity: 0;
+}
+
+/* Row + avatar feedback */
+.name-cell .avatar-chip {
+  transition: transform var(--duration-micro) var(--easing-standard),
+              box-shadow var(--duration-micro) var(--easing-standard);
+}
+:deep(.p-datatable-tbody > tr) {
+  transition: background-color var(--duration-micro) var(--easing-standard);
+}
+:deep(.p-datatable-tbody > tr:hover) .avatar-chip {
+  transform: scale(1.06);
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.18);
+}
+
+/* Help CTA arrow nudge */
+.help-cta .help-cta-arrow {
+  display: inline-block;
+  transition: transform var(--duration-micro) var(--easing-standard);
+}
+.help-cta:hover .help-cta-arrow {
+  transform: translateX(4px);
 }
 
 :deep(.p-datatable-thead > tr > th) {
@@ -353,5 +469,31 @@ onMounted(async () => {
   text-transform: uppercase;
   color: var(--on-surface-variant);
   background-color: var(--surface-container);
+}
+
+/* Accessibility: respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .header-section,
+  .filter-section,
+  .table-section,
+  .help-section,
+  .stat-stagger {
+    animation: none;
+  }
+  .monthly-cost-card,
+  .monthly-cost-card .wallet-icon,
+  .tab-button,
+  .tab-indicator,
+  .name-cell .avatar-chip,
+  .help-cta .help-cta-arrow,
+  :deep(.p-datatable-tbody > tr) {
+    transition: none;
+  }
+  .monthly-cost-card:hover,
+  .monthly-cost-card:hover .wallet-icon,
+  :deep(.p-datatable-tbody > tr:hover) .avatar-chip,
+  .help-cta:hover .help-cta-arrow {
+    transform: none;
+  }
 }
 </style>
