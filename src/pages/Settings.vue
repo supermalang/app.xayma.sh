@@ -18,11 +18,16 @@
       <div class="grid grid-cols-12 gap-8">
         <!-- Infrastructure Engines -->
         <section class="col-span-12 lg:col-span-8 space-y-6">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-primary">hub</span>
-            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
-              {{ t('settings.infrastructure_engines') }}
-            </h2>
+          <div class="space-y-1">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary">hub</span>
+              <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+                {{ t('settings.infrastructure_engines') }}
+              </h2>
+            </div>
+            <p class="text-xs text-on-surface-variant/70 ms-9">
+              {{ t('settings.connection_test_caption') }}
+            </p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -306,6 +311,7 @@ import { listTransactions, type CreditTransactionRow } from '@/services/credits.
 import {
   updateSetting as upsertSetting,
   getPaymentGateways,
+  updatePaymentGateways,
 } from '@/services/settings'
 import { supabaseFrom } from '@/services/supabase'
 import {
@@ -490,21 +496,35 @@ function discardChanges(): void {
 
 async function saveAll(): Promise<void> {
   saving.value = true
+  const dirtyKeys = (Object.keys(form) as SettingKey[]).filter(
+    (k) => form[k] !== snapshot.value[k]
+  )
+  let savedCount = 0
+  let hadError = false
   try {
-    const dirtyKeys = (Object.keys(form) as SettingKey[]).filter(
-      (k) => form[k] !== snapshot.value[k]
-    )
     for (const k of dirtyKeys) {
       await upsertSetting(k, String(form[k]))
       settings.value[k] = String(form[k])
+      snapshot.value = { ...snapshot.value, [k]: form[k] }
+      savedCount++
     }
-    snapshot.value = { ...form }
-    notificationStore.addSuccess(t('settings.saved'))
+    if (gatewaysDirty.value) {
+      await updatePaymentGateways(gateways.value)
+      gatewaysSnapshot.value = structuredClone(toRaw(gateways.value))
+    }
   } catch (err) {
+    hadError = true
     console.error('Error saving platform settings:', err)
-    notificationStore.addError(t('settings.error_saving'))
+    notificationStore.addError(
+      savedCount > 0
+        ? t('settings.saved_partial', { saved: savedCount, total: dirtyKeys.length })
+        : t('settings.error_saving')
+    )
   } finally {
     saving.value = false
+  }
+  if (!hadError) {
+    notificationStore.addSuccess(t('settings.saved'))
   }
 }
 
