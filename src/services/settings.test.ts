@@ -85,7 +85,9 @@ describe('updatePaymentGateways', () => {
   })
 
   it('throws when supabase returns an error', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockUpsert.mockResolvedValueOnce({ error: new Error('boom') })
     await expect(updatePaymentGateways([])).rejects.toThrow('boom')
+    errSpy.mockRestore()
   })
 })
