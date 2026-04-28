@@ -181,7 +181,7 @@ const form = ref({
 const loading = ref(false)
 const loadingPartners = ref(false)
 const error = ref<string | null>(null)
-const partners = ref<Array<{ id: string; name: string }>>([])
+const partners = ref<Array<{ id: number; name: string }>>([])
 
 const minDate = computed(() => {
   const tomorrow = new Date()

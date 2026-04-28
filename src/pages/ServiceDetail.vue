@@ -32,7 +32,7 @@
     <!-- Tabs -->
     <TabView v-if="service">
       <!-- Plans tab -->
-      <TabPanel :header="$t('services.tabs.plans')">
+      <TabPanel :value="$t('services.tabs.plans')">
         <div class="space-y-4">
           <div class="flex justify-end">
             <Button
@@ -114,7 +114,7 @@
       </TabPanel>
 
       <!-- Deployment Engine Config tab -->
-      <TabPanel :header="$t('services.tabs.deployment_engine_config')">
+      <TabPanel :value="$t('services.tabs.deployment_engine_config')">
         <div class="space-y-4 max-w-lg">
           <div v-if="service.control_node_id">
             <p class="text-sm font-medium text-on-surface-variant mb-1">

@@ -171,7 +171,7 @@ const partners = computed(() => partnerStore.partners)
 const isEditingPartner = computed(() => !!editingPartner.value?.id)
 
 // Get row animation class for lazy-load stagger
-const getRowClass = (row: any, index: number) => {
+const getRowClass = (_row: unknown, _index: number) => {
   if (isLoading.value) return ''
   return `lazy-row` // Add data-index via CSS nth-child selector
 }

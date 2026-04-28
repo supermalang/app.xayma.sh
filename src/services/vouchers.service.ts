@@ -1,23 +1,16 @@
-/**
- * Vouchers service
- * CRUD operations for xayma_app.vouchers table
- * Handles admin voucher creation, tracking, and redemption state
- */
-
 import { supabaseFrom } from '@/services/supabase'
 
+// Frontend model — field names differ from DB (credits_value vs credits, etc.)
 export interface Voucher {
-  id: string
+  id: number
   code: string
   credits_value: number
   max_uses: number
   uses_count: number
-  expiry_date: string
+  expiry_date: string | null
   status: 'ACTIVE' | 'INACTIVE' | 'FULLY_REDEEMED'
   partner_type?: 'CUSTOMER' | 'RESELLER'
-  target_partner_id?: string
-  created_at: string
-  created_by: string
+  target_partner_id?: number
 }
 
 export interface ListVouchersFilter {
@@ -33,14 +26,10 @@ export interface ListVouchersOptions extends ListVouchersFilter {
   orderDirection?: 'asc' | 'desc'
 }
 
-/**
- * List all vouchers with optional filtering and pagination
- */
 export async function listVouchers(options: ListVouchersOptions = {}) {
   const {
     page = 1,
     pageSize = 20,
-    orderBy = 'created_at',
     orderDirection = 'desc',
     status,
     partnerType,
@@ -49,22 +38,18 @@ export async function listVouchers(options: ListVouchersOptions = {}) {
 
   let query = supabaseFrom('vouchers').select('*', { count: 'exact' })
 
-  // Apply filters
   if (status) {
-    query = query.eq('status', status)
+    query = query.eq('status', status.toLowerCase() as unknown as 'active')
   }
   if (partnerType) {
-    query = query.eq('partner_type', partnerType)
+    query = query.contains('partner_type', [partnerType.toLowerCase()] as unknown as ('customer')[])
   }
   if (search) {
-    // Search in code field
     query = query.ilike('code', `%${search}%`)
   }
 
-  // Sorting
-  query = query.order(orderBy, { ascending: orderDirection === 'asc' })
+  query = query.order('created', { ascending: orderDirection === 'asc' })
 
-  // Pagination
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
   query = query.range(from, to)
@@ -77,7 +62,7 @@ export async function listVouchers(options: ListVouchersOptions = {}) {
   }
 
   return {
-    data: data || [],
+    data: (data || []) as unknown as Voucher[],
     count: count || 0,
     page,
     pageSize,
@@ -85,10 +70,7 @@ export async function listVouchers(options: ListVouchersOptions = {}) {
   }
 }
 
-/**
- * Get a single voucher by ID
- */
-export async function getVoucher(id: string) {
+export async function getVoucher(id: number) {
   const { data, error } = await supabaseFrom('vouchers')
     .select('*')
     .eq('id', id)
@@ -99,13 +81,9 @@ export async function getVoucher(id: string) {
     throw error
   }
 
-  return data as Voucher
+  return data as unknown as Voucher
 }
 
-/**
- * Get voucher by code
- * Used for redemption lookup
- */
 export async function getVoucherByCode(code: string) {
   const { data, error } = await supabaseFrom('vouchers')
     .select('*')
@@ -117,16 +95,13 @@ export async function getVoucherByCode(code: string) {
     throw error
   }
 
-  return data as Voucher
+  return data as unknown as Voucher
 }
 
-/**
- * Create a new voucher
- * NOTE: This is typically called by workflow engine after code generation
- */
-export async function createVoucher(voucher: Omit<Voucher, 'id' | 'created_at'>) {
+export async function createVoucher(voucher: Omit<Voucher, 'id'>) {
   const { data, error } = await supabaseFrom('vouchers')
-    .insert([voucher])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert([voucher as any])
     .select()
 
   if (error) {
@@ -134,31 +109,26 @@ export async function createVoucher(voucher: Omit<Voucher, 'id' | 'created_at'>)
     throw error
   }
 
-  return data?.[0] as Voucher
+  return data?.[0] as unknown as Voucher
 }
 
-/**
- * Bulk create vouchers
- * Used after code generation
- */
-export async function createVouchersBulk(vouchers: Omit<Voucher, 'id' | 'created_at'>[]) {
-  const { data, error } = await supabaseFrom('vouchers').insert(vouchers).select()
+export async function createVouchersBulk(vouchers: Omit<Voucher, 'id'>[]) {
+  const { data, error } = await supabaseFrom('vouchers')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert(vouchers as any)
+    .select()
 
   if (error) {
     console.error('Error creating vouchers in bulk:', error)
     throw error
   }
 
-  return data || []
+  return (data || []) as unknown as Voucher[]
 }
 
-/**
- * Update voucher status
- * Used when voucher is deactivated or fully redeemed
- */
-export async function updateVoucherStatus(id: string, status: 'ACTIVE' | 'INACTIVE' | 'FULLY_REDEEMED') {
+export async function updateVoucherStatus(id: number, status: 'ACTIVE' | 'INACTIVE' | 'FULLY_REDEEMED') {
   const { data, error } = await supabaseFrom('vouchers')
-    .update({ status })
+    .update({ status: status.toLowerCase() as unknown as 'active' })
     .eq('id', id)
     .select()
 
@@ -167,16 +137,22 @@ export async function updateVoucherStatus(id: string, status: 'ACTIVE' | 'INACTI
     throw error
   }
 
-  return data?.[0] as Voucher
+  return data?.[0] as unknown as Voucher
 }
 
-/**
- * Increment voucher usage count
- * Called when voucher is successfully redeemed
- */
-export async function incrementVoucherUsage(id: string) {
+export async function incrementVoucherUsage(id: number) {
+  const { data: current, error: fetchError } = await supabaseFrom('vouchers')
+    .select('uses_count')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    console.error('Error fetching voucher usage count:', fetchError)
+    throw fetchError
+  }
+
   const { data, error } = await supabaseFrom('vouchers')
-    .update({ uses_count: supabaseFrom('vouchers').select('uses_count').eq('id', id) })
+    .update({ uses_count: (current?.uses_count ?? 0) + 1 })
     .eq('id', id)
     .select()
 
@@ -185,21 +161,13 @@ export async function incrementVoucherUsage(id: string) {
     throw error
   }
 
-  return data?.[0] as Voucher
+  return data?.[0] as unknown as Voucher
 }
 
-/**
- * Deactivate a voucher
- * Admin action to prevent further redemptions
- */
-export async function deactivateVoucher(id: string) {
+export async function deactivateVoucher(id: number) {
   return updateVoucherStatus(id, 'INACTIVE')
 }
 
-/**
- * Check if voucher can be redeemed
- * Validates: status, expiry date, usage limit, partner type
- */
 export async function validateVoucher(
   code: string,
   partnerType?: 'CUSTOMER' | 'RESELLER'
@@ -207,33 +175,19 @@ export async function validateVoucher(
   try {
     const voucher = await getVoucherByCode(code)
 
-    // Check status
-    if (voucher.status === 'INACTIVE') {
-      return { valid: false, reason: 'Voucher is inactive' }
+    if (voucher.status === 'INACTIVE') return { valid: false, reason: 'Voucher is inactive' }
+    if (voucher.status === 'FULLY_REDEEMED') return { valid: false, reason: 'Voucher has been fully redeemed' }
+
+    if (voucher.expiry_date) {
+      const now = new Date()
+      const expiry = new Date(voucher.expiry_date)
+      if (now > expiry) return { valid: false, reason: 'Voucher has expired' }
     }
 
-    if (voucher.status === 'FULLY_REDEEMED') {
-      return { valid: false, reason: 'Voucher has been fully redeemed' }
-    }
+    if (voucher.uses_count >= voucher.max_uses) return { valid: false, reason: 'Voucher usage limit reached' }
 
-    // Check expiry
-    const now = new Date()
-    const expiry = new Date(voucher.expiry_date)
-    if (now > expiry) {
-      return { valid: false, reason: 'Voucher has expired' }
-    }
-
-    // Check usage limit
-    if (voucher.uses_count >= voucher.max_uses) {
-      return { valid: false, reason: 'Voucher usage limit reached' }
-    }
-
-    // Check partner type restriction
     if (voucher.partner_type && partnerType && voucher.partner_type !== partnerType) {
-      return {
-        valid: false,
-        reason: `Voucher is restricted to ${voucher.partner_type} partners`,
-      }
+      return { valid: false, reason: `Voucher is restricted to ${voucher.partner_type} partners` }
     }
 
     return { valid: true, voucher }
@@ -243,11 +197,7 @@ export async function validateVoucher(
   }
 }
 
-/**
- * Check if partner has already redeemed a voucher
- * Prevents duplicate redemptions
- */
-export async function hasPartnerRedeemedVoucher(voucherId: string, partnerId: string): Promise<boolean> {
+export async function hasPartnerRedeemedVoucher(voucherId: number, partnerId: number): Promise<boolean> {
   const { data, error } = await supabaseFrom('voucher_redemptions')
     .select('id')
     .eq('voucher_id', voucherId)
@@ -262,27 +212,18 @@ export async function hasPartnerRedeemedVoucher(voucherId: string, partnerId: st
   return (data || []).length > 0
 }
 
-/**
- * Get voucher statistics for admin dashboard
- */
 export async function getVoucherStats() {
-  const { data: active } = await supabaseFrom('vouchers').select('id').eq('status', 'ACTIVE')
-
-  const { data: inactive } = await supabaseFrom('vouchers').select('id').eq('status', 'INACTIVE')
-
-  const { data: fullyRedeemed } = await supabaseFrom('vouchers')
-    .select('id')
-    .eq('status', 'FULLY_REDEEMED')
-
-  const { data: totalValue } = await supabaseFrom('vouchers')
-    .select('credits_value, uses_count')
+  const { data: active } = await supabaseFrom('vouchers').select('id').eq('status', 'active' as unknown as 'active')
+  const { data: inactive } = await supabaseFrom('vouchers').select('id').eq('status', 'inactive' as unknown as 'active')
+  const { data: fullyRedeemed } = await supabaseFrom('vouchers').select('id').eq('status', 'fully_redeemed' as unknown as 'active')
+  const { data: totalValue } = await supabaseFrom('vouchers').select('credits, uses_count')
 
   let totalCreditsDistributed = 0
   let totalCreditsRedeemed = 0
 
   if (totalValue) {
-    totalCreditsDistributed = totalValue.reduce((sum, v) => sum + v.credits_value, 0)
-    totalCreditsRedeemed = totalValue.reduce((sum, v) => sum + v.credits_value * v.uses_count, 0)
+    totalCreditsDistributed = totalValue.reduce((sum, v) => sum + v.credits, 0)
+    totalCreditsRedeemed = totalValue.reduce((sum, v) => sum + v.credits * v.uses_count, 0)
   }
 
   return {

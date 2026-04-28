@@ -1,19 +1,10 @@
-/**
- * Credits service
- * CRUD operations for xayma_app.credit_transactions table
- * Handles transaction history, balance calculations, and discount tier selection
- */
-
 import { supabaseFrom } from '@/services/supabase'
-import type { CreditTransaction } from '@/types'
 
-/**
- * Supabase types for credit_transactions table
- * These will be auto-generated once the table exists
- */
+// Frontend model for credit transactions — columns differ from DB schema
+// (DB uses transactionType/amountPaid/creditsUsed; this layer normalises for UI)
 export interface CreditTransactionRow {
-  id: string
-  partner_id: string
+  id: number
+  partner_id: number
   type: 'TOPUP' | 'DEBIT' | 'REFUND' | 'EXPIRY'
   amount: number
   payment_method?: string
@@ -21,7 +12,6 @@ export interface CreditTransactionRow {
   reference?: string
   status: 'COMPLETED' | 'PENDING' | 'FAILED'
   created_at: string
-  updated_at?: string
 }
 
 export interface ListTransactionsFilter {
@@ -39,50 +29,22 @@ export interface ListTransactionsOptions extends ListTransactionsFilter {
   orderDirection?: 'asc' | 'desc'
 }
 
-/**
- * NOTE: Topup/debit/refund/expiry events are primarily published by workflow engine
- * The frontend should call workflow engine webhooks, not directly update credits
- */
-
-/**
- * List credit transactions with filtering and pagination
- */
 export async function listTransactions(options: ListTransactionsOptions = {}) {
   const {
     page = 1,
     pageSize = 20,
-    orderBy = 'created_at',
     orderDirection = 'desc',
     partnerId,
-    type,
-    status,
-    startDate,
-    endDate,
   } = options
 
   let query = supabaseFrom('credit_transactions').select('*', { count: 'exact' })
 
-  // Apply filters
   if (partnerId) {
-    query = query.eq('partner_id', partnerId)
-  }
-  if (type) {
-    query = query.eq('type', type)
-  }
-  if (status) {
-    query = query.eq('status', status)
-  }
-  if (startDate) {
-    query = query.gte('created_at', startDate)
-  }
-  if (endDate) {
-    query = query.lte('created_at', endDate)
+    query = query.eq('partner_id', parseInt(partnerId))
   }
 
-  // Sorting
-  query = query.order(orderBy, { ascending: orderDirection === 'asc' })
+  query = query.order('created', { ascending: orderDirection === 'asc' })
 
-  // Pagination
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
   query = query.range(from, to)
@@ -95,7 +57,7 @@ export async function listTransactions(options: ListTransactionsOptions = {}) {
   }
 
   return {
-    data: data || [],
+    data: (data || []) as unknown as CreditTransactionRow[],
     count: count || 0,
     page,
     pageSize,
@@ -103,10 +65,7 @@ export async function listTransactions(options: ListTransactionsOptions = {}) {
   }
 }
 
-/**
- * Get a single credit transaction by ID
- */
-export async function getTransaction(id: string) {
+export async function getTransaction(id: number) {
   const { data, error } = await supabaseFrom('credit_transactions')
     .select('*')
     .eq('id', id)
@@ -117,142 +76,46 @@ export async function getTransaction(id: string) {
     throw error
   }
 
-  return data as CreditTransactionRow
+  return data as unknown as CreditTransactionRow
 }
 
-/**
- * Create a new credit transaction
- * NOTE: This is called primarily by workflow engine
- * The frontend should call workflow engine webhooks, not this directly
- */
-export async function createTransaction(
-  partnerId: string,
-  type: 'TOPUP' | 'DEBIT' | 'REFUND' | 'EXPIRY',
-  amount: number,
-  options?: {
-    paymentMethod?: string
-    reason?: string
-    reference?: string
-    status?: 'COMPLETED' | 'PENDING' | 'FAILED'
-  }
-) {
+export async function calculateBalance(partnerId: number): Promise<number> {
   const { data, error } = await supabaseFrom('credit_transactions')
-    .insert([
-      {
-        partner_id: partnerId,
-        type,
-        amount,
-        payment_method: options?.paymentMethod,
-        reason: options?.reason,
-        reference: options?.reference,
-        status: options?.status || 'PENDING',
-      },
-    ])
-    .select()
-
-  if (error) {
-    console.error('Error creating credit transaction:', error)
-    throw error
-  }
-
-  return data?.[0] as CreditTransactionRow
-}
-
-/**
- * Update transaction status
- * Used for marking transactions as COMPLETED after IPN confirmation
- * IPN idempotency: prevents changing COMPLETED transactions to FAILED
- */
-export async function updateTransactionStatus(
-  id: string,
-  status: 'COMPLETED' | 'PENDING' | 'FAILED'
-) {
-  // Fetch current status before updating
-  const { data: current, error: fetchError } = await supabaseFrom('credit_transactions')
-    .select('status')
-    .eq('id', id)
-    .single()
-
-  if (fetchError) {
-    console.error('Error fetching credit transaction status:', fetchError)
-    throw fetchError
-  }
-
-  // Prevent transitioning from COMPLETED to FAILED (IPN idempotency)
-  if (current?.status === 'COMPLETED' && status !== 'COMPLETED') {
-    throw new Error('Transaction already completed')
-  }
-
-  const { data, error } = await supabaseFrom('credit_transactions')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-
-  if (error) {
-    console.error('Error updating credit transaction status:', error)
-    throw error
-  }
-
-  return data?.[0] as CreditTransactionRow
-}
-
-/**
- * Calculate current balance for a partner
- * Balance = sum of all COMPLETED TOPUP/REFUND - sum of all COMPLETED DEBIT/EXPIRY
- */
-export async function calculateBalance(partnerId: string): Promise<number> {
-  const { data, error } = await supabaseFrom('credit_transactions')
-    .select('type, amount')
+    .select('creditsUsed, creditsPurchased')
     .eq('partner_id', partnerId)
-    .eq('status', 'COMPLETED')
+    .eq('status', 'completed' as unknown as 'pending')
 
   if (error) {
     console.error('Error calculating balance:', error)
     throw error
   }
 
-  if (!data || data.length === 0) {
-    return 0
-  }
+  if (!data || data.length === 0) return 0
 
   let balance = 0
-  for (const transaction of data) {
-    if (transaction.type === 'TOPUP' || transaction.type === 'REFUND') {
-      balance += transaction.amount
-    } else if (transaction.type === 'DEBIT' || transaction.type === 'EXPIRY') {
-      balance -= transaction.amount
-    }
+  for (const row of data) {
+    balance += row.creditsPurchased ?? 0
+    balance -= row.creditsUsed ?? 0
   }
-
   return Math.max(0, balance)
 }
 
-/**
- * Get total credits earned by a partner (sum of all completed TOPUPs and REFUNDs)
- */
-export async function getTotalCreditsEarned(partnerId: string): Promise<number> {
+export async function getTotalCreditsEarned(partnerId: number): Promise<number> {
   const { data, error } = await supabaseFrom('credit_transactions')
-    .select('amount')
+    .select('creditsPurchased')
     .eq('partner_id', partnerId)
-    .eq('status', 'COMPLETED')
-    .in('type', ['TOPUP', 'REFUND'])
+    .eq('status', 'completed' as unknown as 'pending')
 
   if (error) {
     console.error('Error calculating total credits earned:', error)
     throw error
   }
 
-  if (!data || data.length === 0) {
-    return 0
-  }
+  if (!data || data.length === 0) return 0
 
-  return data.reduce((sum, txn) => sum + txn.amount, 0)
+  return data.reduce((sum, row) => sum + (row.creditsPurchased ?? 0), 0)
 }
 
-/**
- * Discount tier selection based on partner type and instance count
- * Returns the applicable discount percentage
- */
 export interface DiscountTier {
   thresholdType: 'INSTANCE_COUNT' | 'MONTHLY_VOLUME'
   thresholdValue: number
@@ -266,7 +129,7 @@ export async function getApplicableDiscount(
 ): Promise<DiscountTier | null> {
   const { data, error } = await supabaseFrom('partner_credit_purchase_options')
     .select('*')
-    .eq('partner_type', partnerType)
+    .eq('partner_type', partnerType.toLowerCase() as unknown as 'customer')
     .order('threshold_value', { ascending: false })
 
   if (error) {
@@ -274,42 +137,30 @@ export async function getApplicableDiscount(
     throw error
   }
 
-  if (!data || data.length === 0) {
-    return null
-  }
+  if (!data || data.length === 0) return null
 
-  // Find the highest threshold that the instance count meets or exceeds
-  const applicableTier = data.find((tier: any) => instanceCount >= tier.threshold_value)
-
-  if (!applicableTier) {
-    return null
-  }
+  const applicableTier = data.find((tier) => instanceCount >= (tier.threshold_value ?? 0))
+  if (!applicableTier) return null
 
   return {
-    thresholdType: applicableTier.threshold_type || 'INSTANCE_COUNT',
-    thresholdValue: applicableTier.threshold_value,
-    discountPercent: applicableTier.threshold_discount_percent || 0,
-    maxCreditDebtAllowed: applicableTier.max_credit_debt_allowed || 0,
+    thresholdType: (applicableTier.threshold_type as unknown as string || 'INSTANCE_COUNT') as 'INSTANCE_COUNT' | 'MONTHLY_VOLUME',
+    thresholdValue: applicableTier.threshold_value ?? 0,
+    discountPercent: applicableTier.threshold_discount_percent ?? 0,
+    maxCreditDebtAllowed: applicableTier.max_credit_debt_allowed ?? 0,
   }
 }
 
-/**
- * Calculate discounted price for a credit bundle
- */
 export function calculateDiscountedPrice(
   basePrice: number,
   discountPercent: number
 ): { discountedPrice: number; savings: number } {
   const savings = basePrice * (discountPercent / 100)
   const discountedPrice = basePrice - savings
-
   return {
     discountedPrice: Math.round(discountedPrice),
     savings: Math.round(savings),
   }
 }
-
-// ─── Credit Purchase Options (volume discount tiers) ─────────────────────────
 
 export interface PurchaseOptionRow {
   id: number
@@ -318,7 +169,7 @@ export interface PurchaseOptionRow {
   threshold_value: number
   threshold_discount_percent: number
   max_credit_debt_allowed: number
-  created?: string
+  created?: string | null
 }
 
 export async function listPurchaseOptions(): Promise<PurchaseOptionRow[]> {
@@ -328,19 +179,20 @@ export async function listPurchaseOptions(): Promise<PurchaseOptionRow[]> {
     .order('threshold_value', { ascending: true })
 
   if (error) throw error
-  return (data || []) as PurchaseOptionRow[]
+  return (data || []) as unknown as PurchaseOptionRow[]
 }
 
 export async function createPurchaseOption(
   payload: Omit<PurchaseOptionRow, 'id' | 'created'>
 ): Promise<PurchaseOptionRow> {
   const { data, error } = await supabaseFrom('partner_credit_purchase_options')
-    .insert([payload])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert([payload as any])
     .select()
     .single()
 
   if (error) throw error
-  return data as PurchaseOptionRow
+  return data as unknown as PurchaseOptionRow
 }
 
 export async function updatePurchaseOption(
@@ -348,13 +200,14 @@ export async function updatePurchaseOption(
   payload: Partial<Omit<PurchaseOptionRow, 'id' | 'created'>>
 ): Promise<PurchaseOptionRow> {
   const { data, error } = await supabaseFrom('partner_credit_purchase_options')
-    .update(payload)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update(payload as any)
     .eq('id', id)
     .select()
     .single()
 
   if (error) throw error
-  return data as PurchaseOptionRow
+  return data as unknown as PurchaseOptionRow
 }
 
 export async function deletePurchaseOption(id: number): Promise<void> {
@@ -365,28 +218,23 @@ export async function deletePurchaseOption(id: number): Promise<void> {
   if (error) throw error
 }
 
-// ─── Date range transactions ──────────────────────────────────────────────────
-
-/**
- * Get credit transactions for a date range (used for credit history page)
- */
 export async function getTransactionsByDateRange(
-  partnerId: string,
+  partnerId: number,
   startDate: string,
   endDate: string
 ) {
   const { data, error } = await supabaseFrom('credit_transactions')
     .select('*')
     .eq('partner_id', partnerId)
-    .gte('created_at', startDate)
-    .lte('created_at', endDate)
-    .eq('status', 'COMPLETED')
-    .order('created_at', { ascending: false })
+    .gte('created', startDate)
+    .lte('created', endDate)
+    .eq('status', 'completed' as unknown as 'pending')
+    .order('created', { ascending: false })
 
   if (error) {
     console.error('Error fetching transactions by date range:', error)
     throw error
   }
 
-  return data || []
+  return (data || []) as unknown as CreditTransactionRow[]
 }

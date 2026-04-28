@@ -64,8 +64,8 @@
               v-for="notification in group"
               :key="notification.id"
               :notification="notification"
-              @mark-read="readNotification(String(notification.id))"
-              @delete="removeNotification(String(notification.id))"
+              @mark-read="readNotification(notification.id)"
+              @delete="removeNotification(notification.id)"
             />
           </div>
         </div>
@@ -168,7 +168,7 @@ async function markAllAsRead() {
  */
 async function deleteAllRead() {
   try {
-    await deleteReadNotifications(notifications.value[0]?.partner_id || '')
+    await deleteReadNotifications(notifications.value[0]?.user_id || '')
     await applyFilters()
   } catch (error) {
     console.error('Failed to delete read notifications:', error)

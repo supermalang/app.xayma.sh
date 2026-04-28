@@ -79,7 +79,7 @@ const notificationStore = useNotificationStore()
 const isLoading = ref(false)
 const auditEntries = ref<any[]>([])
 
-const filters = ref({
+const filters = ref<{ table_name: string; action: string; dateRange: Date[] | null }>({
   table_name: '',
   action: '',
   dateRange: null,
@@ -111,7 +111,7 @@ const loadAuditEntries = async () => {
   try {
     isLoading.value = true
 
-    let query = supabaseFrom('xayma_app.general_audit').select('*')
+    let query = supabaseFrom('general_audit').select('*')
 
     // Apply table_name filter
     if (filters.value.table_name) {
@@ -120,7 +120,7 @@ const loadAuditEntries = async () => {
 
     // Apply action filter
     if (filters.value.action) {
-      query = query.eq('operation', filters.value.action)
+      query = query.eq('action', filters.value.action as unknown as 'create')
     }
 
     // Apply date range filter

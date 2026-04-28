@@ -42,8 +42,7 @@
             </div>
             <ProgressBar
               :value="creditProgressValue"
-              :severity="creditProgressSeverity"
-              class="h-2"
+              :class="['h-2', creditProgressClass]"
             />
             <div class="flex justify-between text-xs font-mono text-on-surface-variant mt-1">
               <span>STATUS: {{ credits?.remainingCredits ?? 0 }}</span>
@@ -92,7 +91,7 @@
               </div>
             </div>
             <Button
-              :label="'+ ' + t('dashboard.new_deployment_btn')"
+              :label="t('dashboard.new_deployment_btn')"
               icon="pi pi-plus"
               class="w-full mt-3"
               severity="secondary"
@@ -112,35 +111,37 @@
             <Skeleton height="1.5rem" width="40%" />
             <Skeleton height="1rem" />
           </div>
-          <div v-else class="space-y-3">
-            <div class="flex items-center justify-between">
-              <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
-                {{ t('dashboard.customer_profile_title') }}
-              </p>
-              <i class="pi pi-building text-on-surface-variant text-base" />
-            </div>
-            <div class="text-sm space-y-2">
-              <div class="flex justify-between">
-                <span class="text-on-surface-variant">{{ t('dashboard.partner_name_label') }}</span>
-                <span class="font-medium text-on-surface">{{ partnerProfile?.name ?? '—' }}</span>
+          <div v-else class="flex flex-col justify-between h-full">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+                  {{ t('dashboard.customer_profile_title') }}
+                </p>
+                <i class="pi pi-building text-on-surface-variant text-base" />
               </div>
-              <div class="flex justify-between">
-                <span class="text-on-surface-variant">{{ t('dashboard.tier_label') }}</span>
-                <span class="font-medium text-on-surface">{{ tierLabel(partnerProfile?.partner_type ?? null) }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-on-surface-variant">{{ t('dashboard.status_label') }}</span>
-                <Tag
-                  :value="partnerProfile?.status ?? '—'"
-                  :severity="partnerStatusSeverity(partnerProfile?.status ?? null)"
-                />
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-on-surface-variant">{{ t('dashboard.account_manager_label') }}</span>
-                <div class="flex items-center gap-1 text-on-surface font-medium">
-                  <i class="pi pi-envelope text-on-surface-variant text-xs" />
-                  <span class="font-mono text-sm">m.diallo@xayma.sh</span>
+              <div class="text-sm space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-on-surface-variant">{{ t('dashboard.partner_name_label') }}</span>
+                  <span class="font-medium text-on-surface">{{ partnerProfile?.name ?? '—' }}</span>
                 </div>
+                <div class="flex justify-between">
+                  <span class="text-on-surface-variant">{{ t('dashboard.tier_label') }}</span>
+                  <span class="font-medium text-on-surface">{{ tierLabel(partnerProfile?.partner_type ?? null) }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-on-surface-variant">{{ t('dashboard.status_label') }}</span>
+                  <Tag
+                    :value="partnerProfile?.status ?? '—'"
+                    :severity="partnerStatusSeverity(partnerProfile?.status ?? null)"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-between items-center pt-3 mt-3 border-t border-outline-variant text-base">
+              <span class="text-on-surface-variant">{{ t('dashboard.account_manager_label') }}</span>
+              <div class="flex items-center gap-2 text-on-surface font-medium">
+                <i class="pi pi-envelope text-on-surface-variant text-sm" />
+                <span class="font-mono">m.diallo@xayma.sh</span>
               </div>
             </div>
           </div>
@@ -307,11 +308,11 @@ const creditProgressValue = computed(() => {
   return Math.min(100, Math.round((remaining / threshold) * 100))
 })
 
-const creditProgressSeverity = computed(() => {
+const creditProgressClass = computed(() => {
   const v = creditProgressValue.value
-  if (v < 25) return 'danger'
-  if (v < 50) return 'warn'
-  return undefined
+  if (v >= 80) return 'meter-healthy'
+  if (v >= 20) return 'meter-warning'
+  return 'meter-critical'
 })
 
 function activityIcon(action: string | null): string {
@@ -381,5 +382,16 @@ function formatAbsoluteTime(dateStr: string | null): string {
 /* Customer Profile card: stretch the card itself */
 .flex.flex-col.h-full {
   height: 100%;
+}
+
+/* Credit balance traffic-light progress bar */
+:deep(.meter-healthy .p-progressbar-value) {
+  background-color: var(--tertiary);
+}
+:deep(.meter-warning .p-progressbar-value) {
+  background-color: var(--secondary-container);
+}
+:deep(.meter-critical .p-progressbar-value) {
+  background-color: var(--error);
 }
 </style>

@@ -4,19 +4,18 @@ import { listNotifications, getUnreadCount, markAsRead, markAllAsRead, deleteNot
 import { supabase } from '@/services/supabase'
 import type { Notification } from '@/services/notifications.service'
 
+// Module-level singletons — shared across all callers so only one Realtime
+// channel is created regardless of how many components mount this composable.
+const notifications = ref<Notification[]>([])
+const unreadCount = ref(0)
+const loading = ref(false)
+const error = ref<Error | null>(null)
+let channel: ReturnType<typeof supabase.channel> | null = null
+let refCount = 0
+
 export function useNotifications() {
   const { user } = useAuth()
 
-  const notifications = ref<Notification[]>([])
-  const unreadCount = ref(0)
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
-
-  let channel: ReturnType<typeof supabase.channel> | null = null
-
-  /**
-   * Fetch notifications with optional filters
-   */
   async function fetchNotifications(page = 1, pageSize = 20) {
     if (!user.value?.id) return
 
@@ -30,7 +29,7 @@ export function useNotifications() {
         pageSize,
       })
 
-      notifications.value = result.data
+      notifications.value = result.data as Notification[]
     } catch (err) {
       error.value = err instanceof Error ? err : new Error('Failed to fetch notifications')
     } finally {
@@ -38,9 +37,6 @@ export function useNotifications() {
     }
   }
 
-  /**
-   * Fetch unread count
-   */
   async function fetchUnreadCount() {
     if (!user.value?.id) return
 
@@ -52,13 +48,10 @@ export function useNotifications() {
     }
   }
 
-  /**
-   * Mark notification as read
-   */
-  async function readNotification(id: string) {
+  async function readNotification(id: number) {
     try {
       await markAsRead(id)
-      const notification = notifications.value.find((n) => n.id === parseInt(id))
+      const notification = notifications.value.find((n) => n.id === id)
       if (notification) {
         notification.read_at = new Date().toISOString()
       }
@@ -70,9 +63,6 @@ export function useNotifications() {
     }
   }
 
-  /**
-   * Mark all notifications as read
-   */
   async function readAll() {
     if (!user.value?.id) return
 
@@ -87,13 +77,10 @@ export function useNotifications() {
     }
   }
 
-  /**
-   * Delete a notification
-   */
-  async function removeNotification(id: string) {
+  async function removeNotification(id: number) {
     try {
       await deleteNotification(id)
-      const index = notifications.value.findIndex((n) => n.id === parseInt(id))
+      const index = notifications.value.findIndex((n) => n.id === id)
       if (index > -1) {
         const notification = notifications.value[index]
         if (!notification.read_at) {
@@ -106,9 +93,6 @@ export function useNotifications() {
     }
   }
 
-  /**
-   * Subscribe to notification updates via Realtime
-   */
   function subscribeToUpdates() {
     if (!user.value?.id) return
     if (channel) return
@@ -176,9 +160,6 @@ export function useNotifications() {
       .subscribe()
   }
 
-  /**
-   * Unsubscribe from updates
-   */
   function unsubscribe() {
     if (channel) {
       supabase.removeChannel(channel)
@@ -186,23 +167,22 @@ export function useNotifications() {
     }
   }
 
-  /**
-   * Initialize: fetch data and subscribe
-   */
   async function initialize() {
-    await fetchNotifications(1, 20)
-    await fetchUnreadCount()
+    await Promise.all([fetchNotifications(1, 20), fetchUnreadCount()])
     subscribeToUpdates()
   }
 
-  /**
-   * Computed: filtered unread notifications
-   */
+  function reset() {
+    notifications.value = []
+    unreadCount.value = 0
+    loading.value = false
+    error.value = null
+    unsubscribe()
+    refCount = 0
+  }
+
   const unreadNotifications = computed(() => notifications.value.filter((n) => !n.read_at))
 
-  /**
-   * Computed: grouped notifications by date
-   */
   const groupedByDate = computed(() => {
     const groups: Record<string, Notification[]> = {}
 
@@ -222,28 +202,23 @@ export function useNotifications() {
     return groups
   })
 
-  // Auto-initialize on mount
   onMounted(() => {
-    initialize()
+    refCount++
+    if (refCount === 1) initialize()
   })
 
-  // Cleanup on unmount
   onUnmounted(() => {
-    unsubscribe()
+    refCount--
+    if (refCount === 0) unsubscribe()
   })
 
   return {
-    // State
     notifications,
     unreadCount,
     loading,
     error,
-
-    // Computed
     unreadNotifications,
     groupedByDate,
-
-    // Actions
     fetchNotifications,
     fetchUnreadCount,
     readNotification,
@@ -252,5 +227,6 @@ export function useNotifications() {
     subscribeToUpdates,
     unsubscribe,
     initialize,
+    reset,
   }
 }

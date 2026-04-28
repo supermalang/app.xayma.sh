@@ -107,6 +107,17 @@ const XaymaPreset = definePreset(Aura, {
       root: {
         borderRadius: '0',
       },
+      colorScheme: {
+        light: {
+          root: {
+            secondary: {
+              hoverBackground: '{primary.color}',
+              hoverBorderColor: '{primary.color}',
+              hoverColor: '{primary.contrast.color}',
+            },
+          },
+        },
+      },
     },
     inputtext: {
       root: {

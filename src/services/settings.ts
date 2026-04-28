@@ -1,6 +1,6 @@
 /**
  * Platform-wide settings service
- * Settings are stored in xayma_app.settings (key/value pairs)
+ * Settings are stored in settings (key/value pairs)
  * Admin-only write access via RLS
  */
 
@@ -21,8 +21,7 @@ export async function getSetting(key: string): Promise<unknown> {
     return cached
   }
 
-  // TODO: Once Supabase schema is properly typed, remove the 'as any' cast
-  const { data, error } = await (supabaseFrom('xayma_app.settings') as any)
+  const { data, error } = await supabaseFrom('settings')
     .select('value')
     .eq('key', key)
     .single()
@@ -32,7 +31,7 @@ export async function getSetting(key: string): Promise<unknown> {
     return null
   }
 
-  const value = (data as any)?.value
+  const value = data?.value
   cache.set(key, value)
   cacheTimestamps.set(key, Date.now())
   return value
@@ -42,8 +41,7 @@ export async function getSetting(key: string): Promise<unknown> {
  * Fetch all settings
  */
 export async function getAllSettings(): Promise<Record<string, unknown>> {
-  // TODO: Once Supabase schema is properly typed, remove the 'as any' cast
-  const { data, error } = await (supabaseFrom('xayma_app.settings') as any)
+  const { data, error } = await supabaseFrom('settings')
     .select('key, value')
 
   if (error) {
@@ -52,7 +50,7 @@ export async function getAllSettings(): Promise<Record<string, unknown>> {
   }
 
   const result: Record<string, unknown> = {}
-  ;(data as any)?.forEach((item: { key: string; value: string }) => {
+  ;(data || []).forEach((item) => {
     result[item.key] = item.value
     cache.set(item.key, item.value)
     cacheTimestamps.set(item.key, Date.now())
@@ -65,8 +63,7 @@ export async function getAllSettings(): Promise<Record<string, unknown>> {
  * Update a setting (admin only)
  */
 export async function updateSetting(key: string, value: unknown): Promise<void> {
-  // TODO: Once Supabase schema is properly typed, remove the 'as any' cast
-  const { error } = await (supabaseFrom('xayma_app.settings') as any).upsert({
+  const { error } = await supabaseFrom('settings').upsert({
     key,
     value: String(value),
   })

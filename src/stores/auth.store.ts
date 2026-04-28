@@ -10,6 +10,7 @@ import type { User } from '@supabase/supabase-js'
 import { useAdminDashboardStore } from '@/stores/admin-dashboard.store'
 import { useCustomerDashboardStore } from '@/stores/customer-dashboard.store'
 import { useActivityLogStore } from '@/stores/activity-log.store'
+import { useNotifications } from '@/composables/useNotifications'
 
 // Mock users for testing (when VITE_MOCK_AUTH=true)
 const MOCK_USERS = {
@@ -175,6 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
       useAdminDashboardStore().$reset()
       useCustomerDashboardStore().$reset()
       useActivityLogStore().$reset()
+      useNotifications().reset()
     } finally {
       isLoading.value = false
     }

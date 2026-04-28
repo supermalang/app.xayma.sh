@@ -6,6 +6,9 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase'
 
+type XaymaSchema = Database['xayma_app']
+type TableName = keyof XaymaSchema['Tables']
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -26,6 +29,6 @@ const xayma = supabase.schema('xayma_app')
  * Helper to ensure all queries use the xayma_app schema
  * Usage: supabaseFrom('partners') → xayma_app.partners
  */
-export function supabaseFrom(table: string) {
-  return xayma.from(table as any)
+export function supabaseFrom<T extends TableName>(table: T) {
+  return xayma.from(table)
 }

@@ -1,5 +1,5 @@
 <template>
-  <Card class="border border-outline">
+  <Card class="stat-card">
     <template #content>
       <div class="space-y-2">
         <p class="text-sm font-medium text-on-surface-variant">{{ title }}</p>
@@ -21,3 +21,15 @@ interface Props {
 
 defineProps<Props>()
 </script>
+
+<style scoped>
+:deep(.p-card.stat-card.p-component) {
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-lowest);
+  border-radius: 0.75rem;
+}
+
+:deep(.p-card.stat-card .p-card-body) {
+  padding: 1.25rem;
+}
+</style>

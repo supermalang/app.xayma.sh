@@ -18,13 +18,13 @@ export function useSettings() {
   async function loadSettings(): Promise<void> {
     loading.value = true
     try {
-      const { data, error } = await supabaseFrom('xayma_app.settings').select('key, value')
+      const { data, error } = await supabaseFrom('settings').select('key, value')
 
       if (error) throw error
 
       settings.value = (data || []).reduce(
-        (acc: Record<string, string>, record: any) => {
-          acc[record.key] = record.value
+        (acc: Record<string, string>, record) => {
+          if (record.key && record.value !== undefined) acc[record.key] = String(record.value)
           return acc
         },
         {}
@@ -39,8 +39,8 @@ export function useSettings() {
 
   async function updateSetting(key: string, value: string): Promise<void> {
     try {
-      const { error } = await supabaseFrom('xayma_app.settings').upsert(
-        { key, value, updated_at: new Date().toISOString() },
+      const { error } = await supabaseFrom('settings').upsert(
+        { key, value },
         { onConflict: 'key' }
       )
 

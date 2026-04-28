@@ -80,7 +80,8 @@ export function useAdminInsights() {
 
     const grouped: Record<string, number> = {}
     for (const row of data) {
-      grouped[row.status] = (grouped[row.status] ?? 0) + 1
+      const key = row.status ?? 'unknown'
+      grouped[key] = (grouped[key] ?? 0) + 1
     }
 
     statusDistribution.value = Object.entries(grouped).map(([status, count]) => ({

@@ -49,7 +49,7 @@ export function useResellerDashboard() {
       await Promise.all([
         supabaseFrom('partners')
           .select('id', { count: 'exact', head: true })
-          .eq('managed_by_reseller_id', myPartnerId)
+          .eq('managed_by_reseller_id' as unknown as 'id', myPartnerId)
           .eq('status', 'active'),
 
         supabaseFrom('credit_transactions')
@@ -60,11 +60,11 @@ export function useResellerDashboard() {
 
         supabaseFrom('partners')
           .select('id, name, status, deployments(id, serviceplanId, serviceplans(monthlyCreditConsumption))')
-          .eq('managed_by_reseller_id', myPartnerId),
+          .eq('managed_by_reseller_id' as unknown as 'id', myPartnerId),
 
         supabaseFrom('partners')
           .select('id, name, deployments(id, serviceplans(monthlyCreditConsumption))')
-          .eq('managed_by_reseller_id', myPartnerId)
+          .eq('managed_by_reseller_id' as unknown as 'id', myPartnerId)
           .in('status', ['low_credit', 'no_credit', 'on_debt']),
       ])
 
@@ -98,9 +98,9 @@ export function useResellerDashboard() {
         clientName: partner.name,
         deploymentCount: deps.length,
         monthlyConsumption: monthlyTotal,
-        status: partner.status,
+        status: partner.status as string,
       }
-    })
+    }) as ClientDeploymentRow[]
 
     atRiskClients.value = (atRiskResult.data ?? []).map(partner => {
       const deps = (partner.deployments as any[]) ?? []

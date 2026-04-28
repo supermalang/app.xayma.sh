@@ -162,7 +162,7 @@ function subscribeToTransaction(txnId: string) {
 async function pollTransactionStatus(txnId: string, maxAttempts = 30) {
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const transaction = await getTransaction(txnId)
+      const transaction = await getTransaction(Number(txnId))
 
       if (transaction.status === 'COMPLETED') {
         paymentStatus.value = 'completed'

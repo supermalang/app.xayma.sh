@@ -16,7 +16,6 @@ export type ServicePlanInsert = any
 export type ServicePlanUpdate = any
 
 export interface ListServicesFilter {
-  status?: string
   isPubliclyAvailable?: boolean
   search?: string
 }
@@ -49,7 +48,6 @@ export async function listServices(options: ListServicesOptions = {}) {
     pageSize = 20,
     orderBy = 'created',
     orderDirection = 'desc',
-    status,
     isPubliclyAvailable,
     search,
   } = options
@@ -57,9 +55,6 @@ export async function listServices(options: ListServicesOptions = {}) {
   let query = supabaseFrom('services').select('*', { count: 'exact' })
 
   // Apply filters
-  if (status) {
-    query = query.eq('status', status)
-  }
   if (isPubliclyAvailable !== undefined) {
     query = query.eq('isPubliclyAvailable', isPubliclyAvailable)
   }

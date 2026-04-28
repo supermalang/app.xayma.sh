@@ -33,7 +33,7 @@ export const useActivityLogStore = defineStore('activityLog', () => {
 
     const resolvedId = companyId !== null ? toValue(companyId) : null
     if (resolvedId) {
-      query = query.eq('company_id', resolvedId)
+      query = query.eq('company_id', Number(resolvedId))
     }
 
     const { data, error } = await query

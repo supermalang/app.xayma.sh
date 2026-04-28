@@ -62,7 +62,7 @@ export async function listDeployments(options: ListDeploymentsOptions = {}) {
     query = query.eq('partner_id', partner_id)
   }
   if (status) {
-    query = query.eq('status', status)
+    query = query.eq('status', status as unknown as 'active')
   }
   if (service_id) {
     query = query.eq('service_id', service_id)
@@ -267,7 +267,7 @@ export async function getDeploymentCountByStatus(partnerId: number, status: stri
   const { count, error } = await supabaseFrom('deployments')
     .select('id', { count: 'exact', head: true })
     .eq('partner_id', partnerId)
-    .eq('status', status)
+    .eq('status', status as unknown as 'active')
 
   if (error) {
     console.error('Error counting deployments:', error)

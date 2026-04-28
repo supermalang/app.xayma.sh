@@ -35,11 +35,11 @@
     <div class="flex gap-4">
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.form.status') }}:</span>
-        <PartnerStatusBadge :status="partner?.status" />
+        <PartnerStatusBadge :status="(partner?.status as 'active' | 'suspended' | 'inactive') ?? 'inactive'" />
       </div>
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.form.type') }}:</span>
-        <PartnerTypeBadge :type="partner?.partner_type" />
+        <PartnerTypeBadge :type="(partner?.partner_type as 'customer' | 'reseller') ?? 'customer'" />
       </div>
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-on-surface-variant">{{ $t('partners.table.credits') }}:</span>
@@ -140,7 +140,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { usePartnerStore } from '@/stores/partner.store'
 import Button from 'primevue/button'
 import SplitButton from 'primevue/splitbutton'

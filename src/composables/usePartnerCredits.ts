@@ -1,18 +1,10 @@
-/**
- * usePartnerCredits composable
- * Manages partner credit balance state with Supabase Realtime updates
- * Automatically subscribes to balance changes and keeps UI in sync
- */
-
 import { onMounted, onUnmounted, ref, computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { supabase, supabaseFrom } from '@/services/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface PartnerCredits {
-  id: string
+  id: number
   remainingCredits: number
-  totalCreditsEarned: number
-  creditExpiryDate?: string
   status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE'
 }
 
@@ -23,9 +15,6 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
 
   let channel: RealtimeChannel | null = null
 
-  /**
-   * Fetch partner credits from database
-   */
   async function fetchCredits() {
     const id = toValue(partnerId)
     if (!id) {
@@ -38,8 +27,8 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
       error.value = null
 
       const { data, error: fetchError } = await supabaseFrom('partners')
-        .select('id, remainingCredits, totalCreditsEarned, creditExpiryDate, status')
-        .eq('id', id)
+        .select('id, remainingCredits, status')
+        .eq('id', Number(id))
         .single()
 
       if (fetchError) throw fetchError
@@ -53,10 +42,6 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
     }
   }
 
-  /**
-   * Subscribe to realtime updates on partner credits
-   * Automatically updates local state when database changes
-   */
   function subscribeToCredits() {
     const id = toValue(partnerId)
     if (!id) return
@@ -73,10 +58,7 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
         },
         (payload) => {
           if (credits.value) {
-            // Update with new values from database
             credits.value.remainingCredits = payload.new?.remainingCredits || 0
-            credits.value.totalCreditsEarned = payload.new?.totalCreditsEarned || 0
-            credits.value.creditExpiryDate = payload.new?.creditExpiryDate
             credits.value.status = payload.new?.status
           }
         }
@@ -84,10 +66,6 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
       .subscribe()
   }
 
-  /**
-   * Cleanup realtime subscription
-   * Must be called in onUnmounted hook
-   */
   function unsubscribe() {
     if (channel) {
       supabase.removeChannel(channel)
@@ -95,77 +73,48 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
     }
   }
 
-  /**
-   * Manually refresh credits from server
-   */
   async function refresh() {
     await fetchCredits()
   }
 
-  // Computed properties
-  const percentageRemaining = computed(() => {
-    if (!credits.value) return 0
-    // Assume max balance is 100,000 FCFA for percentage calculation
-    return Math.round((credits.value.remainingCredits / 100000) * 100)
-  })
-
   const isLowBalance = computed(() => {
-    return percentageRemaining.value <= 30 && percentageRemaining.value > 10
+    if (!credits.value) return false
+    return credits.value.remainingCredits <= 30 && credits.value.remainingCredits > 10
   })
 
   const isCriticalBalance = computed(() => {
-    return percentageRemaining.value <= 10
+    if (!credits.value) return false
+    return credits.value.remainingCredits <= 10
   })
 
   const isHealthy = computed(() => {
-    return percentageRemaining.value > 30
-  })
-
-  const daysUntilExpiry = computed(() => {
-    if (!credits.value?.creditExpiryDate) return -1
-    const now = new Date()
-    const expiry = new Date(credits.value.creditExpiryDate)
-    const diff = expiry.getTime() - now.getTime()
-    return Math.ceil(diff / (1000 * 60 * 60 * 24))
-  })
-
-  const isExpired = computed(() => {
-    return daysUntilExpiry.value < 0
+    if (!credits.value) return false
+    return credits.value.remainingCredits > 30
   })
 
   const isSuspended = computed(() => {
     return credits.value?.status === 'SUSPENDED'
   })
 
-  // Initialize on mount
   onMounted(() => {
     fetchCredits()
     subscribeToCredits()
   })
 
-  // Cleanup on unmount
   onUnmounted(() => {
     unsubscribe()
   })
 
   return {
-    // State
     credits,
     loading,
     error,
-
-    // Methods
     fetchCredits,
     refresh,
     unsubscribe,
-
-    // Computed
-    percentageRemaining,
     isLowBalance,
     isCriticalBalance,
     isHealthy,
-    daysUntilExpiry,
-    isExpired,
     isSuspended,
   }
 }

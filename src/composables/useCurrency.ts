@@ -5,7 +5,6 @@
  */
 
 import { computed } from 'vue'
-import { useAuthStore } from '@/stores/auth.store'
 
 export type CurrencyCode = 'XOF' | 'USD' | 'EUR'
 
@@ -42,11 +41,9 @@ const CURRENCY_CONFIGS: Record<CurrencyCode, CurrencyConfig> = {
 }
 
 export function useCurrency() {
-  const authStore = useAuthStore()
-
   // Get preferred currency from user preferences (default: XOF/FCFA)
   const preferredCurrency = computed(() => {
-    return (authStore.user?.currency_preference || 'XOF') as CurrencyCode
+    return 'XOF' as CurrencyCode
   })
 
   /**

@@ -272,7 +272,7 @@ async function loadTransactions() {
       orderDirection: 'desc',
     })
 
-    transactions.value = result.data
+    transactions.value = result.data as unknown as Transaction[]
     totalRecords.value = result.count
   } catch (err) {
     console.error('Error loading transactions:', err)

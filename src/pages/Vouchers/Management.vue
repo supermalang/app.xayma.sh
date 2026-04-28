@@ -209,12 +209,12 @@ import ProgressBar from 'primevue/progressbar'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
-import { Tooltip as vTooltip } from 'primevue/tooltip'
+import vTooltip from 'primevue/tooltip'
 import GenerateVouchersDialog from '@/components/vouchers/GenerateVouchersDialog.vue'
 import { listVouchers, getVoucherStats, deactivateVoucher as callDeactivate } from '@/services/vouchers.service'
 
 interface VoucherRow {
-  id: string
+  id: number
   code: string
   credits_value: number
   max_uses: number
@@ -306,7 +306,7 @@ async function loadVouchers() {
       orderDirection: 'desc',
     })
 
-    vouchers.value = result.data
+    vouchers.value = result.data as unknown as VoucherRow[]
     totalRecords.value = result.count
 
     // Load stats
@@ -338,7 +338,7 @@ function onPageChange(event: any) {
   loadVouchers()
 }
 
-async function deactivateVoucher(voucherId: string) {
+async function deactivateVoucher(voucherId: number) {
   if (!confirm(t('vouchers.confirm_deactivate'))) {
     return
   }

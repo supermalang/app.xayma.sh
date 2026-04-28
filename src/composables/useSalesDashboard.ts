@@ -60,11 +60,11 @@ export function useSalesDashboard() {
     const [portfolioResult, atRiskResult] = await Promise.all([
       supabaseFrom('partners')
         .select('id, name, status, created, deployments(serviceplanId, serviceplans(monthlyCreditConsumption))')
-        .eq('sales_agent_id', myUserId),
+        .eq('sales_agent_id' as unknown as 'id', myUserId as unknown as number),
 
       supabaseFrom('partners')
         .select('id, name, status')
-        .eq('sales_agent_id', myUserId)
+        .eq('sales_agent_id' as unknown as 'id', myUserId as unknown as number)
         .in('status', ['low_credit', 'no_credit', 'on_debt']),
     ])
 

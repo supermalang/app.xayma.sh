@@ -19,7 +19,6 @@
 
       <CreditMeter
         :balance="credits?.remainingCredits ?? 0"
-        :expiry-date="credits?.creditExpiryDate"
         @topup="navigateToTopUp"
       />
     </Card>

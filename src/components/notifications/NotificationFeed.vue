@@ -28,8 +28,8 @@
           v-for="notification in notifications"
           :key="notification.id"
           :notification="notification"
-          @mark-read="readNotification(String(notification.id))"
-          @delete="removeNotification(String(notification.id))"
+          @mark-read="readNotification(notification.id)"
+          @delete="removeNotification(notification.id)"
         />
       </div>
     </div>

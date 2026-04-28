@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase, supabaseFrom } from '@/services/supabase'
+import { supabase } from '@/services/supabase'
 import * as partnerService from '@/services/partners.service'
 import type { Partner } from '@/services/partners.service'
 

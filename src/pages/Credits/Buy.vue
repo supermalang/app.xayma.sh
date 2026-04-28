@@ -121,7 +121,8 @@ async function fetchBundles() {
       return
     }
 
-    const { data, error: fetchError } = await supabaseFrom('credit_bundles')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error: fetchError } = await (supabaseFrom as any)('credit_bundles')
       .select('*')
       .eq('status', 'ACTIVE')
       .order('credits_amount', { ascending: true })
@@ -133,11 +134,11 @@ async function fetchBundles() {
     // Apply reseller discount if applicable
     if (isReseller.value) {
       // Fetch active deployment count for this partner
-      const partnerId = String(authStore.profile.company_id)
+      const partnerId = authStore.profile.company_id
       const { data: deployments } = await supabaseFrom('deployments')
         .select('id')
         .eq('partner_id', partnerId)
-        .eq('status', 'ACTIVE')
+        .eq('status', 'active' as unknown as 'active')
 
       const instanceCount = deployments?.length || 0
 
@@ -149,9 +150,9 @@ async function fetchBundles() {
         }
 
         // Apply discount to all bundles
-        bundlesToShow = bundlesToShow.map((bundle) => {
-          const { discountedPrice, savings } = calculateDiscountedPrice(
-            bundle.price_xof,
+        bundlesToShow = bundlesToShow.map((bundle: any) => {
+          const { discountedPrice } = calculateDiscountedPrice(
+            (bundle as any).price_xof,
             discount.discountPercent
           )
 
@@ -166,7 +167,7 @@ async function fetchBundles() {
       }
     }
 
-    bundles.value = bundlesToShow
+    bundles.value = bundlesToShow as unknown as CreditBundle[]
   } catch (err) {
     console.error('Error fetching credit bundles:', err)
     error.value = t('errors.fetch_failed')

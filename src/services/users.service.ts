@@ -45,7 +45,7 @@ export async function listUsers(options: ListUsersOptions = {}) {
     query = query.eq('company_id', company_id)
   }
   if (user_role) {
-    query = query.eq('user_role', user_role)
+    query = query.eq('user_role', user_role as unknown as 'ADMIN')
   }
   if (search) {
     // Search in firstname, lastname, email

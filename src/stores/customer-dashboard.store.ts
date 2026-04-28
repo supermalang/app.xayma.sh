@@ -37,7 +37,8 @@ export const useCustomerDashboardStore = defineStore('customerDashboard', () => 
   async function fetchAll() {
     error.value = null
 
-    if (!authStore.profile?.company_id) {
+    const profile = authStore.profile
+    if (!profile?.company_id) {
       isLoading.value = false
       return
     }
@@ -46,16 +47,18 @@ export const useCustomerDashboardStore = defineStore('customerDashboard', () => 
     startOfMonth.setDate(1)
     startOfMonth.setHours(0, 0, 0, 0)
 
+    const companyId = profile.company_id
+
     const [
       deploymentsResult, txResult, stoppedSuspendedResult,
       archivedResult, monthlyTxResult, partnerResult,
     ] = await Promise.all([
-      supabaseFrom('deployments').select('id, label, domainNames, status, serviceplanId').eq('status', 'active'),
-      supabaseFrom('credit_transactions').select('amountPaid, creditsUsed, created').eq('status', 'completed'),
-      supabaseFrom('deployments').select('id', { count: 'exact', head: true }).in('status', ['stopped', 'suspended']),
-      supabaseFrom('deployments').select('id', { count: 'exact', head: true }).eq('status', 'archived'),
-      supabaseFrom('credit_transactions').select('amountPaid').eq('status', 'completed').gte('created', startOfMonth.toISOString()),
-      supabaseFrom('partners').select('name, partner_type, status, remainingCredits, creditDebtThreshold').single(),
+      supabaseFrom('deployments').select('id, label, domainNames, status, serviceplanId').eq('status', 'active').eq('partner_id', companyId),
+      supabaseFrom('credit_transactions').select('amountPaid, creditsUsed, created').eq('status', 'completed').eq('partner_id', companyId),
+      supabaseFrom('deployments').select('id', { count: 'exact', head: true }).in('status', ['stopped', 'suspended']).eq('partner_id', companyId),
+      supabaseFrom('deployments').select('id', { count: 'exact', head: true }).eq('status', 'archived').eq('partner_id', companyId),
+      supabaseFrom('credit_transactions').select('amountPaid').eq('status', 'completed').eq('partner_id', companyId).gte('created', startOfMonth.toISOString()),
+      supabaseFrom('partners').select('name, partner_type, status, remainingCredits, creditDebtThreshold').eq('id', companyId).single(),
     ])
 
     if (deploymentsResult.error || txResult.error || stoppedSuspendedResult.error || archivedResult.error || monthlyTxResult.error || partnerResult.error) {

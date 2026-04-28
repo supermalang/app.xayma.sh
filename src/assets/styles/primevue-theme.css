@@ -45,3 +45,11 @@
   --p-shadow-3: none;
   --p-shadow-4: none;
 }
+
+/* Secondary button: primary-blue border at rest, full primary fill on hover */
+:root {
+  --p-button-secondary-border-color: var(--primary);
+  --p-button-secondary-hover-background: var(--primary);
+  --p-button-secondary-hover-border-color: var(--primary);
+  --p-button-secondary-hover-color: var(--on-primary);
+}

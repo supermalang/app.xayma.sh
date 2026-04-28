@@ -1,22 +1,38 @@
 import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useAdminDashboardStore } from '@/stores/admin-dashboard.store'
 
 export function useAdminDashboard() {
   const store = useAdminDashboardStore()
+  const {
+    stats,
+    deploymentsTrend,
+    creditsByPlan,
+    revenueByPartnerType,
+    archivedDeployments,
+    suspendedDeployments,
+    stoppedDeployments,
+    monthlyIntakeCredits,
+    monthlyIntakeFCFA,
+    globalCreditsUsed,
+    isLoading,
+    isRefreshing,
+    error,
+  } = storeToRefs(store)
   onMounted(() => store.waitForAuthThenLoad())
   return {
-    stats: store.stats,
-    deploymentsTrend: store.deploymentsTrend,
-    creditsByPlan: store.creditsByPlan,
-    revenueByPartnerType: store.revenueByPartnerType,
-    archivedDeployments: store.archivedDeployments,
-    suspendedDeployments: store.suspendedDeployments,
-    stoppedDeployments: store.stoppedDeployments,
-    monthlyIntakeCredits: store.monthlyIntakeCredits,
-    monthlyIntakeFCFA: store.monthlyIntakeFCFA,
-    globalCreditsUsed: store.globalCreditsUsed,
-    isLoading: store.isLoading,
-    isRefreshing: store.isRefreshing,
-    error: store.error,
+    stats,
+    deploymentsTrend,
+    creditsByPlan,
+    revenueByPartnerType,
+    archivedDeployments,
+    suspendedDeployments,
+    stoppedDeployments,
+    monthlyIntakeCredits,
+    monthlyIntakeFCFA,
+    globalCreditsUsed,
+    isLoading,
+    isRefreshing,
+    error,
   }
 }

@@ -41,10 +41,10 @@ export async function listPartners(options: ListPartnersOptions = {}) {
 
   // Apply filters
   if (status) {
-    query = query.eq('status', status)
+    query = query.eq('status', status as unknown as 'active')
   }
   if (partner_type) {
-    query = query.eq('partner_type', partner_type)
+    query = query.eq('partner_type', partner_type as unknown as 'customer')
   }
   if (search) {
     // Search in name, email, phone

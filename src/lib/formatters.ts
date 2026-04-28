@@ -15,9 +15,13 @@ export function formatDate(date: string | Date, locale = 'en-US'): string {
 }
 
 /**
- * Format currency (FCFA/USD)
+ * Format currency (FCFA/USD).
+ * For XOF, renders as "<number> FCFA" (number first, FCFA suffix).
  */
 export function formatCurrency(amount: number, currency = 'XOF'): string {
+  if (currency === 'XOF') {
+    return `${new Intl.NumberFormat('en-US').format(amount)} FCFA`
+  }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
