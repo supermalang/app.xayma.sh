@@ -844,6 +844,7 @@ export default {
     // Toasts
     saved: 'Paramètres de la plateforme enregistrés',
     saved_partial: 'Enregistré {saved} sur {total} paramètres — veuillez réessayer.',
+    error_saving_gateways: 'Paramètres enregistrés, mais échec de l\'enregistrement des passerelles de paiement — veuillez réessayer.',
     error_loading: 'Échec du chargement des paramètres',
     error_saving: 'Échec de l\'enregistrement des paramètres',
     error_loading_transactions: 'Échec du chargement des transactions récentes',

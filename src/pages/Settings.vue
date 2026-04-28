@@ -499,8 +499,10 @@ async function saveAll(): Promise<void> {
   const dirtyKeys = (Object.keys(form) as SettingKey[]).filter(
     (k) => form[k] !== snapshot.value[k]
   )
+  const shouldSaveGateways = gatewaysDirty.value
   let savedCount = 0
   let hadError = false
+  let gatewayFailed = false
   try {
     for (const k of dirtyKeys) {
       await upsertSetting(k, String(form[k]))
@@ -508,17 +510,30 @@ async function saveAll(): Promise<void> {
       snapshot.value = { ...snapshot.value, [k]: form[k] }
       savedCount++
     }
-    if (gatewaysDirty.value) {
-      await updatePaymentGateways(gateways.value)
-      gatewaysSnapshot.value = structuredClone(toRaw(gateways.value))
+    if (shouldSaveGateways) {
+      try {
+        await updatePaymentGateways(gateways.value)
+        gatewaysSnapshot.value = structuredClone(toRaw(gateways.value))
+      } catch (gatewayErr) {
+        gatewayFailed = true
+        throw gatewayErr
+      }
     }
   } catch (err) {
     hadError = true
     console.error('Error saving platform settings:', err)
+    let toastKey: string
+    if (gatewayFailed && savedCount === dirtyKeys.length) {
+      toastKey = 'settings.error_saving_gateways'
+    } else if (savedCount > 0) {
+      toastKey = 'settings.saved_partial'
+    } else {
+      toastKey = 'settings.error_saving'
+    }
     notificationStore.addError(
-      savedCount > 0
-        ? t('settings.saved_partial', { saved: savedCount, total: dirtyKeys.length })
-        : t('settings.error_saving')
+      toastKey === 'settings.saved_partial'
+        ? t(toastKey, { saved: savedCount, total: dirtyKeys.length })
+        : t(toastKey)
     )
   } finally {
     saving.value = false

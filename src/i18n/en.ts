@@ -844,6 +844,7 @@ export default {
     // Toasts
     saved: 'Platform settings saved',
     saved_partial: 'Saved {saved} of {total} settings — please retry.',
+    error_saving_gateways: 'Settings saved, but failed to save payment gateways — please retry.',
     error_loading: 'Failed to load settings',
     error_saving: 'Failed to save settings',
     error_loading_transactions: 'Failed to load recent transactions',
