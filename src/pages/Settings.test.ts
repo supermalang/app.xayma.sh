@@ -85,6 +85,9 @@ describe('Settings', () => {
     setActivePinia(pinia)
     vi.clearAllMocks()
     mockSettings.value = {}
+    mockGetPaymentGateways.mockResolvedValue([])
+    mockUpsertSetting.mockResolvedValue(undefined)
+    mockUpdatePaymentGateways.mockResolvedValue(undefined)
   })
 
   function mountSettings() {
@@ -160,6 +163,143 @@ describe('Settings', () => {
     vm.discardChanges()
     await flushPromises()
     expect(vm.form.CREDIT_PRICE_FCFA).toBe(150)
+    expect(vm.isDirty).toBe(false)
+  })
+
+  it('partial saveAll failure rebases successful keys but leaves the failed one dirty', async () => {
+    mockSettings.value = {
+      WORKFLOW_ENGINE_URL: 'https://wf.example.test',
+      DEPLOYMENT_ENGINE_URL: 'https://dep.example.test',
+    }
+    // First key succeeds, second key fails.
+    mockUpsertSetting
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('boom'))
+
+    const wrapper = mountSettings()
+    await flushPromises()
+    const vm = wrapper.vm as unknown as {
+      form: Record<string, string | number>
+      isDirty: boolean
+      saveAll: () => Promise<void>
+    }
+
+    vm.form.WORKFLOW_ENGINE_URL = 'https://changed-1.example.test'
+    vm.form.DEPLOYMENT_ENGINE_URL = 'https://changed-2.example.test'
+    await flushPromises()
+
+    await vm.saveAll()
+    await flushPromises()
+
+    // Assert both upserts were attempted in order.
+    expect(mockUpsertSetting).toHaveBeenNthCalledWith(
+      1, 'WORKFLOW_ENGINE_URL', 'https://changed-1.example.test'
+    )
+    expect(mockUpsertSetting).toHaveBeenNthCalledWith(
+      2, 'DEPLOYMENT_ENGINE_URL', 'https://changed-2.example.test'
+    )
+
+    // The first key's snapshot was rebased, so editing it back to the new value isn't dirty.
+    // The second key still differs from snapshot, so isDirty stays true.
+    expect(vm.isDirty).toBe(true)
+    // Reverting the failed key to its original snapshot value should clear isDirty.
+    vm.form.DEPLOYMENT_ENGINE_URL = 'https://dep.example.test'
+    await flushPromises()
+    expect(vm.isDirty).toBe(false)
+  })
+
+  it('saveAll persists dirty gateways and clears gatewaysDirty', async () => {
+    const existing = {
+      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      provider: 'wave',
+      mode: 'sandbox',
+      apiKey: 'k',
+      secretKey: 's',
+      ipnUrl: 'https://example.test/ipn',
+      successUrl: 'https://example.test/ok',
+      cancelUrl: 'https://example.test/cancel',
+      currency: 'XOF',
+    }
+    mockGetPaymentGateways.mockResolvedValue([existing])
+
+    // Stub randomUUID so the test is deterministic.
+    const uuidSpy = vi.spyOn(crypto, 'randomUUID')
+      .mockReturnValue('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' as `${string}-${string}-${string}-${string}-${string}`)
+
+    const wrapper = mountSettings()
+    await flushPromises()
+    const vm = wrapper.vm as unknown as {
+      isDirty: boolean
+      saveAll: () => Promise<void>
+      saveGateway: (payload: unknown) => void
+    }
+
+    // Add a second gateway via the existing handler.
+    vm.saveGateway({
+      provider: 'orange_money',
+      mode: 'sandbox',
+      apiKey: 'k2',
+      secretKey: 's2',
+      ipnUrl: 'https://example.test/ipn2',
+      successUrl: 'https://example.test/ok2',
+      cancelUrl: 'https://example.test/cancel2',
+      currency: 'XOF',
+    })
+    await flushPromises()
+    expect(vm.isDirty).toBe(true)
+
+    await vm.saveAll()
+    await flushPromises()
+
+    expect(mockUpdatePaymentGateways).toHaveBeenCalledTimes(1)
+    const [persisted] = mockUpdatePaymentGateways.mock.calls[0] as [Array<{ id: string }>]
+    expect(persisted).toHaveLength(2)
+    expect(persisted.map((g) => g.id)).toEqual([
+      'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    ])
+    expect(vm.isDirty).toBe(false)
+
+    uuidSpy.mockRestore()
+  })
+
+  it('discardChanges restores gateways to their loaded snapshot', async () => {
+    const existing = {
+      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      provider: 'wave',
+      mode: 'sandbox',
+      apiKey: 'k',
+      secretKey: 's',
+      ipnUrl: 'https://example.test/ipn',
+      successUrl: 'https://example.test/ok',
+      cancelUrl: 'https://example.test/cancel',
+      currency: 'XOF',
+    }
+    mockGetPaymentGateways.mockResolvedValue([existing])
+
+    const wrapper = mountSettings()
+    await flushPromises()
+    const vm = wrapper.vm as unknown as {
+      isDirty: boolean
+      discardChanges: () => void
+      saveGateway: (payload: unknown) => void
+    }
+
+    vm.saveGateway({
+      provider: 'orange_money',
+      mode: 'sandbox',
+      apiKey: 'k2',
+      secretKey: 's2',
+      ipnUrl: 'https://example.test/ipn2',
+      successUrl: 'https://example.test/ok2',
+      cancelUrl: 'https://example.test/cancel2',
+      currency: 'XOF',
+    })
+    await flushPromises()
+    expect(vm.isDirty).toBe(true)
+
+    vm.discardChanges()
+    await flushPromises()
     expect(vm.isDirty).toBe(false)
   })
 })

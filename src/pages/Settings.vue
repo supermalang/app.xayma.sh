@@ -513,7 +513,7 @@ async function saveAll(): Promise<void> {
     if (shouldSaveGateways) {
       try {
         await updatePaymentGateways(gateways.value)
-        gatewaysSnapshot.value = structuredClone(toRaw(gateways.value))
+        gatewaysSnapshot.value = structuredClone(gateways.value.map((g) => toRaw(g)))
       } catch (gatewayErr) {
         gatewayFailed = true
         throw gatewayErr
@@ -614,6 +614,7 @@ defineExpose({
   form,
   isDirty,
   saveAll,
+  saveGateway,
   discardChanges,
 })
 </script>
