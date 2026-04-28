@@ -31,8 +31,10 @@ vi.mock('@/composables/useSettings', () => ({
 }))
 
 const mockUpsertSetting = vi.fn().mockResolvedValue(undefined)
+const mockGetPaymentGateways = vi.fn().mockResolvedValue([])
 vi.mock('@/services/settings', () => ({
   updateSetting: (...args: unknown[]) => mockUpsertSetting(...args),
+  getPaymentGateways: (...args: unknown[]) => mockGetPaymentGateways(...args),
 }))
 
 vi.mock('@/services/credits.service', () => ({

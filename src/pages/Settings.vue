@@ -292,7 +292,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, toRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
@@ -303,7 +303,10 @@ import ProgressSpinner from 'primevue/progressspinner'
 import { useAuth } from '@/composables/useAuth'
 import { useSettings } from '@/composables/useSettings'
 import { listTransactions, type CreditTransactionRow } from '@/services/credits.service'
-import { updateSetting as upsertSetting } from '@/services/settings'
+import {
+  updateSetting as upsertSetting,
+  getPaymentGateways,
+} from '@/services/settings'
 import { supabaseFrom } from '@/services/supabase'
 import {
   testWorkflowEngineConnection,
@@ -374,15 +377,24 @@ const form = reactive<SettingsForm>({ ...DEFAULTS })
 const snapshot = ref<SettingsForm>({ ...DEFAULTS })
 const saving = ref(false)
 
+const gateways = ref<PaymentGateway[]>([])
+const gatewaysSnapshot = ref<PaymentGateway[]>([])
+const gatewayDialogVisible = ref(false)
+const editingGateway = ref<PaymentGateway | null>(null)
+
 const recentTransactions = ref<Array<CreditTransactionRow & { partner_name: string }>>([])
 
 const workflowStatus = ref<ConnectionStatus>('idle')
 const deploymentStatus = ref<ConnectionStatus>('idle')
 const k8sStatus = ref<ConnectionStatus>('idle')
 
-const isDirty = computed(() =>
+const formDirty = computed(() =>
   (Object.keys(form) as SettingKey[]).some((k) => form[k] !== snapshot.value[k])
 )
+const gatewaysDirty = computed(
+  () => JSON.stringify(gateways.value) !== JSON.stringify(gatewaysSnapshot.value)
+)
+const isDirty = computed(() => formDirty.value || gatewaysDirty.value)
 
 async function runTest(
   statusRef: typeof workflowStatus,
@@ -415,10 +427,6 @@ function testK8s(): Promise<void> {
   )
 }
 
-const gateways = ref<PaymentGateway[]>([])
-const gatewayDialogVisible = ref(false)
-const editingGateway = ref<PaymentGateway | null>(null)
-
 function openGatewayDialog(): void {
   editingGateway.value = null
   gatewayDialogVisible.value = true
@@ -439,14 +447,13 @@ function saveGateway(payload: Omit<PaymentGateway, 'id'> & { id?: string }): voi
       g.id === payload.id ? ({ ...payload, id: payload.id } as PaymentGateway) : g
     )
   } else {
-    gateways.value.push({
-      ...payload,
-      id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    } as PaymentGateway)
+    gateways.value = [
+      ...gateways.value,
+      { ...payload, id: crypto.randomUUID() } as PaymentGateway,
+    ]
   }
   gatewayDialogVisible.value = false
   editingGateway.value = null
-  notificationStore.addInfo(t('settings.gateway_saved_local_only'))
 }
 
 function applyRawToForm(target: SettingsForm, key: SettingKey, raw: string | undefined): void {
@@ -478,6 +485,7 @@ function discardChanges(): void {
       ;(form[k] as string) = snapshot.value[k] as string
     }
   }
+  gateways.value = structuredClone(toRaw(gatewaysSnapshot.value))
 }
 
 async function saveAll(): Promise<void> {
@@ -561,6 +569,9 @@ onMounted(async () => {
 
   await loadSettings()
   populateFormFromSettings()
+  const loadedGateways = await getPaymentGateways()
+  gateways.value = loadedGateways
+  gatewaysSnapshot.value = structuredClone(loadedGateways)
   await loadRecentTransactions()
 })
 
