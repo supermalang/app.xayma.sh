@@ -1,16 +1,14 @@
 <template>
   <div class="space-y-6">
-    <!-- Header -->
     <div class="flex items-center justify-between">
       <h1 class="text-3xl font-bold text-on-surface">{{ $t('services.title') }}</h1>
       <Button
         :label="$t('services.create')"
         icon="pi pi-plus"
-        @click="showCreateDialog = true"
+        @click="router.push('/services/new')"
       />
     </div>
 
-    <!-- Services table -->
     <DataTable
       :value="services"
       :loading="loading"
@@ -59,71 +57,6 @@
         </template>
       </Column>
     </DataTable>
-
-    <!-- Create service dialog -->
-    <Dialog
-      v-model:visible="showCreateDialog"
-      :header="$t('services.create_dialog.title')"
-      modal
-      :style="{ width: '50vw' }"
-    >
-      <form @submit.prevent="handleCreateService" class="space-y-4">
-        <div>
-          <label for="name" class="block text-sm font-medium text-on-surface mb-1">
-            {{ $t('services.form.name') }}
-          </label>
-          <InputText
-            id="name"
-            v-model="createForm.name"
-            class="w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label for="description" class="block text-sm font-medium text-on-surface mb-1">
-            {{ $t('services.form.description') }}
-          </label>
-          <InputText
-            id="description"
-            v-model="createForm.description"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label for="status" class="block text-sm font-medium text-on-surface mb-1">
-            {{ $t('services.form.status') }}
-          </label>
-          <Dropdown
-            id="status"
-            v-model="createForm.status"
-            :options="statusOptions"
-            option-label="label"
-            option-value="value"
-            class="w-full"
-          />
-        </div>
-
-        <div class="flex gap-2 justify-end pt-4">
-          <Button
-            type="button"
-            :label="$t('common.cancel')"
-            severity="secondary"
-            @click="showCreateDialog = false"
-          />
-          <Button
-            type="submit"
-            :label="$t('common.create')"
-            :loading="creatingService"
-            @click="handleCreateService"
-          />
-          <!-- Hidden native submit button: catches Enter-key implicit submission
-               (PrimeVue 4 Button always renders type="button") -->
-          <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">{{ $t('common.create') }}</button>
-        </div>
-      </form>
-    </Dialog>
   </div>
 </template>
 
@@ -135,12 +68,9 @@ import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
-import Dropdown from 'primevue/dropdown'
 import Tag from 'primevue/tag'
 import ToggleButton from 'primevue/togglebutton'
-import { listServices, createService, toggleServicePublicAvailability } from '@/services/services.service'
+import { listServices, toggleServicePublicAvailability } from '@/services/services.service'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -150,20 +80,6 @@ const services = ref<any[]>([])
 const loading = ref(false)
 const totalRecords = ref(0)
 const currentPage = ref(0)
-const showCreateDialog = ref(false)
-const creatingService = ref(false)
-
-const createForm = ref({
-  name: '',
-  description: '',
-  status: 'active',
-})
-
-const statusOptions = [
-  { label: t('services.status.active'), value: 'active' },
-  { label: t('services.status.inactive'), value: 'inactive' },
-  { label: t('services.status.archived'), value: 'archived' },
-]
 
 function getStatusSeverity(status: string): 'success' | 'warn' | 'secondary' {
   return status === 'active' ? 'success' : status === 'inactive' ? 'warn' : 'secondary'
@@ -194,26 +110,6 @@ async function togglePublicAvailability(id: number, isPublic: boolean) {
   } catch {
     toast.add({ severity: 'error', summary: t('common.error'), detail: t('errors.fetch_failed'), life: 4000 })
     await loadServices()
-  }
-}
-
-async function handleCreateService() {
-  creatingService.value = true
-  try {
-    await createService({
-      name: createForm.value.name,
-      description: createForm.value.description,
-      status: createForm.value.status,
-    })
-    toast.add({ severity: 'success', summary: t('common.success'), life: 3000 })
-    showCreateDialog.value = false
-    createForm.value = { name: '', description: '', status: 'active' }
-    currentPage.value = 0
-    await loadServices()
-  } catch {
-    toast.add({ severity: 'error', summary: t('common.error'), detail: t('errors.fetch_failed'), life: 4000 })
-  } finally {
-    creatingService.value = false
   }
 }
 
