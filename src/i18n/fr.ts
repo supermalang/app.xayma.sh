@@ -471,14 +471,30 @@ export default {
       status: 'Statut',
       isPubliclyAvailable: 'Public',
     },
-    create_dialog: {
-      title: 'Nouveau service',
+    create_page: {
+      title: 'Créer un nouveau service',
+      subtitle: 'Définissez un nouveau service ou une intégration tierce pour le registre de déploiement. Tous les paramètres techniques doivent suivre strictement le schéma du système.',
+    },
+    sections: {
+      basic_info: { num: '01.', title: 'Informations de base', description: 'Identité et représentation visuelle du service sur la marketplace.' },
+      plans: { num: '02.', title: 'Formules de service', description: 'Définissez les paliers d’abonnement et leurs limites de calcul respectives.' },
+      versions: { num: '03.', title: 'Versions', description: 'Associez les builds logiciels à leurs tags d’image Docker correspondants.' },
+      tags: { num: '04.', title: 'Tags techniques', description: 'Associez les événements de cycle de vie aux déclencheurs de scripts automatisés.' },
     },
     form: {
       name: 'Nom du service',
+      name_placeholder: 'ex. Odoo Enterprise v16',
+      slug: 'Identifiant',
       description: 'Description',
-      status: 'Statut',
+      description_placeholder: 'Vue d’ensemble des capacités du service…',
+      deployment_template: 'Modèle de déploiement',
+      deployment_template_placeholder: 'Sélectionnez un modèle…',
+      logo: 'Logo du service',
+      logo_hint: 'SVG ou PNG. Maximum 500ko. 512x512 px recommandé.',
+      logo_url: 'URL du logo',
+      logo_url_placeholder: 'https://…',
       isPubliclyAvailable: 'Disponible publiquement',
+      status: 'Statut',
       control_node_id: 'Nœud de contrôle',
     },
     status: {
@@ -492,13 +508,35 @@ export default {
     },
     plans: {
       add: 'Ajouter une formule',
+      add_tier: 'Ajouter un palier',
+      configure_new_tier: 'Configurer un nouveau palier',
       empty: 'Aucun plan disponible pour ce service',
       credits_per_month: 'crédits/mois',
+      tier_label_placeholder: 'Palier de démarrage',
+      tier_options_placeholder: 'Une option par ligne',
+      tier_credits: 'FCFA / 30J',
+      tier_id_prefix: 'PLAN-',
+    },
+    versions_section: {
+      register: 'Enregistrer une version',
+      placeholder: 'Aucune version enregistrée.',
+    },
+    tags_section: {
+      start: 'Démarrer',
+      stop: 'Arrêter',
+      restart: 'Redémarrer',
+      suspend: 'Suspendre',
+      archive: 'Archiver',
+      domain: 'Domaine',
+      placeholder: 'exec_sh : …',
     },
     deployment_engine: {
       job_template_id: 'ID du modèle de job du moteur de déploiement',
       not_configured: 'Configuration du moteur de déploiement non définie pour ce service',
     },
+    discard: 'Abandonner',
+    save: 'ENREGISTRER',
+    confirm_discard: 'Abandonner ce brouillon ? Les champs non enregistrés seront perdus.',
   },
 
   // Service Plans
@@ -521,11 +559,12 @@ export default {
     export_csv: 'Exporter CSV',
     filter: {
       all: 'Toutes les instances',
+      partner: 'Filtrer par partenaire',
+      all_partners: 'Tous les partenaires',
     },
     stats: {
       instances_active: 'Instances actives',
       monthly_cost: 'Coût mensuel',
-      uptime: 'Disponibilité',
       credits_remaining: 'Crédits restants',
     },
     table: {
@@ -789,11 +828,9 @@ export default {
     // Infrastructure
     workflow_engine: 'Moteur de Workflow',
     deployment_engine: 'Moteur de Déploiement',
-    container_management: 'Gestion des Conteneurs (K8s)',
+    container_management: 'Plateforme de Gestion des Conteneurs',
     platform_url: 'URL de la Plateforme',
-    api_key: 'Clé API',
-    cluster_endpoint: 'Point d\'Accès du Cluster',
-    management_secret: 'Secret de Gestion',
+    api_key: 'Jeton API',
 
     // Connection test
     test_connection: 'Tester la connexion',

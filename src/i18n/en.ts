@@ -471,14 +471,30 @@ export default {
       status: 'Status',
       isPubliclyAvailable: 'Public',
     },
-    create_dialog: {
-      title: 'New Service',
+    create_page: {
+      title: 'Create New Service',
+      subtitle: 'Define a new core service or third-party integration for the deployment registry. All technical parameters must strictly follow the system schema.',
+    },
+    sections: {
+      basic_info: { num: '01.', title: 'Basic Info', description: 'Identity and visual representation of the service across the marketplace.' },
+      plans: { num: '02.', title: 'Service Plans', description: 'Define subscription tiers and their respective computational limits.' },
+      versions: { num: '03.', title: 'Versions', description: 'Map software builds to their respective Docker image tags.' },
+      tags: { num: '04.', title: 'Technical Tags', description: 'Map lifecycle events to automated script triggers within the orchestrator.' },
     },
     form: {
       name: 'Service Name',
+      name_placeholder: 'e.g. Odoo Enterprise v16',
+      slug: 'Slug',
       description: 'Description',
-      status: 'Status',
+      description_placeholder: 'High-level overview of the service capabilities…',
+      deployment_template: 'Deployment Template',
+      deployment_template_placeholder: 'Select a deployment engine template…',
+      logo: 'Service Logo',
+      logo_hint: 'SVG or PNG. Maximum 500kb. 512x512px recommended.',
+      logo_url: 'Logo URL',
+      logo_url_placeholder: 'https://…',
       isPubliclyAvailable: 'Publicly Available',
+      status: 'Status',
       control_node_id: 'Control Node',
     },
     status: {
@@ -492,13 +508,35 @@ export default {
     },
     plans: {
       add: 'Add Plan',
+      add_tier: 'Add New Tier',
+      configure_new_tier: 'Configure New Tier',
       empty: 'No plans available for this service',
       credits_per_month: 'credits/month',
+      tier_label_placeholder: 'Starter Tier',
+      tier_options_placeholder: 'One option per line',
+      tier_credits: 'FCFA / 30D',
+      tier_id_prefix: 'PLAN-',
+    },
+    versions_section: {
+      register: 'Register New Build',
+      placeholder: 'No versions registered yet.',
+    },
+    tags_section: {
+      start: 'Start',
+      stop: 'Stop',
+      restart: 'Restart',
+      suspend: 'Suspend',
+      archive: 'Archive',
+      domain: 'Domain',
+      placeholder: 'exec_sh: …',
     },
     deployment_engine: {
       job_template_id: 'Deployment Engine Job Template ID',
       not_configured: 'Deployment engine configuration not set for this service',
     },
+    discard: 'Discard Draft',
+    save: 'SAVE',
+    confirm_discard: 'Discard this draft? Unsaved fields will be lost.',
   },
 
   // Service Plans
@@ -521,11 +559,12 @@ export default {
     export_csv: 'Export CSV',
     filter: {
       all: 'All Instances',
+      partner: 'Filter by partner',
+      all_partners: 'All partners',
     },
     stats: {
       instances_active: 'Instances Active',
       monthly_cost: 'Monthly Cost',
-      uptime: 'Uptime',
       credits_remaining: 'Credits Remaining',
     },
     table: {
@@ -789,11 +828,9 @@ export default {
     // Infrastructure
     workflow_engine: 'Workflow Engine',
     deployment_engine: 'Deployment Engine',
-    container_management: 'Container Management (K8s)',
+    container_management: 'Container Management Platform',
     platform_url: 'Platform URL',
-    api_key: 'API Key',
-    cluster_endpoint: 'Cluster Endpoint',
-    management_secret: 'Management Secret',
+    api_key: 'API Token',
 
     // Connection test
     test_connection: 'Test connection',
