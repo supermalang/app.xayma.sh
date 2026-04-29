@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
 import { mount, flushPromises } from '@vue/test-utils'
 import Settings from '@/pages/Settings.vue'
 import { createPinia, setActivePinia } from 'pinia'
@@ -25,7 +26,7 @@ vi.mock('@/composables/useAuth', () => ({
 vi.mock('@/composables/useSettings', () => ({
   useSettings: () => ({
     settings: mockSettings,
-    loading: { value: false },
+    loading: ref(false),
     loadSettings: mockLoadSettings,
   }),
 }))
@@ -51,6 +52,13 @@ vi.mock('@/services/supabase', () => ({
   })),
 }))
 
+const PaymentGatewayDialogStub = {
+  name: 'PaymentGatewayDialog',
+  props: ['visible', 'gateway'],
+  template: '<div class="payment-gateway-dialog-stub" />',
+  emits: ['save', 'update:visible'],
+}
+
 const stubs = {
   Button: {
     props: ['label', 'loading', 'disabled', 'icon', 'severity', 'variant', 'size'],
@@ -75,6 +83,15 @@ const stubs = {
     template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', Number($event.target.value))" />',
   },
   RouterLink: { template: '<a><slot /></a>' },
+  EngineConnectionCard: {
+    props: ['title', 'icon', 'urlLabel', 'url', 'secretLabel', 'secret', 'status', 'testDisabled'],
+    template: '<div class="engine-connection-card-stub" />',
+  },
+  PaymentGatewayDialog: PaymentGatewayDialogStub,
+  PaymentGatewayList: {
+    props: ['gateways'],
+    template: '<div class="payment-gateway-list-stub" />',
+  },
 }
 
 describe('Settings', () => {
@@ -231,11 +248,11 @@ describe('Settings', () => {
     const vm = wrapper.vm as unknown as {
       isDirty: boolean
       saveAll: () => Promise<void>
-      saveGateway: (payload: unknown) => void
     }
 
-    // Add a second gateway via the existing handler.
-    vm.saveGateway({
+    // Add a second gateway by emitting @save from the PaymentGatewayDialog.
+    const dialog = wrapper.findComponent(PaymentGatewayDialogStub)
+    await dialog.vm.$emit('save', {
       provider: 'orange_money',
       mode: 'sandbox',
       apiKey: 'k2',
@@ -282,10 +299,11 @@ describe('Settings', () => {
     const vm = wrapper.vm as unknown as {
       isDirty: boolean
       discardChanges: () => void
-      saveGateway: (payload: unknown) => void
     }
 
-    vm.saveGateway({
+    // Add a gateway via the dialog's @save emit to mark gateways dirty.
+    const dialog = wrapper.findComponent(PaymentGatewayDialogStub)
+    await dialog.vm.$emit('save', {
       provider: 'orange_money',
       mode: 'sandbox',
       apiKey: 'k2',
@@ -301,5 +319,6 @@ describe('Settings', () => {
     vm.discardChanges()
     await flushPromises()
     expect(vm.isDirty).toBe(false)
+    expect(mockUpdatePaymentGateways).not.toHaveBeenCalled()
   })
 })

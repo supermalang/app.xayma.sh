@@ -513,6 +513,7 @@ async function saveAll(): Promise<void> {
     if (shouldSaveGateways) {
       try {
         await updatePaymentGateways(gateways.value)
+        // Vue deep-reactivates items inside ref<Array>; structuredClone needs each item raw.
         gatewaysSnapshot.value = structuredClone(gateways.value.map((g) => toRaw(g)))
       } catch (gatewayErr) {
         gatewayFailed = true
@@ -614,7 +615,6 @@ defineExpose({
   form,
   isDirty,
   saveAll,
-  saveGateway,
   discardChanges,
 })
 </script>
