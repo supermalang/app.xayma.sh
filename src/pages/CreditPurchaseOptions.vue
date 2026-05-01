@@ -324,7 +324,7 @@ const submitForm = async () => {
 
     if (isEditing.value && editingId.value) {
       // Update
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { error } = await supabaseFrom('partner_credit_purchase_options')
         .update(formData.value as any)
         .eq('id', editingId.value)
@@ -333,7 +333,7 @@ const submitForm = async () => {
     } else {
       // Create
       const { error } = await supabaseFrom('partner_credit_purchase_options')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         .insert([formData.value as any])
 
       if (error) throw error

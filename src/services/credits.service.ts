@@ -186,7 +186,7 @@ export async function createPurchaseOption(
   payload: Omit<PurchaseOptionRow, 'id' | 'created'>
 ): Promise<PurchaseOptionRow> {
   const { data, error } = await supabaseFrom('partner_credit_purchase_options')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     .insert([payload as any])
     .select()
     .single()
@@ -200,7 +200,7 @@ export async function updatePurchaseOption(
   payload: Partial<Omit<PurchaseOptionRow, 'id' | 'created'>>
 ): Promise<PurchaseOptionRow> {
   const { data, error } = await supabaseFrom('partner_credit_purchase_options')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     .update(payload as any)
     .eq('id', id)
     .select()

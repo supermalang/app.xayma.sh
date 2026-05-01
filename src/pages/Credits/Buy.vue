@@ -121,7 +121,7 @@ async function fetchBundles() {
       return
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const { data, error: fetchError } = await (supabaseFrom as any)('credit_bundles')
       .select('*')
       .eq('status', 'ACTIVE')

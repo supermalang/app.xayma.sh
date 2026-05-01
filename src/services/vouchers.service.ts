@@ -100,7 +100,7 @@ export async function getVoucherByCode(code: string) {
 
 export async function createVoucher(voucher: Omit<Voucher, 'id'>) {
   const { data, error } = await supabaseFrom('vouchers')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     .insert([voucher as any])
     .select()
 
@@ -114,7 +114,7 @@ export async function createVoucher(voucher: Omit<Voucher, 'id'>) {
 
 export async function createVouchersBulk(vouchers: Omit<Voucher, 'id'>[]) {
   const { data, error } = await supabaseFrom('vouchers')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     .insert(vouchers as any)
     .select()
 
