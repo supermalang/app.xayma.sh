@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, ref, computed, toValue, type MaybeRefOrGetter } from 'vue'
+import { onUnmounted, ref, computed, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import { supabase, supabaseFrom } from '@/services/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -96,10 +96,24 @@ export function usePartnerCredits(partnerId: MaybeRefOrGetter<string>) {
     return credits.value?.status === 'SUSPENDED'
   })
 
-  onMounted(() => {
-    fetchCredits()
-    subscribeToCredits()
-  })
+  // Re-fetch and re-subscribe whenever the partnerId source resolves or changes.
+  // Without this, a consumer that mounts before authStore.profile is hydrated
+  // gets stuck with an empty id and the credits never load.
+  watch(
+    () => toValue(partnerId),
+    (newId, oldId) => {
+      if (newId === oldId) return
+      unsubscribe()
+      credits.value = null
+      if (newId) {
+        fetchCredits()
+        subscribeToCredits()
+      } else {
+        loading.value = false
+      }
+    },
+    { immediate: true }
+  )
 
   onUnmounted(() => {
     unsubscribe()

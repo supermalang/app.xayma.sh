@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Xayma.sh | Top-up Credits</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#68dba9",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "on-surface": "#0b1c30",
+                        "on-primary-container": "#a8b8ff",
+                        "tertiary-fixed": "#85f8c4",
+                        "surface-container": "#e5eeff",
+                        "primary": "#00288e",
+                        "on-error-container": "#93000a",
+                        "on-background": "#0b1c30",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "on-primary-fixed-variant": "#173bab",
+                        "surface-bright": "#f8f9ff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#341100",
+                        "inverse-primary": "#b8c4ff",
+                        "primary-fixed-dim": "#b8c4ff",
+                        "secondary-fixed": "#ffdbca",
+                        "on-primary-fixed": "#001453",
+                        "surface-container-high": "#dce9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#3755c3",
+                        "surface-variant": "#d3e4fe",
+                        "secondary": "#9d4300",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#444653",
+                        "on-tertiary-fixed": "#002114",
+                        "surface-container-highest": "#d3e4fe",
+                        "background": "#f8f9ff",
+                        "outline": "#757684",
+                        "inverse-surface": "#213145",
+                        "outline-variant": "#c4c5d5",
+                        "surface": "#f8f9ff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#783200",
+                        "primary-container": "#1e40af",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#fd761a",
+                        "tertiary-container": "#00563a",
+                        "tertiary": "#003d28"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter", "sans-serif"],
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"],
+                        "mono": ["IBM Plex Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9ff; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+        .text-editorial { letter-spacing: -0.02em; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar Execution from JSON -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-8 h-16 w-full bg-white dark:bg-slate-950 border-b border-outline-variant/20">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-100">Xayma.sh</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-3 py-1 rounded-lg" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-3 py-1 rounded-lg" href="#">Deployments</a>
+<a class="text-blue-700 dark:text-blue-300 font-bold px-3 py-1 rounded-lg" href="#">Billing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/10">
+<span class="material-symbols-outlined text-sm text-primary">account_balance_wallet</span>
+<span class="mono text-sm font-semibold text-primary">5,000 FCFA</span>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-slate-100 p-2 rounded-full transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-xs font-bold">BW</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar Execution from JSON -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-8 px-4 w-64 border-r border-outline-variant/20 bg-slate-50 dark:bg-slate-900 hidden lg:flex">
+<div class="mb-8 px-4">
+<p class="font-mono text-xs text-slate-500 uppercase tracking-widest">Dakar Distribution</p>
+<h3 class="font-bold text-lg text-on-surface">Enterprise Tier</h3>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-medium">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-700 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-medium">Billing</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">Reseller</span>
+</a>
+</nav>
+<div class="mt-auto pt-8 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">help_outline</span>
+<span class="text-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">description</span>
+<span class="text-sm">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 lg:ml-64 p-8 min-h-screen">
+<div class="max-w-5xl mx-auto">
+<header class="mb-12">
+<h1 class="text-4xl font-extrabold text-editorial text-on-surface mb-2">Top-up Credits</h1>
+<p class="text-on-surface-variant max-w-2xl">Refill your balance to maintain your Odoo instances. Credits are applied instantly to your account upon successful payment.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Selection -->
+<div class="lg:col-span-2 space-y-10">
+<!-- Current Balance Summary (Integrated for Context) -->
+<section>
+<div class="bg-surface-container-lowest p-6 border border-outline-variant/20 rounded-lg flex items-center justify-between">
+<div>
+<p class="text-sm font-medium text-on-surface-variant mb-1">Current Balance</p>
+<div class="flex items-baseline gap-2">
+<span class="mono text-3xl font-bold text-primary">5,000</span>
+<span class="mono text-lg font-medium text-primary">FCFA</span>
+</div>
+</div>
+<div class="h-12 w-12 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary-container">payments</span>
+</div>
+</div>
+</section>
+<!-- Amount Selection -->
+<section>
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">1. Select Amount</h2>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<button class="group bg-surface-container-lowest border border-outline-variant p-6 rounded-lg text-left hover:border-primary transition-all">
+<p class="text-xs text-on-surface-variant mb-2">Basic Refill</p>
+<span class="mono text-xl font-bold group-hover:text-primary transition-colors">5,000 FCFA</span>
+</button>
+<button class="group bg-surface-container-lowest border-2 border-primary p-6 rounded-lg text-left relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-primary text-on-primary text-[10px] font-bold px-3 py-1">POPULAR</div>
+<p class="text-xs text-on-surface-variant mb-2">Standard Refill</p>
+<span class="mono text-xl font-bold text-primary">10,000 FCFA</span>
+</button>
+<button class="group bg-surface-container-lowest border border-outline-variant p-6 rounded-lg text-left hover:border-primary transition-all">
+<p class="text-xs text-on-surface-variant mb-2">Enterprise Refill</p>
+<span class="mono text-xl font-bold group-hover:text-primary transition-colors">25,000 FCFA</span>
+</button>
+</div>
+</section>
+<!-- Payment Method Selection -->
+<section>
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">2. Payment Method</h2>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<!-- Wave Card -->
+<button class="flex flex-col items-center justify-center p-8 bg-surface-container-lowest border-2 border-primary rounded-lg gap-4 group">
+<div class="w-16 h-16 rounded-2xl overflow-hidden bg-white flex items-center justify-center border border-slate-100 p-2">
+<img alt="Wave" class="w-full h-full object-contain" data-alt="A clean, high-resolution logo of the Wave mobile money service, featuring its iconic blue and white branding. The image is presented on a crisp, professional background that fits into a modern West African fintech UI. The lighting is soft and flat, emphasizing the blue primary color of the brand in a minimalist industrial setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDT6BBBKKpPuBQQGWAfctQbWBJ-V9Lcz_tJhN5qTuMR7TuVXYJDTLFKUWbTWSz8-L_2KudeXCBMjIKkpAGcYExrpmdZe4-1wGW4XDEiTzBYbZ0UKiggkbdlnxlLfj5BWhFkHlvX-P8hbBFXU0s_-w4epE1ZCoQMs9Q9j5Cl8y2SF5ZjMeLzU4KRY_2DxrxzlwR9rk2leMJ40UdI7n7sx6RDv0w_ywDbHWCARom7QaLQD8lhSryyazKd4ineoLjRENoiE2scrU55QKX"/>
+</div>
+<span class="font-bold text-on-surface">Wave</span>
+</button>
+<!-- Orange Money Card -->
+<button class="flex flex-col items-center justify-center p-8 bg-surface-container-lowest border border-outline-variant/40 rounded-lg gap-4 group hover:border-primary transition-all">
+<div class="w-16 h-16 rounded-2xl overflow-hidden bg-white flex items-center justify-center border border-slate-100 p-1">
+<img alt="Orange Money" class="w-full h-full object-contain" data-alt="The official Orange brand logo, featuring the distinctive square orange icon with white text. The image is sharp and high-contrast, set against a pristine white background. It represents the mobile money payment option within a professional financial application, styled with architectural precision and flat editorial design language." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2M_SPu-IC10hjGayU3LW3QgKE-PnHldwjXeFss3w1RRXeAU1ElZxtPTnLJJ-fdnfOBGl4hYQHvs44uBveks3vVQWDB5lhlgXwwvnGzIhA0Z0BG-jNnEXP_0DAimpRcecB0iK1n2po3dEIT3JvypJ6drw2mD5CoKnbmPuH4SuansDlZw-SQuGLP-DZUFO9IC40aZaA4YjpO3JizD2p8va9qE281Ix9Cn7o6pHvThmvOjtNS7fkSzY3ihr6qMGSyfMbEfXNzsw7SLbN"/>
+</div>
+<span class="font-bold text-on-surface">Orange Money</span>
+</button>
+<!-- Other Card -->
+<button class="flex flex-col items-center justify-center p-8 bg-surface-container-lowest border border-outline-variant/40 rounded-lg gap-4 group hover:border-primary transition-all">
+<div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-4xl">account_balance</span>
+</div>
+<span class="font-bold text-on-surface">Bank Transfer</span>
+</button>
+</div>
+</section>
+</div>
+<!-- Right Column: Order Summary -->
+<div class="lg:col-span-1">
+<div class="sticky top-24 space-y-6">
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-lg overflow-hidden">
+<div class="bg-primary p-6">
+<h3 class="text-on-primary font-bold text-lg">Transaction Summary</h3>
+<p class="text-on-primary-container text-xs opacity-80">Order Ref: XAY-992-881</p>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm text-on-surface-variant">Selected Credits</span>
+<span class="mono font-semibold">10,000 FCFA</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm text-on-surface-variant">Processing Fee (1%)</span>
+<span class="mono font-semibold">100 FCFA</span>
+</div>
+<div class="pt-4 border-t border-outline-variant/20 flex justify-between items-baseline">
+<span class="font-bold text-on-surface">Total Due</span>
+<div class="text-right">
+<span class="mono text-2xl font-bold text-primary">10,100</span>
+<span class="mono text-sm font-bold text-primary">FCFA</span>
+</div>
+</div>
+</div>
+<div class="p-6 pt-0">
+<button class="w-full bg-primary text-on-primary font-bold py-4 rounded-lg hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
+<span>Complete Purchase</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<p class="mt-4 text-[10px] text-center text-on-surface-variant leading-relaxed px-4">
+                                        By clicking "Complete Purchase", you agree to Xayma.sh Terms of Service. Credits are non-refundable.
+                                    </p>
+</div>
+</div>
+<!-- Trust Indicator -->
+<div class="bg-tertiary-fixed-dim/10 border border-tertiary-fixed/30 p-4 rounded-lg flex gap-4">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant">verified_user</span>
+<div>
+<h4 class="text-xs font-bold text-on-tertiary-fixed-variant mb-1">Secure Transaction</h4>
+<p class="text-[10px] text-on-tertiary-fixed-variant opacity-70">SSL Encrypted payment processing via regional gateways.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation Filter Bar (Simulating TopAppBar behavior for mobile if needed) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-outline-variant/20 h-16 flex items-center justify-around z-50">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px]">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-bold">Billing</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px]">Settings</span>
+</button>
+</div>
+</body></html>

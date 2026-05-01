@@ -40,16 +40,31 @@ export interface CreditTransaction {
   createdAt: string
 }
 
-// Credit bundle types
+// Credit bundle types — admin-configured, stored as JSON in xayma_app.settings (CREDIT_BUNDLES)
 export interface CreditBundle {
   id: string
+  label: string
   creditsAmount: number
   priceXOF: number
-  priceUSD: number
   discountPercent: number
   validityDays: number
-  description?: string
-  status: 'ACTIVE' | 'INACTIVE'
+}
+
+// Bundle line items — global fees (VAT, processing fee, etc.) applied to every bundle.
+// Stored as JSON in xayma_app.settings (BUNDLE_LINE_ITEMS).
+export type BundleLineItemType = 'PERCENT' | 'FIXED'
+
+// ADDITIONAL: added on top of the bundle price.
+// INCLUDED:   already included in the bundle price, shown for transparency only.
+export type BundleLineItemMode = 'ADDITIONAL' | 'INCLUDED'
+
+export interface BundleLineItem {
+  id: string
+  title: string
+  type: BundleLineItemType
+  amount: number
+  mode: BundleLineItemMode
+  displayOrder?: number
 }
 
 // Notification types
@@ -92,6 +107,8 @@ export interface PaymentGateway {
   errorUrl?: string
   baseUrl?: string
   currency: string
+  displayName?: string
+  logoUrl?: string
 }
 
 // Audit log types

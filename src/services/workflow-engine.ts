@@ -179,6 +179,7 @@ export async function processTopup(partnerId: string, bundleId: string): Promise
 interface InitiateCheckoutPayload extends WebhookPayload {
   bundleId: string
   partnerId: string
+  paymentGatewayId: string
 }
 
 interface InitiateCheckoutResponse {

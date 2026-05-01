@@ -31,6 +31,17 @@
           </Field>
         </div>
 
+        <!-- Customer-facing display fields -->
+        <Fieldset :legend="t('settings.gateway_section_display')">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField name="displayName" :label="t('settings.gateway_display_name')" />
+            <FormField name="logoUrl" :label="t('settings.gateway_logo_url')" />
+          </div>
+          <p class="text-[10px] text-on-surface-variant italic mt-2">
+            {{ t('settings.gateway_display_hint') }}
+          </p>
+        </Fieldset>
+
         <Fieldset :legend="t('settings.gateway_section_auth')">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField name="apiKey" :label="t('settings.gateway_field_api_key')" required />
@@ -208,6 +219,8 @@ const validationSchema = computed(() =>
       errorUrl: z.string().url(t('settings.gateway_url_invalid')).optional().or(z.literal('')),
       baseUrl: z.string().url(t('settings.gateway_url_invalid')).optional().or(z.literal('')),
       currency: z.string(),
+      displayName: z.string().optional(),
+      logoUrl: z.string().url(t('settings.gateway_url_invalid')).optional().or(z.literal('')),
     })
   )
 )
@@ -226,6 +239,8 @@ const initialValues = computed(() => ({
   errorUrl: props.gateway?.errorUrl ?? '',
   baseUrl: props.gateway?.baseUrl ?? '',
   currency: props.gateway?.currency ?? 'XOF',
+  displayName: props.gateway?.displayName ?? '',
+  logoUrl: props.gateway?.logoUrl ?? '',
 }))
 
 function onSubmit(values: Record<string, unknown>): void {
@@ -243,6 +258,8 @@ function onSubmit(values: Record<string, unknown>): void {
     errorUrl?: string
     baseUrl?: string
     currency: string
+    displayName?: string
+    logoUrl?: string
   }
   emit('save', {
     id: props.gateway?.id,
@@ -259,6 +276,8 @@ function onSubmit(values: Record<string, unknown>): void {
     errorUrl: v.errorUrl || undefined,
     baseUrl: v.baseUrl || undefined,
     currency: v.currency,
+    displayName: v.displayName || undefined,
+    logoUrl: v.logoUrl || undefined,
   })
 }
 </script>

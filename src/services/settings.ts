@@ -5,7 +5,7 @@
  */
 
 import { supabaseFrom } from './supabase'
-import type { PaymentGateway } from '@/types'
+import type { BundleLineItem, CreditBundle, PaymentGateway } from '@/types'
 
 const cache = new Map<string, unknown>()
 const cacheTTL = 5 * 60 * 1000 // 5 minutes
@@ -116,4 +116,40 @@ export async function getPaymentGateways(): Promise<PaymentGateway[]> {
  */
 export async function updatePaymentGateways(gateways: PaymentGateway[]): Promise<void> {
   await updateSetting(PAYMENT_GATEWAYS_KEY, JSON.stringify(gateways))
+}
+
+const CREDIT_BUNDLES_KEY = 'CREDIT_BUNDLES'
+
+export async function getCreditBundles(): Promise<CreditBundle[]> {
+  const raw = (await getSetting(CREDIT_BUNDLES_KEY)) as string | null
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as CreditBundle[]) : []
+  } catch (err) {
+    console.error('Failed to parse CREDIT_BUNDLES:', err)
+    return []
+  }
+}
+
+export async function updateCreditBundles(bundles: CreditBundle[]): Promise<void> {
+  await updateSetting(CREDIT_BUNDLES_KEY, JSON.stringify(bundles))
+}
+
+const BUNDLE_LINE_ITEMS_KEY = 'BUNDLE_LINE_ITEMS'
+
+export async function getBundleLineItems(): Promise<BundleLineItem[]> {
+  const raw = (await getSetting(BUNDLE_LINE_ITEMS_KEY)) as string | null
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed as BundleLineItem[]) : []
+  } catch (err) {
+    console.error('Failed to parse BUNDLE_LINE_ITEMS:', err)
+    return []
+  }
+}
+
+export async function updateBundleLineItems(items: BundleLineItem[]): Promise<void> {
+  await updateSetting(BUNDLE_LINE_ITEMS_KEY, JSON.stringify(items))
 }

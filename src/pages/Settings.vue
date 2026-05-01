@@ -134,6 +134,49 @@
                 </div>
               </div>
 
+              <!-- Credit Purchase Bundles -->
+              <div class="border-t border-primary/10 pt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-semibold">{{ t('settings.credit_bundles') }}</h3>
+                  <Button
+                    :label="t('settings.add_bundle')"
+                    icon="pi pi-plus"
+                    size="small"
+                    severity="secondary"
+                    variant="text"
+                    @click="openBundleDialog"
+                  />
+                </div>
+                <CreditBundleList
+                  :bundles="bundles"
+                  @edit="editBundle"
+                  @delete="removeBundle"
+                />
+              </div>
+
+              <!-- Global Cost Line Items -->
+              <div class="border-t border-primary/10 pt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-semibold">{{ t('settings.line_items') }}</h3>
+                  <Button
+                    :label="t('settings.add_line_item')"
+                    icon="pi pi-plus"
+                    size="small"
+                    severity="secondary"
+                    variant="text"
+                    @click="openLineItemDialog"
+                  />
+                </div>
+                <p class="text-[11px] text-on-surface-variant italic">
+                  {{ t('settings.line_items_hint') }}
+                </p>
+                <BundleLineItemList
+                  :items="lineItems"
+                  @edit="editLineItem"
+                  @delete="removeLineItem"
+                />
+              </div>
+
               <!-- Payment Gateways -->
               <div class="border-t border-primary/10 pt-6 space-y-4">
                 <div class="flex items-center justify-between">
@@ -161,6 +204,16 @@
           v-model:visible="gatewayDialogVisible"
           :gateway="editingGateway"
           @save="saveGateway"
+        />
+        <CreditBundleDialog
+          v-model:visible="bundleDialogVisible"
+          :bundle="editingBundle"
+          @save="saveBundle"
+        />
+        <BundleLineItemDialog
+          v-model:visible="lineItemDialogVisible"
+          :line-item="editingLineItem"
+          @save="saveLineItem"
         />
 
         <!-- Deployment Lifecycle -->
@@ -312,6 +365,10 @@ import {
   updateSetting as upsertSetting,
   getPaymentGateways,
   updatePaymentGateways,
+  getCreditBundles,
+  updateCreditBundles,
+  getBundleLineItems,
+  updateBundleLineItems,
 } from '@/services/settings'
 import { supabaseFrom } from '@/services/supabase'
 import { testEngineConnection } from '@/services/workflow-engine'
@@ -321,7 +378,11 @@ import LifecycleDayInput from '@/components/settings/LifecycleDayInput.vue'
 import EngineConnectionCard from '@/components/settings/EngineConnectionCard.vue'
 import PaymentGatewayList from '@/components/settings/PaymentGatewayList.vue'
 import PaymentGatewayDialog from '@/components/settings/PaymentGatewayDialog.vue'
-import type { PaymentGateway } from '@/types'
+import CreditBundleList from '@/components/settings/CreditBundleList.vue'
+import CreditBundleDialog from '@/components/settings/CreditBundleDialog.vue'
+import BundleLineItemList from '@/components/settings/BundleLineItemList.vue'
+import BundleLineItemDialog from '@/components/settings/BundleLineItemDialog.vue'
+import type { BundleLineItem, CreditBundle, PaymentGateway } from '@/types'
 
 type ConnectionStatus = 'idle' | 'testing' | 'ok' | 'fail'
 
@@ -384,6 +445,16 @@ const gatewaysSnapshot = ref<PaymentGateway[]>([])
 const gatewayDialogVisible = ref(false)
 const editingGateway = ref<PaymentGateway | null>(null)
 
+const bundles = ref<CreditBundle[]>([])
+const bundlesSnapshot = ref<CreditBundle[]>([])
+const bundleDialogVisible = ref(false)
+const editingBundle = ref<CreditBundle | null>(null)
+
+const lineItems = ref<BundleLineItem[]>([])
+const lineItemsSnapshot = ref<BundleLineItem[]>([])
+const lineItemDialogVisible = ref(false)
+const editingLineItem = ref<BundleLineItem | null>(null)
+
 const recentTransactions = ref<Array<CreditTransactionRow & { partner_name: string }>>([])
 
 const workflowStatus = ref<ConnectionStatus>('idle')
@@ -396,7 +467,15 @@ const formDirty = computed(() =>
 const gatewaysDirty = computed(
   () => JSON.stringify(gateways.value) !== JSON.stringify(gatewaysSnapshot.value)
 )
-const isDirty = computed(() => formDirty.value || gatewaysDirty.value)
+const bundlesDirty = computed(
+  () => JSON.stringify(bundles.value) !== JSON.stringify(bundlesSnapshot.value)
+)
+const lineItemsDirty = computed(
+  () => JSON.stringify(lineItems.value) !== JSON.stringify(lineItemsSnapshot.value)
+)
+const isDirty = computed(
+  () => formDirty.value || gatewaysDirty.value || bundlesDirty.value || lineItemsDirty.value
+)
 
 async function runTest(
   statusRef: typeof workflowStatus,
@@ -458,6 +537,64 @@ function saveGateway(payload: Omit<PaymentGateway, 'id'> & { id?: string }): voi
   editingGateway.value = null
 }
 
+function openBundleDialog(): void {
+  editingBundle.value = null
+  bundleDialogVisible.value = true
+}
+
+function editBundle(b: CreditBundle): void {
+  editingBundle.value = b
+  bundleDialogVisible.value = true
+}
+
+function removeBundle(id: string): void {
+  bundles.value = bundles.value.filter((b) => b.id !== id)
+}
+
+function saveBundle(payload: Omit<CreditBundle, 'id'> & { id?: string }): void {
+  if (payload.id) {
+    bundles.value = bundles.value.map((b) =>
+      b.id === payload.id ? ({ id: payload.id, ...payload } as CreditBundle) : b
+    )
+  } else {
+    bundles.value = [
+      ...bundles.value,
+      { id: crypto.randomUUID(), ...payload } as CreditBundle,
+    ]
+  }
+  bundleDialogVisible.value = false
+  editingBundle.value = null
+}
+
+function openLineItemDialog(): void {
+  editingLineItem.value = null
+  lineItemDialogVisible.value = true
+}
+
+function editLineItem(item: BundleLineItem): void {
+  editingLineItem.value = item
+  lineItemDialogVisible.value = true
+}
+
+function removeLineItem(id: string): void {
+  lineItems.value = lineItems.value.filter((i) => i.id !== id)
+}
+
+function saveLineItem(payload: Omit<BundleLineItem, 'id'> & { id?: string }): void {
+  if (payload.id) {
+    lineItems.value = lineItems.value.map((i) =>
+      i.id === payload.id ? ({ id: payload.id, ...payload } as BundleLineItem) : i
+    )
+  } else {
+    lineItems.value = [
+      ...lineItems.value,
+      { id: crypto.randomUUID(), ...payload } as BundleLineItem,
+    ]
+  }
+  lineItemDialogVisible.value = false
+  editingLineItem.value = null
+}
+
 function applyRawToForm(target: SettingsForm, key: SettingKey, raw: string | undefined): void {
   if (NUMERIC_KEYS.has(key)) {
     const fallback = DEFAULTS[key] as number
@@ -488,6 +625,8 @@ function discardChanges(): void {
     }
   }
   gateways.value = structuredClone(toRaw(gatewaysSnapshot.value))
+  bundles.value = structuredClone(toRaw(bundlesSnapshot.value))
+  lineItems.value = structuredClone(toRaw(lineItemsSnapshot.value))
 }
 
 async function saveAll(): Promise<void> {
@@ -496,6 +635,8 @@ async function saveAll(): Promise<void> {
     (k) => form[k] !== snapshot.value[k]
   )
   const shouldSaveGateways = gatewaysDirty.value
+  const shouldSaveBundles = bundlesDirty.value
+  const shouldSaveLineItems = lineItemsDirty.value
   let savedCount = 0
   let hadError = false
   let gatewayFailed = false
@@ -509,12 +650,19 @@ async function saveAll(): Promise<void> {
     if (shouldSaveGateways) {
       try {
         await updatePaymentGateways(gateways.value)
-        // Vue deep-reactivates items inside ref<Array>; structuredClone needs each item raw.
         gatewaysSnapshot.value = structuredClone(gateways.value.map((g) => toRaw(g)))
       } catch (gatewayErr) {
         gatewayFailed = true
         throw gatewayErr
       }
+    }
+    if (shouldSaveBundles) {
+      await updateCreditBundles(bundles.value)
+      bundlesSnapshot.value = structuredClone(bundles.value.map((b) => toRaw(b)))
+    }
+    if (shouldSaveLineItems) {
+      await updateBundleLineItems(lineItems.value)
+      lineItemsSnapshot.value = structuredClone(lineItems.value.map((i) => toRaw(i)))
     }
   } catch (err) {
     hadError = true
@@ -601,9 +749,17 @@ onMounted(async () => {
 
   await loadSettings()
   populateFormFromSettings()
-  const loadedGateways = await getPaymentGateways()
+  const [loadedGateways, loadedBundles, loadedLineItems] = await Promise.all([
+    getPaymentGateways(),
+    getCreditBundles(),
+    getBundleLineItems(),
+  ])
   gateways.value = loadedGateways
   gatewaysSnapshot.value = structuredClone(loadedGateways)
+  bundles.value = loadedBundles
+  bundlesSnapshot.value = structuredClone(loadedBundles)
+  lineItems.value = loadedLineItems
+  lineItemsSnapshot.value = structuredClone(loadedLineItems)
   await loadRecentTransactions()
 })
 
