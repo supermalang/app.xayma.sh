@@ -3,6 +3,7 @@ import { supabaseFrom } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { useI18n } from 'vue-i18n'
+import { findServicePlan } from '@/services/services.service'
 
 interface ClientDeploymentRow {
   partnerId: number
@@ -59,11 +60,11 @@ export function useResellerDashboard() {
           .gte('created', monthStart.toISOString()),
 
         supabaseFrom('partners')
-          .select('id, name, status, deployments(id, serviceplanId, serviceplans(monthlyCreditConsumption))')
+          .select('id, name, status, deployments(id, plan_slug, service:services(plans))')
           .eq('managed_by_reseller_id' as unknown as 'id', myPartnerId),
 
         supabaseFrom('partners')
-          .select('id, name, deployments(id, serviceplans(monthlyCreditConsumption))')
+          .select('id, name, deployments(id, plan_slug, service:services(plans))')
           .eq('managed_by_reseller_id' as unknown as 'id', myPartnerId)
           .in('status', ['low_credit', 'no_credit', 'on_debt']),
       ])
@@ -90,7 +91,7 @@ export function useResellerDashboard() {
     clientDeployments.value = (clientPartnersResult.data ?? []).map(partner => {
       const deps = (partner.deployments as any[]) ?? []
       const monthlyTotal = deps.reduce(
-        (sum: number, d: any) => sum + (d.serviceplans?.monthlyCreditConsumption ?? 0),
+        (sum: number, d: any) => sum + (findServicePlan(d.service ?? null, d.plan_slug ?? '')?.monthlyCreditConsumption ?? 0),
         0,
       )
       return {
@@ -105,7 +106,7 @@ export function useResellerDashboard() {
     atRiskClients.value = (atRiskResult.data ?? []).map(partner => {
       const deps = (partner.deployments as any[]) ?? []
       const monthlyTotal = deps.reduce(
-        (sum: number, d: any) => sum + (d.serviceplans?.monthlyCreditConsumption ?? 0),
+        (sum: number, d: any) => sum + (findServicePlan(d.service ?? null, d.plan_slug ?? '')?.monthlyCreditConsumption ?? 0),
         0,
       )
       return {

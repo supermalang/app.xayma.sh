@@ -5,6 +5,7 @@ import { useNotificationStore } from '@/stores/notifications.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useI18n } from 'vue-i18n'
 import { DASHBOARD_CACHE_TTL_MS } from '@/stores/constants'
+import { findServicePlan } from '@/services/services.service'
 
 interface AdminStats {
   totalPartners: number
@@ -18,8 +19,7 @@ interface PlanCredit { name: string; value: number }
 interface PartnerTypeRevenue { name: string; value: number }
 interface CreditTransactionRow { creditsPurchased: number | null; amountPaid: number | null }
 interface CreditUsedRow { creditsUsed: number | null }
-interface ServicePlanRow { id: number; label: string; monthlyCreditConsumption: number }
-interface DeploymentServicePlanRow { serviceplanId: number | null }
+interface DeploymentPlanRow { plan_slug: string | null; service?: { plans?: unknown } | null }
 interface PartnerTypeRow { id: number; partner_type: string | null }
 interface RevenueByTypeRow { amountPaid: number | null; partner_id: number }
 interface RevenueRow { amountPaid: number | null }
@@ -54,7 +54,7 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
 
     const [
       partnersResult, activeDeploymentsResult, failedDeploymentsResult, revenueResult,
-      deploymentsTrendResult, plansResult, txResult, revenueByTypeResult,
+      deploymentsTrendResult, txResult, revenueByTypeResult,
       archivedResult, suspendedResult, stoppedResult, monthlyIntakeResult, globalCreditsUsedResult,
     ] = await Promise.all([
       supabaseFrom('partners').select('id', { count: 'exact', head: true }).neq('status', 'archived'),
@@ -62,8 +62,7 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
       supabaseFrom('deployments').select('id', { count: 'exact', head: true }).eq('status', 'failed'),
       supabaseFrom('credit_transactions').select('amountPaid').eq('status', 'completed').gte('created', todayStart.toISOString()),
       supabaseFrom('deployments').select('created').eq('status', 'active').gte('created', sevenDaysAgo.toISOString()),
-      supabaseFrom('serviceplans').select('id, label, monthlyCreditConsumption'),
-      supabaseFrom('deployments').select('serviceplanId').eq('status', 'active'),
+      supabaseFrom('deployments').select('plan_slug, service:services(plans)').eq('status', 'active'),
       supabaseFrom('credit_transactions').select('amountPaid, partner_id').eq('status', 'completed').gte('created', new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 30)).toISOString()),
       supabaseFrom('deployments').select('id', { count: 'exact', head: true }).eq('status', 'archived'),
       supabaseFrom('deployments').select('id', { count: 'exact', head: true }).eq('status', 'suspended'),
@@ -74,7 +73,7 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
 
     if (
       partnersResult.error || activeDeploymentsResult.error || failedDeploymentsResult.error ||
-      revenueResult.error || deploymentsTrendResult.error || plansResult.error || txResult.error ||
+      revenueResult.error || deploymentsTrendResult.error || txResult.error ||
       revenueByTypeResult.error || archivedResult.error || suspendedResult.error ||
       stoppedResult.error || monthlyIntakeResult.error || globalCreditsUsedResult.error
     ) {
@@ -120,15 +119,11 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
         return { name: d.toLocaleString('en-US', { month: 'short', day: 'numeric' }), value: count }
       })
 
-    const planDetails: Record<number, { label: string; monthly: number }> = {}
-    for (const plan of (plansResult.data ?? []) as unknown as ServicePlanRow[]) {
-      planDetails[plan.id] = { label: plan.label, monthly: plan.monthlyCreditConsumption ?? 0 }
-    }
     const planCounts: Record<string, number> = {}
-    for (const d of (txResult.data ?? []) as unknown as DeploymentServicePlanRow[]) {
-      if (d.serviceplanId === null) continue
-      const detail = planDetails[d.serviceplanId]
-      if (detail) planCounts[detail.label] = (planCounts[detail.label] ?? 0) + detail.monthly
+    for (const d of (txResult.data ?? []) as unknown as DeploymentPlanRow[]) {
+      const plan = findServicePlan(d.service ?? null, d.plan_slug ?? '')
+      if (!plan) continue
+      planCounts[plan.label] = (planCounts[plan.label] ?? 0) + (plan.monthlyCreditConsumption ?? 0)
     }
     creditsByPlan.value = Object.entries(planCounts).map(([name, value]) => ({ name, value }))
 

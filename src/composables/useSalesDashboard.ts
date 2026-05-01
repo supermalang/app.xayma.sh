@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { useI18n } from 'vue-i18n'
 import { calculateAcquisitionBonus, calculateRenewalCommission } from '@/composables/useCommissions'
+import { findServicePlan } from '@/services/services.service'
 
 interface PortfolioStats {
   portfolioSize: number
@@ -59,7 +60,7 @@ export function useSalesDashboard() {
 
     const [portfolioResult, atRiskResult] = await Promise.all([
       supabaseFrom('partners')
-        .select('id, name, status, created, deployments(serviceplanId, serviceplans(monthlyCreditConsumption))')
+        .select('id, name, status, created, deployments(plan_slug, service:services(plans))')
         .eq('sales_agent_id' as unknown as 'id', myUserId as unknown as number),
 
       supabaseFrom('partners')
@@ -86,7 +87,8 @@ export function useSalesDashboard() {
     for (const partner of allPartners) {
       const deps = (partner.deployments as any[]) ?? []
       for (const dep of deps) {
-        const planPrice = dep.serviceplans?.monthlyCreditConsumption ?? 0
+        const plan = findServicePlan(dep.service ?? null, dep.plan_slug ?? '')
+        const planPrice = plan?.monthlyCreditConsumption ?? 0
         acquisitionTotal += calculateAcquisitionBonus(planPrice)
         renewalTotal += calculateRenewalCommission(planPrice)
       }

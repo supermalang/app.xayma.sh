@@ -5,14 +5,21 @@ import { useNotificationStore } from '@/stores/notifications.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useI18n } from 'vue-i18n'
 import { DASHBOARD_CACHE_TTL_MS } from '@/stores/constants'
+import { findServicePlan } from '@/services/services.service'
 
-interface ActiveDeployment { id: number; label: string; domain: string; status: string; serviceplanId: number | null }
+interface ActiveDeployment { id: number; label: string; domain: string; status: string; planSlug: string | null }
 interface MonthlyPoint { name: string; value: number }
 interface PartnerProfile { name: string; partner_type: string | null; status: string | null; remainingCredits: number; creditDebtThreshold: number | null }
-interface DeploymentRow { id: number; label: string; domainNames: string[]; status: string; serviceplanId: number | null }
+interface DeploymentRow {
+  id: number
+  label: string
+  domainNames: string[]
+  status: string
+  plan_slug: string | null
+  service?: { plans?: unknown } | null
+}
 interface TxRow { amountPaid: number | null; creditsUsed: number | null; created: string }
 interface TxAmountRow { amountPaid: number | null }
-interface ServicePlanRow { id: number; monthlyCreditConsumption: number }
 interface PartnerRow { name: string; partner_type: string | null; status: string | null; remainingCredits: number; creditDebtThreshold: number | null }
 
 export const useCustomerDashboardStore = defineStore('customerDashboard', () => {
@@ -53,7 +60,7 @@ export const useCustomerDashboardStore = defineStore('customerDashboard', () => 
       deploymentsResult, txResult, stoppedSuspendedResult,
       archivedResult, monthlyTxResult, partnerResult,
     ] = await Promise.all([
-      supabaseFrom('deployments').select('id, label, domainNames, status, serviceplanId').eq('status', 'active').eq('partner_id', companyId),
+      supabaseFrom('deployments').select('id, label, domainNames, status, plan_slug, service:services(plans)').eq('status', 'active').eq('partner_id', companyId),
       supabaseFrom('credit_transactions').select('amountPaid, creditsUsed, created').eq('status', 'completed').eq('partner_id', companyId),
       supabaseFrom('deployments').select('id', { count: 'exact', head: true }).in('status', ['stopped', 'suspended']).eq('partner_id', companyId),
       supabaseFrom('deployments').select('id', { count: 'exact', head: true }).eq('status', 'archived').eq('partner_id', companyId),
@@ -71,7 +78,7 @@ export const useCustomerDashboardStore = defineStore('customerDashboard', () => 
 
     const deploymentsData = (deploymentsResult.data ?? []) as unknown as DeploymentRow[]
     activeDeployments.value = deploymentsData.map(d => ({
-      id: d.id, label: d.label, domain: d.domainNames?.[0] ?? '', status: d.status, serviceplanId: d.serviceplanId ?? null,
+      id: d.id, label: d.label, domain: d.domainNames?.[0] ?? '', status: d.status, planSlug: d.plan_slug ?? null,
     }))
 
     const txData = (txResult.data ?? []) as unknown as TxRow[]
@@ -100,22 +107,10 @@ export const useCustomerDashboardStore = defineStore('customerDashboard', () => 
     stoppedSuspendedCount.value = stoppedSuspendedResult.count ?? 0
     archivedCount.value = archivedResult.count ?? 0
 
-    const activePlanIds = deploymentsData.map(d => d.serviceplanId).filter((id): id is number => id !== null)
-    if (activePlanIds.length > 0) {
-      const { data: plansData, error: plansError } = await supabaseFrom('serviceplans').select('id, monthlyCreditConsumption').in('id', activePlanIds)
-      if (plansError) {
-        notificationStore.addError(t('errors.fetch_failed'))
-        error.value = 'fetch_failed'
-        isLoading.value = false
-        isRefreshing.value = false
-        return
-      }
-      const plans = (plansData ?? []) as unknown as ServicePlanRow[]
-      const planMap = new Map<number, number>(plans.map(p => [p.id, p.monthlyCreditConsumption]))
-      monthlyUsageCredits.value = activePlanIds.reduce((sum, planId) => sum + (planMap.get(planId) ?? 0), 0)
-    } else {
-      monthlyUsageCredits.value = 0
-    }
+    monthlyUsageCredits.value = deploymentsData.reduce((sum, d) => {
+      const plan = findServicePlan(d.service ?? null, d.plan_slug ?? '')
+      return sum + (plan?.monthlyCreditConsumption ?? 0)
+    }, 0)
 
     const monthlyTxData = (monthlyTxResult.data ?? []) as unknown as TxAmountRow[]
     totalCostThisMonthFCFA.value = monthlyTxData.reduce((sum, row) => sum + (row.amountPaid ?? 0), 0)
