@@ -63,9 +63,9 @@
               <EngineConnectionCard
                 :title="t('settings.container_management')"
                 icon="grid_view"
-                :url-label="t('settings.cluster_endpoint')"
+                :url-label="t('settings.platform_url')"
                 :url="form.K8S_CLUSTER_ENDPOINT"
-                :secret-label="t('settings.management_secret')"
+                :secret-label="t('settings.api_key')"
                 :secret="form.K8S_MANAGEMENT_SECRET"
                 :status="k8sStatus"
                 :test-disabled="!form.K8S_CLUSTER_ENDPOINT || !form.K8S_MANAGEMENT_SECRET"
@@ -314,11 +314,7 @@ import {
   updatePaymentGateways,
 } from '@/services/settings'
 import { supabaseFrom } from '@/services/supabase'
-import {
-  testWorkflowEngineConnection,
-  testDeploymentEngineConnection,
-  testK8sConnection,
-} from '@/services/workflow-engine'
+import { testEngineConnection } from '@/services/workflow-engine'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { formatNumber } from '@/lib/formatters'
 import LifecycleDayInput from '@/components/settings/LifecycleDayInput.vue'
@@ -419,17 +415,17 @@ async function runTest(
 
 function testWorkflow(): Promise<void> {
   return runTest(workflowStatus, () =>
-    testWorkflowEngineConnection(form.WORKFLOW_ENGINE_URL, form.WORKFLOW_ENGINE_API_KEY)
+    testEngineConnection(form.WORKFLOW_ENGINE_URL, form.WORKFLOW_ENGINE_API_KEY)
   )
 }
 function testDeployment(): Promise<void> {
   return runTest(deploymentStatus, () =>
-    testDeploymentEngineConnection(form.DEPLOYMENT_ENGINE_URL, form.DEPLOYMENT_ENGINE_API_KEY)
+    testEngineConnection(form.DEPLOYMENT_ENGINE_URL, form.DEPLOYMENT_ENGINE_API_KEY)
   )
 }
 function testK8s(): Promise<void> {
   return runTest(k8sStatus, () =>
-    testK8sConnection(form.K8S_CLUSTER_ENDPOINT, form.K8S_MANAGEMENT_SECRET)
+    testEngineConnection(form.K8S_CLUSTER_ENDPOINT, form.K8S_MANAGEMENT_SECRET)
   )
 }
 

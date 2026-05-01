@@ -148,7 +148,7 @@ describe('Workflow Engine Service', () => {
         deploymentId: 1,
         partnerId: 1,
         serviceId: 1,
-        servicePlanId: 1,
+        planSlug: 'starter',
         serviceVersion: '15.0',
         domainNames: ['odoo.example.com'],
         label: 'My Odoo Instance',
@@ -285,6 +285,71 @@ describe('Workflow Engine Service', () => {
         expect(error).toBeInstanceOf(workflowEngineService.WorkflowEngineError)
         expect((error as workflowEngineService.WorkflowEngineError).statusCode).toBe(422)
       }
+    })
+  })
+
+  describe('testEngineConnection', () => {
+    const targetUrl = 'https://n8n.example.com/webhook/ping'
+    const apiKey = 'test-api-key-123'
+
+    const mockHttp = (status: number, body: unknown) =>
+      (global.fetch as any).mockResolvedValue({
+        status,
+        json: async () => {
+          if (body instanceof Error) throw body
+          return body
+        },
+      })
+
+    it('returns ok=true on HTTP 200 with { success: true } and forwards URL + Bearer token', async () => {
+      mockHttp(200, { success: true })
+
+      const result = await workflowEngineService.testEngineConnection(targetUrl, apiKey)
+
+      expect(result).toEqual({ ok: true })
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(global.fetch).toHaveBeenCalledWith(
+        targetUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          }),
+          body: '{}',
+        })
+      )
+    })
+
+    it('returns ok=false when HTTP 200 but body is { success: false }', async () => {
+      mockHttp(200, { success: false })
+      expect(await workflowEngineService.testEngineConnection(targetUrl, apiKey)).toEqual({ ok: false })
+    })
+
+    it('returns ok=false when HTTP 200 but body is not JSON', async () => {
+      mockHttp(200, new SyntaxError('Unexpected token'))
+      expect(await workflowEngineService.testEngineConnection(targetUrl, apiKey)).toEqual({ ok: false })
+    })
+
+    it('returns ok=false on HTTP 500', async () => {
+      mockHttp(500, { success: true })
+      expect(await workflowEngineService.testEngineConnection(targetUrl, apiKey)).toEqual({ ok: false })
+    })
+
+    it('returns ok=false on network error / abort', async () => {
+      ;(global.fetch as any).mockRejectedValue(new Error('network down'))
+      expect(await workflowEngineService.testEngineConnection(targetUrl, apiKey)).toEqual({ ok: false })
+    })
+
+    it('returns ok=false and skips fetch when URL or token is empty or whitespace-only', async () => {
+      const a = await workflowEngineService.testEngineConnection('', apiKey)
+      const b = await workflowEngineService.testEngineConnection(targetUrl, '')
+      const c = await workflowEngineService.testEngineConnection('   ', '   ')
+
+      expect(a).toEqual({ ok: false })
+      expect(b).toEqual({ ok: false })
+      expect(c).toEqual({ ok: false })
+      expect(global.fetch).not.toHaveBeenCalled()
     })
   })
 })

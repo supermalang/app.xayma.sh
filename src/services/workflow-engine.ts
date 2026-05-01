@@ -13,10 +13,6 @@ const baseUrl = import.meta.env.VITE_WORKFLOW_ENGINE_BASE_URL
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 1000
 
-if (!baseUrl) {
-  console.warn('VITE_WORKFLOW_ENGINE_BASE_URL not configured')
-}
-
 interface WebhookPayload {
   [key: string]: unknown
 }
@@ -121,7 +117,7 @@ interface CreateDeploymentPayload extends WebhookPayload {
   deploymentId: number
   partnerId: number
   serviceId: number
-  servicePlanId: number
+  planSlug: string
   serviceVersion?: string
   domainNames: string[]
   label: string
@@ -223,28 +219,38 @@ export async function redeemVoucher(payload: RedeemVoucherPayload): Promise<void
 }
 
 /**
- * Connection-test helpers
- *
- * Each posts {url, apiKey} to a dedicated n8n test webhook that pings the target
- * platform and returns 200 on success. Intentionally awaited (not fire-and-forget):
- * these are validation pings, not domain mutations.
- *
- * TODO: the corresponding n8n workflows need to be authored — see
- * `workflow-engine-specialist` agent. Until then these will simply return ok=false.
+ * POSTs directly to the URL the admin entered with the token as a Bearer header.
+ * Success requires HTTP 200 AND a JSON body of `{ success: true }`.
  */
 const TEST_CONNECTION_TIMEOUT_MS = 5000
 
-async function pingTestWebhook(path: string, payload: WebhookPayload): Promise<{ ok: boolean }> {
+export async function testEngineConnection(
+  url: string,
+  token: string
+): Promise<{ ok: boolean }> {
+  const u = url.trim()
+  const t = token.trim()
+  if (!u || !t) return { ok: false }
+
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TEST_CONNECTION_TIMEOUT_MS)
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
+    const response = await fetch(u, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${t}`,
+      },
+      body: '{}',
       signal: controller.signal,
     })
-    return { ok: response.ok }
+    if (response.status !== 200) return { ok: false }
+    try {
+      const body = (await response.json()) as { success?: unknown }
+      return { ok: body?.success === true }
+    } catch {
+      return { ok: false }
+    }
   } catch {
     return { ok: false }
   } finally {
@@ -252,25 +258,62 @@ async function pingTestWebhook(path: string, payload: WebhookPayload): Promise<{
   }
 }
 
-export async function testWorkflowEngineConnection(
-  url: string,
-  apiKey: string
-): Promise<{ ok: boolean }> {
-  return pingTestWebhook('/webhook/test-workflow-engine', { url, apiKey })
+/**
+ * Deployment engine — fetch available job templates.
+ * The engine multiplexes operations on a single webhook URL via `?operation=`.
+ * Response shape: { success: boolean, results: Array<{ id, url, name, ... }> }
+ * Only id, url, name are surfaced to callers — those are what the create-service
+ * form persists so a deployment can later be triggered against the right template.
+ */
+export interface DeploymentTemplate {
+  id: number
+  url: string
+  name: string
 }
 
-export async function testDeploymentEngineConnection(
-  url: string,
-  apiKey: string
-): Promise<{ ok: boolean }> {
-  return pingTestWebhook('/webhook/test-deployment-engine', { url, apiKey })
-}
+const FETCH_TEMPLATES_TIMEOUT_MS = 8000
 
-export async function testK8sConnection(
-  endpoint: string,
-  secret: string
-): Promise<{ ok: boolean }> {
-  return pingTestWebhook('/webhook/test-k8s', { endpoint, secret })
+export async function fetchDeploymentTemplates(
+  url: string,
+  token: string,
+): Promise<DeploymentTemplate[]> {
+  const u = url.trim()
+  const k = token.trim()
+  if (!u || !k) return []
+
+  const target = u.includes('?') ? `${u}&operation=getTemplates` : `${u}?operation=getTemplates`
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TEMPLATES_TIMEOUT_MS)
+  try {
+    const response = await fetch(target, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${k}`,
+      },
+      body: '{}',
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new WorkflowEngineError(response.status)
+    const body = (await response.json()) as {
+      success?: unknown
+      results?: unknown
+    }
+    if (body?.success !== true || !Array.isArray(body.results)) {
+      throw new WorkflowEngineError(response.status)
+    }
+    return body.results.flatMap((row): DeploymentTemplate[] => {
+      if (!row || typeof row !== 'object') return []
+      const r = row as Record<string, unknown>
+      if (typeof r.id !== 'number' || typeof r.url !== 'string' || typeof r.name !== 'string') {
+        return []
+      }
+      return [{ id: r.id, url: r.url, name: r.name }]
+    })
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /**
