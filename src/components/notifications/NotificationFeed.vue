@@ -1,5 +1,5 @@
 <template>
-  <OverlayPanel ref="op" :show-close-icon="true" class="w-96">
+  <Popover ref="op" class="w-96">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4 pb-2 border-b border-outline-variant">
       <h3 class="text-base font-semibold text-on-surface">
@@ -50,19 +50,19 @@
         @click="navigateToNotifications"
       />
     </div>
-  </OverlayPanel>
+  </Popover>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import OverlayPanel from 'primevue/overlaypanel'
+import Popover from 'primevue/popover'
 import Button from 'primevue/button'
 import NotificationItem from './NotificationItem.vue'
 import { useNotifications } from '@/composables/useNotifications'
 
 const router = useRouter()
-const op = ref<InstanceType<typeof OverlayPanel>>()
+const op = ref<InstanceType<typeof Popover>>()
 
 const { notifications, unreadCount, readNotification, readAll, removeNotification } = useNotifications()
 
@@ -85,11 +85,11 @@ defineExpose({ toggle })
 </script>
 
 <style scoped>
-:deep(.p-overlaypanel) {
+:deep(.p-popover) {
   min-width: 360px;
 }
 
-:deep(.p-overlaypanel-content) {
+:deep(.p-popover-content) {
   padding: 0;
 }
 </style>
