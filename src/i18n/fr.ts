@@ -463,16 +463,42 @@ export default {
 
   // Services
   services: {
-    title: 'Services',
-    create: 'Nouveau service',
-    empty: 'Aucun service disponible',
+    title: 'Registre des services',
+    create: 'Créer un nouveau service',
+    empty: 'Aucun service enregistré pour le moment.',
+    breadcrumb_root: 'Plateforme',
+    subtitle:
+      'Orchestrez et supervisez votre écosystème de déploiement. Configurez les blueprints de services, gérez les formules d’instance actives et suivez le cycle de vie des versions sur l’ensemble du cluster.',
+    section_title: 'Blueprints enregistrés',
+    export_csv: 'Exporter CSV',
+    filter: 'Filtrer',
+    showing_count: 'Affichage de {shown} sur {total} services',
+    previous: 'Préc.',
+    next: 'Suiv.',
+    status: {
+      active: 'Actif',
+      draft: 'Brouillon',
+    },
     columns: {
-      name: 'Nom',
+      name: 'Nom du service',
       isPubliclyAvailable: 'Public',
+      linked_template: 'Modèle de déploiement lié',
+      active_plans: 'Formules actives',
+      version_count: 'Nombre de versions',
+      status: 'Statut',
+      actions: 'Actions',
     },
     create_page: {
       title: 'Créer un nouveau service',
       subtitle: 'Définissez un nouveau service ou une intégration tierce pour le registre de déploiement. Tous les paramètres techniques doivent suivre strictement le schéma du système.',
+    },
+    edit_page: {
+      title: 'Modifier le service',
+      subtitle: 'Mettez à jour la configuration, les forfaits, les versions et les commandes de cycle de vie. Le slug est permanent et ne peut pas être modifié.',
+    },
+    slug_locked_tooltip: 'Le slug est permanent et ne peut pas être modifié après la création.',
+    errors: {
+      load_failed: 'Impossible de charger le service.',
     },
     sections: {
       basic_info: { num: '01.', title: 'Informations de base', description: 'Identité et représentation visuelle du service sur la marketplace.' },
@@ -518,7 +544,12 @@ export default {
       created_label: 'Créé le',
       sections: {
         plans: 'Formules de service',
+        versions: 'Versions',
         deployment_config: 'Configuration du déploiement',
+      },
+      versions: {
+        active: 'Active',
+        empty: 'Aucune version configurée pour ce service.',
       },
       performance: {
         title: 'Performance du service',
@@ -566,7 +597,6 @@ export default {
       archive: 'Archiver',
       domain: 'Domaine',
       placeholder: 'exec_sh : …',
-      command_placeholder: 'exec_sh : ./scripts/start.sh',
       start_placeholder: 'startinstance',
       stop_placeholder: 'stopinstance',
       restart_placeholder: 'restartinstance',
@@ -580,6 +610,7 @@ export default {
     },
     discard: 'Abandonner',
     save: 'ENREGISTRER',
+    update: 'METTRE À JOUR',
     confirm_discard: 'Abandonner ce brouillon ? Les champs non enregistrés seront perdus.',
   },
 

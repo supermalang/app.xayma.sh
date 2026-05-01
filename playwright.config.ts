@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 import { config } from 'dotenv'
 
-// Load E2E test user credentials from .env.test
-// Only runs at sprint end via /test-sprint (not per-task)
+// Load E2E test user credentials. `.env.test.local` (gitignored) overrides
+// `.env.test` (committed placeholders) so real creds never reach the repo.
+config({ path: '.env.test.local' })
 config({ path: '.env.test' })
 
 export default defineConfig({

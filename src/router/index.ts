@@ -103,6 +103,11 @@ const routes: RouteRecordRaw[] = [
         meta: { requiredRole: ['ADMIN'] },
       },
       {
+        path: 'services/:id/edit',
+        component: CreateService,
+        meta: { requiredRole: ['ADMIN'] },
+      },
+      {
         path: 'deployments',
         component: Deployments,
         meta: { requiredRole: ['ADMIN', 'CUSTOMER', 'RESELLER'] },

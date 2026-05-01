@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Service Registry | Platform Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#dde1ff",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-container": "#a8b8ff",
+                        "on-secondary-container": "#5c2400",
+                        "on-surface-variant": "#444653",
+                        "on-secondary-fixed-variant": "#783200",
+                        "surface": "#f8f9ff",
+                        "secondary-fixed-dim": "#ffb690",
+                        "background": "#f8f9ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary": "#9d4300",
+                        "primary-fixed-dim": "#b8c4ff",
+                        "primary": "#00288e",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#1e40af",
+                        "on-background": "#0b1c30",
+                        "surface-variant": "#d3e4fe",
+                        "surface-tint": "#3755c3",
+                        "on-tertiary-fixed": "#002114",
+                        "inverse-surface": "#213145",
+                        "outline": "#757684",
+                        "on-primary-fixed": "#001453",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "inverse-primary": "#b8c4ff",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#fd761a",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container": "#e5eeff",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary-fixed-variant": "#173bab",
+                        "outline-variant": "#c4c5d5",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#341100",
+                        "surface-container-high": "#dce9ff",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#003d28",
+                        "secondary-fixed": "#ffdbca",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "tertiary-fixed": "#85f8c4",
+                        "on-tertiary-container": "#5bcf9e",
+                        "tertiary-container": "#00563a",
+                        "on-surface": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .technical-mono { font-family: 'IBM Plex Mono', monospace; }
+        .no-shadow { box-shadow: none !important; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar (Authority Source: JSON) -->
+<aside class="hidden md:flex flex-col h-screen w-64 bg-slate-100 dark:bg-slate-900 border-r border-outline-variant/20 fixed left-0 top-0 z-50">
+<div class="flex flex-col h-full py-6 space-y-2">
+<!-- Header Identity -->
+<div class="px-8 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-8 h-8 bg-primary-container flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-white text-lg" style="font-variation-settings: 'FILL' 1;">widgets</span>
+</div>
+<span class="text-lg font-black text-blue-900 dark:text-blue-100 tracking-tighter">Platform Admin</span>
+</div>
+<p class="font-sans uppercase tracking-widest text-[11px] font-bold text-slate-500">Odoo Instance Manager</p>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all active:translate-x-1 duration-200 font-sans uppercase tracking-widest text-[11px] font-bold" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="grid_view">grid_view</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-950 text-blue-700 dark:text-blue-400 border-r-4 border-blue-800 dark:border-blue-500 active:translate-x-1 duration-200 font-sans uppercase tracking-widest text-[11px] font-bold" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="inventory_2">inventory_2</span>
+                    Registry
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all active:translate-x-1 duration-200 font-sans uppercase tracking-widest text-[11px] font-bold" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="rocket_launch">rocket_launch</span>
+                    Deployments
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all active:translate-x-1 duration-200 font-sans uppercase tracking-widest text-[11px] font-bold" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="layers">layers</span>
+                    Templates
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all active:translate-x-1 duration-200 font-sans uppercase tracking-widest text-[11px] font-bold" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="payments">payments</span>
+                    Billing
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all active:translate-x-1 duration-200 font-sans uppercase tracking-widest text-[11px] font-bold" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
+                    Settings
+                </a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-4 bg-primary-container text-white font-bold tracking-widest text-[11px] uppercase rounded-lg hover:bg-blue-800 transition-colors">
+                    Create Service
+                </button>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar (Authority Source: JSON) -->
+<header class="bg-slate-50 dark:bg-slate-950 flex justify-between items-center w-full px-8 h-16 border-b border-slate-200/20 sticky top-0 z-40 no-shadow">
+<div class="flex items-center gap-8 flex-1">
+<div class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-200">Service Registry</div>
+<!-- Search Bar -->
+<div class="max-w-md w-full relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-900 border-none text-sm px-10 py-2 rounded focus:ring-1 focus:ring-blue-500 font-sans tracking-tight" placeholder="Global system search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<button class="text-slate-500 hover:text-blue-700 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-500 hover:text-blue-700 transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-800"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">Admin User</p>
+<p class="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">ROOT_ACCESS</p>
+</div>
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full border border-slate-200" data-alt="A clean, minimalist studio headshot of a professional technology administrator with neutral soft lighting and a solid cool-gray background. The subject is wearing a modern dark suit, embodying a sophisticated corporate authority. The lighting is bright and high-key, maintaining the crisp, light-mode aesthetic of the overall platform interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDzWeyqkLDNUoHdSp0Bbu6ky759GR2ZEH4Rzxv9ejnArVP0QMjSvK6V0w6kZOs5TCc-_APX7_K8vFLcFT-v51llGKo1sf2ix1ck3KVfzcyZXybb2ZwwkEVx-_lJPZpMxfiK7blvfcgWF5h5P7BsXz1vm8koHwG4Dr4JSORnvDWn0G9b3UHwX2fiHJBOCCr6kxMtVqum59jWDd7J6NqfVNu_CFKA3fb2UeRLGfyxNll_j2WZbPjUdXYKBlvk0oyoT7BbVG8FVaU4FNy"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<div class="p-8 lg:p-12 space-y-12 max-w-[1600px]">
+<!-- Hero Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-2">
+<nav class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+<span>Platform</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-blue-600">Service Registry</span>
+</nav>
+<h1 class="text-4xl font-extrabold tracking-tighter text-blue-900 leading-none">Service Registry</h1>
+<p class="text-slate-500 text-sm max-w-xl font-medium leading-relaxed">
+                        Orchestrate and monitor your Odoo deployment ecosystem. Configure service blueprints, manage active instance plans, and track version lifecycles across the cluster.
+                    </p>
+</div>
+<div>
+<button class="bg-primary-container text-white px-6 py-3 font-bold tracking-tight text-sm rounded shadow-none hover:bg-blue-800 flex items-center gap-2 transition-transform active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                        Create New Service
+                    </button>
+</div>
+</div>
+<!-- Stats Overview - Asymmetric Balance Pattern -->
+<!-- Service Table Section -->
+<div class="bg-white overflow-hidden">
+<div class="p-6 border-b border-slate-100 flex items-center justify-between">
+<h2 class="font-bold text-slate-900 flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600" style="font-variation-settings: 'FILL' 1;">list_alt</span>
+                        Registered Blueprints
+                    </h2>
+<div class="flex gap-4">
+<button class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors">Export CSV</button>
+<button class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors">Filter</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 text-[11px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-200">
+<th class="px-8 py-5">Service Name</th>
+<th class="px-6 py-5">Linked Deployment Template</th>
+<th class="px-6 py-5 text-right">Active Plans</th>
+<th class="px-6 py-5 text-right">Version Count</th>
+<th class="px-6 py-5">Status</th>
+<th class="px-8 py-5 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="text-sm font-medium text-slate-700">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high border-b border-slate-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-slate-100 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-blue-800">database</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 leading-tight">Odoo Enterprise Core</p>
+<p class="text-[10px] technical-mono text-slate-400 uppercase">SVC-2024-001</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded text-[11px] font-bold">Standard_HA_Cluster</span>
+</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">12</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">v17.4.2</td>
+<td class="px-6 py-6">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-container text-on-tertiary-fixed-variant text-[10px] font-black uppercase tracking-tighter bg-transparent border border-tertiary-container text-tertiary-container"><span class="material-symbols-outlined text-[14px]">check_circle</span>Active</div>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-4">
+<button class="text-blue-700 hover:underline text-xs font-bold">Edit</button>
+<button class="text-slate-400 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-slate-50 hover:bg-surface-container-high border-b border-slate-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-slate-100 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-blue-800">analytics</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 leading-tight">BI Reporting Engine</p>
+<p class="text-[10px] technical-mono text-slate-400 uppercase">SVC-2024-042</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded text-[11px] font-bold">Analytics_Worker_Node</span>
+</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">04</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">v2.1.0</td>
+<td class="px-6 py-6">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-tighter bg-transparent border border-slate-400 text-slate-500"><span class="material-symbols-outlined text-[14px]">edit_note</span>Draft</div>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-4">
+<button class="text-blue-700 hover:underline text-xs font-bold">Edit</button>
+<button class="text-slate-400 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high border-b border-slate-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-slate-100 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-blue-800">inventory</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 leading-tight">Legacy POS Connect</p>
+<p class="text-[10px] technical-mono text-slate-400 uppercase">SVC-2022-089</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded text-[11px] font-bold">Legacy_Compat_Module</span>
+</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">31</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">v15.0.0</td>
+<td class="px-6 py-6">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container/20 text-on-secondary-container text-[10px] font-black uppercase tracking-tighter bg-transparent border border-secondary text-secondary"><span class="material-symbols-outlined text-[14px]">history</span>Legacy</div>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-4">
+<button class="text-blue-700 hover:underline text-xs font-bold">Edit</button>
+<button class="text-slate-400 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-slate-50 hover:bg-surface-container-high border-b border-slate-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-slate-100 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-blue-800">payments</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 leading-tight">Payment Gateway Wrapper</p>
+<p class="text-[10px] technical-mono text-slate-400 uppercase">SVC-2024-009</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded text-[11px] font-bold">Financial_Security_Node</span>
+</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">08</td>
+<td class="px-6 py-6 text-right technical-mono font-medium">v3.4.1</td>
+<td class="px-6 py-6">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-container text-on-tertiary-fixed-variant text-[10px] font-black uppercase tracking-tighter bg-transparent border border-tertiary-container text-tertiary-container"><span class="material-symbols-outlined text-[14px]">check_circle</span>Active</div>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex items-center justify-end gap-4">
+<button class="text-blue-700 hover:underline text-xs font-bold">Edit</button>
+<button class="text-slate-400 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 border-t border-slate-100 flex items-center justify-between bg-white">
+<div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                        Showing 4 of 24 Services
+                    </div>
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 text-xs font-black text-blue-900 hover:bg-slate-100 transition-colors uppercase tracking-widest disabled:opacity-30">Prev</button>
+<div class="technical-mono text-xs font-bold px-4">01 / 06</div>
+<button class="px-4 py-2 text-xs font-black text-blue-900 hover:bg-slate-100 transition-colors uppercase tracking-widest">Next</button>
+</div>
+</div>
+</div>
+<!-- Contextual Help / Technical Insights - Bento Layout -->
+</div>
+</main>
+<!-- Mobile Navigation (Authority Source: JSON logic) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-16 flex items-center justify-around z-50">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Dash</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-blue-700">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Registry</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Deploy</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Bill</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">tune</span>
+<span class="text-[9px] font-bold uppercase tracking-widest">Settings</span>
+</button>
+</nav>
+</body></html>

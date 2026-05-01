@@ -4,15 +4,52 @@
     <div class="px-12 pt-12 pb-8 max-w-screen-2xl mx-auto w-full">
       <div class="border-l-4 border-primary ps-8">
         <h1 class="text-4xl font-bold tracking-tight text-on-surface">
-          {{ $t('services.create_page.title') }}
+          {{ isEdit ? $t('services.edit_page.title') : $t('services.create_page.title') }}
         </h1>
         <p class="text-on-surface-variant max-w-2xl font-medium mt-2">
-          {{ $t('services.create_page.subtitle') }}
+          {{ isEdit ? $t('services.edit_page.subtitle') : $t('services.create_page.subtitle') }}
         </p>
       </div>
     </div>
 
-    <form class="px-12 pb-16 max-w-screen-2xl mx-auto w-full space-y-16" @submit.prevent="handleSave">
+    <div v-if="loading" class="px-12 pb-16 max-w-screen-2xl mx-auto w-full space-y-16" data-test="service-form-loading">
+      <div class="grid grid-cols-12 gap-8">
+        <div class="col-span-12 md:col-span-4 space-y-3">
+          <Skeleton width="60%" height="14px" />
+          <Skeleton width="90%" height="10px" />
+        </div>
+        <div class="col-span-12 md:col-span-8 space-y-4">
+          <Skeleton height="44px" />
+          <Skeleton height="44px" />
+          <Skeleton height="80px" />
+        </div>
+      </div>
+      <div class="grid grid-cols-12 gap-8">
+        <div class="col-span-12 md:col-span-4 space-y-3">
+          <Skeleton width="60%" height="14px" />
+          <Skeleton width="90%" height="10px" />
+        </div>
+        <div class="col-span-12 md:col-span-8">
+          <Skeleton height="220px" />
+        </div>
+      </div>
+    </div>
+
+    <Message
+      v-else-if="loadError"
+      severity="error"
+      :closable="false"
+      class="mx-12 max-w-screen-2xl"
+      data-test="service-form-error"
+    >
+      {{ loadError }}
+    </Message>
+
+    <form
+      v-else
+      class="px-12 pb-16 max-w-screen-2xl mx-auto w-full space-y-16"
+      @submit.prevent="handleSave"
+    >
       <!-- ============== 01. Basic Info ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
@@ -41,18 +78,28 @@
               </label>
               <div
                 data-test="service-slug"
-                class="font-mono text-xs bg-surface-container p-3 flex items-center justify-between"
+                class="font-mono text-xs bg-surface-container p-3 flex items-center justify-between gap-2"
               >
                 <span class="text-on-surface-variant">{{ slug || '—' }}</span>
-                <button
-                  v-if="slug"
-                  type="button"
-                  class="material-symbols-outlined text-xs cursor-pointer"
-                  aria-label="copy slug"
-                  @click="copySlug"
-                >
-                  content_copy
-                </button>
+                <div class="flex items-center gap-2">
+                  <span
+                    v-if="isEdit"
+                    class="material-symbols-outlined text-xs text-outline"
+                    :title="$t('services.slug_locked_tooltip')"
+                    data-test="service-slug-lock"
+                  >
+                    lock
+                  </span>
+                  <button
+                    v-if="slug"
+                    type="button"
+                    class="material-symbols-outlined text-xs cursor-pointer"
+                    aria-label="copy slug"
+                    @click="copySlug"
+                  >
+                    content_copy
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -336,7 +383,7 @@
           :disabled="!canSave || saving"
           class="px-10 py-3 bg-primary-container text-on-primary font-bold text-sm tracking-widest hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {{ saving ? '…' : $t('services.save') }}
+          {{ saveLabel }}
         </button>
       </div>
     </form>
@@ -345,7 +392,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
@@ -354,7 +401,15 @@ import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { createService, uploadServiceLogo } from '@/services/services.service'
+import Skeleton from 'primevue/skeleton'
+import Message from 'primevue/message'
+import {
+  createService,
+  getService,
+  readServicePlans,
+  updateService,
+  uploadServiceLogo,
+} from '@/services/services.service'
 import { useSettings } from '@/composables/useSettings'
 import {
   fetchDeploymentTemplates,
@@ -378,8 +433,15 @@ interface PlanDraft {
 }
 
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 const toast = useToast()
+
+const editIdParam = Number(route.params.id)
+const editId = ref<number | null>(
+  Number.isInteger(editIdParam) && editIdParam > 0 ? editIdParam : null,
+)
+const isEdit = computed(() => editId.value !== null)
 
 const form = reactive<BasicInfoForm>({
   name: '',
@@ -395,13 +457,21 @@ const saving = ref(false)
 const logoUploading = ref(false)
 const logoInputEl = ref<HTMLInputElement | null>(null)
 
+const loading = ref(isEdit.value)
+const loadError = ref<string | null>(null)
+const loadedSlug = ref<string>('')
+
 const { settings, loadSettings } = useSettings()
 const deploymentTemplates = ref<DeploymentTemplate[]>([])
 const templatesLoading = ref(false)
 const templatesError = ref(false)
 
-const slug = computed(() => slugify(form.name))
+const slug = computed(() => (isEdit.value ? loadedSlug.value : slugify(form.name)))
 const canSave = computed(() => form.name.trim().length > 0)
+const saveLabel = computed(() => {
+  if (saving.value) return '…'
+  return isEdit.value ? t('services.update') : t('services.save')
+})
 
 const lifecycleTags = [
   { key: 'start', icon: 'play_arrow' },
@@ -436,7 +506,56 @@ async function loadDeploymentTemplates() {
   }
 }
 
-onMounted(loadDeploymentTemplates)
+async function loadServiceForEdit(id: number) {
+  loading.value = true
+  loadError.value = null
+  try {
+    const svc = await getService(id)
+    if (!svc) {
+      loadError.value = t('services.errors.load_failed')
+      return
+    }
+    form.name = svc.name ?? ''
+    form.description = svc.description ?? ''
+    form.logo_url = svc.logo_url ?? ''
+    form.isPubliclyAvailable = Boolean(svc.isPubliclyAvailable)
+    loadedSlug.value = svc.slug ?? ''
+
+    versionList.value = Array.isArray(svc.versions)
+      ? svc.versions.filter((v: unknown): v is string => typeof v === 'string')
+      : []
+
+    draftPlans.value = readServicePlans(svc).map((p) => ({
+      label: p.label,
+      description: p.description ?? '',
+      optionsRaw: p.options.join('\n'),
+      monthlyCreditConsumption: p.monthlyCreditConsumption,
+    }))
+
+    const lc = (svc.lifecycle_commands ?? {}) as Record<string, unknown>
+    for (const tag of lifecycleTags) {
+      const v = lc[tag.key]
+      lifecycleTagValues[tag.key] = typeof v === 'string' ? v : ''
+    }
+
+    const dt = svc.deployment_template as { id?: string | number } | null
+    if (dt && (dt.id ?? null) !== null) {
+      const match = deploymentTemplates.value.find((tpl) => tpl.id === dt.id)
+      if (match) form.deployment_template = match
+    }
+  } catch {
+    loadError.value = t('services.errors.load_failed')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadDeploymentTemplates()
+  if (isEdit.value && editId.value !== null) {
+    await loadServiceForEdit(editId.value)
+  }
+})
 
 function addTier() {
   draftPlans.value.push({
@@ -485,6 +604,10 @@ async function copySlug() {
 }
 
 function handleDiscard() {
+  if (isEdit.value) {
+    router.push(`/services/${editId.value}`)
+    return
+  }
   if (
     form.name ||
     form.description ||
@@ -526,24 +649,35 @@ async function handleSave() {
       }
     })
 
-    const created = await createService({
+    const versions = versionList.value.map((v) => v.trim()).filter(Boolean)
+
+    const deployment_template = form.deployment_template
+      ? {
+          id: form.deployment_template.id,
+          url: form.deployment_template.url,
+          name: form.deployment_template.name,
+        }
+      : null
+
+    const payload = {
       name: form.name.trim(),
-      slug: slug.value,
       description: form.description.trim() || null,
       logo_url: form.logo_url.trim() || null,
       isPubliclyAvailable: form.isPubliclyAvailable,
       lifecycle_commands,
       plans,
-      deployment_template: form.deployment_template
-        ? {
-            id: form.deployment_template.id,
-            url: form.deployment_template.url,
-            name: form.deployment_template.name,
-          }
-        : null,
-    })
+      versions,
+      deployment_template,
+    }
 
-    const serviceId = (created as { id: number }).id
+    let serviceId: number
+    if (isEdit.value && editId.value !== null) {
+      await updateService(editId.value, payload)
+      serviceId = editId.value
+    } else {
+      const created = await createService({ ...payload, slug: slug.value })
+      serviceId = (created as { id: number }).id
+    }
 
     toast.add({ severity: 'success', summary: t('common.success'), life: 3000 })
     router.push(`/services/${serviceId}`)

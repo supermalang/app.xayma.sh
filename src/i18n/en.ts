@@ -463,16 +463,42 @@ export default {
 
   // Services
   services: {
-    title: 'Services',
-    create: 'New Service',
-    empty: 'No services available',
+    title: 'Service Registry',
+    create: 'Create New Service',
+    empty: 'No services registered yet.',
+    breadcrumb_root: 'Platform',
+    subtitle:
+      'Orchestrate and monitor your deployment ecosystem. Configure service blueprints, manage active instance plans, and track version lifecycles across the cluster.',
+    section_title: 'Registered Blueprints',
+    export_csv: 'Export CSV',
+    filter: 'Filter',
+    showing_count: 'Showing {shown} of {total} services',
+    previous: 'Prev',
+    next: 'Next',
+    status: {
+      active: 'Active',
+      draft: 'Draft',
+    },
     columns: {
-      name: 'Name',
+      name: 'Service Name',
       isPubliclyAvailable: 'Public',
+      linked_template: 'Linked Deployment Template',
+      active_plans: 'Active Plans',
+      version_count: 'Version Count',
+      status: 'Status',
+      actions: 'Actions',
     },
     create_page: {
       title: 'Create New Service',
       subtitle: 'Define a new core service or third-party integration for the deployment registry. All technical parameters must strictly follow the system schema.',
+    },
+    edit_page: {
+      title: 'Edit Service',
+      subtitle: 'Update configuration, plans, versions and lifecycle commands. The slug is permanent and cannot be changed.',
+    },
+    slug_locked_tooltip: 'Slug is permanent and cannot be changed after creation.',
+    errors: {
+      load_failed: 'Failed to load service.',
     },
     sections: {
       basic_info: { num: '01.', title: 'Basic Info', description: 'Identity and visual representation of the service across the marketplace.' },
@@ -518,7 +544,12 @@ export default {
       created_label: 'Created',
       sections: {
         plans: 'Service Plans',
+        versions: 'Versions',
         deployment_config: 'Deployment Configuration',
+      },
+      versions: {
+        active: 'Active',
+        empty: 'No versions configured for this service.',
       },
       performance: {
         title: 'Service Performance',
@@ -566,7 +597,6 @@ export default {
       archive: 'Archive',
       domain: 'Domain',
       placeholder: 'exec_sh: …',
-      command_placeholder: 'exec_sh: ./scripts/start.sh',
       start_placeholder: 'startinstance',
       stop_placeholder: 'stopinstance',
       restart_placeholder: 'restartinstance',
@@ -580,6 +610,7 @@ export default {
     },
     discard: 'Discard Draft',
     save: 'SAVE',
+    update: 'UPDATE',
     confirm_discard: 'Discard this draft? Unsaved fields will be lost.',
   },
 

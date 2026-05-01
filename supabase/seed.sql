@@ -20,12 +20,12 @@ ON CONFLICT (id) DO NOTHING;
 -- SERVICES
 -- ============================================================================
 
-INSERT INTO xayma_app.services (id, name, slug, description, "isPubliclyAvailable", "controlNodeId")
+INSERT INTO xayma_app.services (id, name, slug, description, "isPubliclyAvailable")
 VALUES
-  (1, 'Odoo Community', 'odoo-community', 'ERP open source complet pour PMEs — gestion, comptabilité, CRM, stock', true, 1),
-  (2, 'WordPress', 'wordpress', 'CMS leader mondial pour sites web et blogs professionnels', true, 1),
-  (3, 'Nextcloud', 'nextcloud', 'Solution de stockage et collaboration cloud privé', true, 1),
-  (4, 'Application Docker', 'custom-docker', 'Déploiement de votre propre image Docker sur infrastructure dédiée', false, 1)
+  (1, 'Odoo Community', 'odoo-community', 'ERP open source complet pour PMEs — gestion, comptabilité, CRM, stock', true),
+  (2, 'WordPress', 'wordpress', 'CMS leader mondial pour sites web et blogs professionnels', true),
+  (3, 'Nextcloud', 'nextcloud', 'Solution de stockage et collaboration cloud privé', true),
+  (4, 'Application Docker', 'custom-docker', 'Déploiement de votre propre image Docker sur infrastructure dédiée', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================

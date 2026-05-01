@@ -392,12 +392,10 @@ export type Database = {
       }
       services: {
         Row: {
-          controlNodeId: number | null
           created: string
           createdby: string | null
           deployment_template: Json | null
           description: string | null
-          dockerimage: string | null
           id: number
           isPubliclyAvailable: boolean | null
           lifecycle_commands: Json
@@ -407,14 +405,13 @@ export type Database = {
           name: string
           plans: Json
           slug: string
+          versions: Json
         }
         Insert: {
-          controlNodeId?: number | null
           created?: string
           createdby?: string | null
           deployment_template?: Json | null
           description?: string | null
-          dockerimage?: string | null
           id?: number
           isPubliclyAvailable?: boolean | null
           lifecycle_commands?: Json
@@ -424,14 +421,13 @@ export type Database = {
           name: string
           plans?: Json
           slug: string
+          versions?: Json
         }
         Update: {
-          controlNodeId?: number | null
           created?: string
           createdby?: string | null
           deployment_template?: Json | null
           description?: string | null
-          dockerimage?: string | null
           id?: number
           isPubliclyAvailable?: boolean | null
           lifecycle_commands?: Json
@@ -441,16 +437,9 @@ export type Database = {
           name?: string
           plans?: Json
           slug?: string
+          versions?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "services_controlNodeId_fkey"
-            columns: ["controlNodeId"]
-            isOneToOne: false
-            referencedRelation: "control_nodes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       settings: {
         Row: {

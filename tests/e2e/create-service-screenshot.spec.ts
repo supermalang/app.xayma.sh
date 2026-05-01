@@ -6,6 +6,7 @@
 import { test } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { loginAsAdmin } from './helpers'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SCREENSHOT_PATH = path.join(
@@ -15,11 +16,7 @@ const SCREENSHOT_PATH = path.join(
 
 test('capture /services/new at desktop', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/login')
-  await page.fill('input[type="email"]', 'supermalang@outlook.com')
-  await page.fill('input[type="password"]', 'P@sser123!')
-  await page.click('button:has-text("Login")')
-  await page.waitForURL('/')
+  await loginAsAdmin(page)
   await page.goto('/services/new', { waitUntil: 'networkidle' })
   await page.waitForTimeout(800)
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true })

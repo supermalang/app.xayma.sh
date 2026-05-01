@@ -36,7 +36,7 @@
           </h1>
           <div class="flex items-center gap-3 font-mono text-xs text-on-surface-variant">
             <span class="bg-surface-container-high px-2 py-1 rounded">
-              {{ $t('services.detail.id_prefix') }}{{ formattedId }}
+              {{ service.slug }}
             </span>
             <span class="flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse" />
@@ -49,6 +49,7 @@
           :label="$t('services.detail.edit')"
           severity="secondary"
           data-test="edit-service"
+          @click="router.push(`/services/${service.id}/edit`)"
         />
       </header>
 
@@ -127,10 +128,10 @@
             </div>
 
             <DataTable
+              v-model:editingRows="editingRows"
               :value="plans"
               :loading="plansLoading"
               edit-mode="row"
-              :editing-rows="editingRows"
               data-key="slug"
               @row-edit-save="onRowEditSave"
               @row-edit-cancel="onRowEditCancel"
@@ -208,6 +209,34 @@
                 </template>
               </Column>
             </DataTable>
+          </section>
+
+          <!-- Versions -->
+          <section class="space-y-4">
+            <h3 class="font-bold text-sm uppercase tracking-widest text-on-surface-variant">
+              {{ $t('services.detail.sections.versions') }}
+            </h3>
+            <div v-if="serviceVersions.length" class="space-y-2">
+              <div
+                v-for="(version, idx) in serviceVersions"
+                :key="version"
+                class="bg-surface-container-lowest p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors"
+              >
+                <div class="flex items-center gap-6">
+                  <span class="font-mono text-sm font-bold text-primary">v{{ version }}</span>
+                </div>
+                <span
+                  v-if="idx === 0"
+                  class="bg-tertiary-container/20 text-tertiary-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter flex items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                  {{ $t('services.detail.versions.active') }}
+                </span>
+              </div>
+            </div>
+            <p v-else class="text-xs text-on-surface-variant">
+              {{ $t('services.detail.versions.empty') }}
+            </p>
           </section>
 
           <!-- Deployment Engine Config -->
@@ -295,7 +324,7 @@
                 <InputText
                   v-model="lifecycleTagValues[tag.key]"
                   :data-test="`tag-command-${tag.key}`"
-                  :placeholder="$t('services.tags_section.command_placeholder')"
+                  :placeholder="$t(`services.tags_section.${tag.key}_placeholder`)"
                   :pt="{
                     root: `!w-full !border-0 !rounded-none !bg-inverse-surface !text-[11px] !font-mono !text-white !p-2 !border-s-2 ${tag.accent}`,
                   }"
@@ -381,9 +410,10 @@ const lifecycleDirty = computed(() => {
   return false
 })
 
-const formattedId = computed(() => {
-  const id = Number(route.params.id)
-  return Number.isFinite(id) ? String(id).padStart(4, '0') : ''
+const serviceVersions = computed<string[]>(() => {
+  const raw = service.value?.versions
+  if (!Array.isArray(raw)) return []
+  return raw.filter((v): v is string => typeof v === 'string' && v.length > 0)
 })
 
 function formatDate(value: string | null | undefined): string {
@@ -517,6 +547,8 @@ function confirmDeletePlan(plan: ServicePlan) {
     message: t('common.confirm_delete'),
     header: t('common.delete'),
     icon: 'pi pi-exclamation-triangle',
+    rejectProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
+    acceptProps: { label: t('common.delete'), severity: 'danger' },
     accept: async () => {
       const previous = plans.value
       const next = previous.filter((p) => p.slug !== plan.slug)

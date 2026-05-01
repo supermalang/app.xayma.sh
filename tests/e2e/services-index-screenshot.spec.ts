@@ -1,6 +1,6 @@
 /**
- * Visual-check capture for /services/:id (ServiceDetail page).
- * Used by /visual-check to compare against docs/mockups/11-service-detail-page.png
+ * Visual-check capture for /services (Services index page).
+ * Used by /visual-check to compare against docs/mockups/12-service-index-page.png
  */
 
 import { test } from '@playwright/test'
@@ -11,18 +11,13 @@ import { loginAsAdmin } from './helpers'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SCREENSHOT_PATH = path.join(
   __dirname,
-  '../screenshots/services/11-service-detail-page-desktop.png',
+  '../screenshots/services/12-service-index-page-desktop.png',
 )
 
-test('capture /services/:id at desktop', async ({ page }) => {
+test('capture /services at desktop', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await loginAsAdmin(page)
   await page.goto('/services', { waitUntil: 'networkidle' })
-  await page.waitForTimeout(500)
-  const firstDetailButton = page.locator('button:has(.pi-arrow-right)').first()
-  await firstDetailButton.click()
-  await page.waitForURL(/\/services\/\d+/)
-  await page.waitForLoadState('networkidle')
   await page.waitForTimeout(800)
   await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true })
 })
