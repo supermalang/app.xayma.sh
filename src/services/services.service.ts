@@ -1,19 +1,26 @@
 /**
  * Services service
- * CRUD operations for xayma_app.services and xayma_app.serviceplans tables
+ * CRUD on xayma_app.services. Plans live inline as services.plans (jsonb array),
+ * keyed by `slug` within a service.
  */
 
-import { supabaseFrom } from '@/services/supabase'
+import { supabase, supabaseFrom } from '@/services/supabase'
 
-// Service types (auto-generated from Supabase schema)
+const SERVICE_LOGOS_BUCKET = 'service-logos'
+
 export type Service = any
 export type ServiceInsert = any
 export type ServiceUpdate = any
 
-// Service plan types (auto-generated from Supabase schema)
-export type ServicePlan = any
-export type ServicePlanInsert = any
-export type ServicePlanUpdate = any
+export interface ServicePlan {
+  slug: string
+  label: string
+  description: string | null
+  monthlyCreditConsumption: number
+  options: string[]
+}
+
+export type ServicePlanInput = Partial<ServicePlan> & { slug: string; label: string }
 
 export interface ListServicesFilter {
   isPubliclyAvailable?: boolean
@@ -27,21 +34,6 @@ export interface ListServicesOptions extends ListServicesFilter {
   orderDirection?: 'asc' | 'desc'
 }
 
-export interface ListServicePlansFilter {
-  service_id?: number
-  search?: string
-}
-
-export interface ListServicePlansOptions extends ListServicePlansFilter {
-  page?: number
-  pageSize?: number
-  orderBy?: string
-  orderDirection?: 'asc' | 'desc'
-}
-
-/**
- * List all services with optional filtering and pagination
- */
 export async function listServices(options: ListServicesOptions = {}) {
   const {
     page = 1,
@@ -54,7 +46,6 @@ export async function listServices(options: ListServicesOptions = {}) {
 
   let query = supabaseFrom('services').select('*', { count: 'exact' })
 
-  // Apply filters
   if (isPubliclyAvailable !== undefined) {
     query = query.eq('isPubliclyAvailable', isPubliclyAvailable)
   }
@@ -62,10 +53,8 @@ export async function listServices(options: ListServicesOptions = {}) {
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
   }
 
-  // Sorting
   query = query.order(orderBy, { ascending: orderDirection === 'asc' })
 
-  // Pagination
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
   query = query.range(from, to)
@@ -86,9 +75,6 @@ export async function listServices(options: ListServicesOptions = {}) {
   }
 }
 
-/**
- * Get a single service by ID
- */
 export async function getService(id: number) {
   const { data, error } = await supabaseFrom('services').select('*').eq('id', id).single()
 
@@ -100,9 +86,6 @@ export async function getService(id: number) {
   return data
 }
 
-/**
- * Create a new service
- */
 export async function createService(service: ServiceInsert) {
   const { data, error } = await supabaseFrom('services').insert([service]).select()
 
@@ -114,9 +97,6 @@ export async function createService(service: ServiceInsert) {
   return data?.[0]
 }
 
-/**
- * Update an existing service
- */
 export async function updateService(id: number, updates: ServiceUpdate) {
   const { data, error } = await supabaseFrom('services')
     .update(updates)
@@ -131,9 +111,6 @@ export async function updateService(id: number, updates: ServiceUpdate) {
   return data?.[0]
 }
 
-/**
- * Delete a service
- */
 export async function deleteService(id: number) {
   const { error } = await supabaseFrom('services').delete().eq('id', id)
 
@@ -143,160 +120,142 @@ export async function deleteService(id: number) {
   }
 }
 
-/**
- * Toggle service public availability
- */
 export async function toggleServicePublicAvailability(id: number, isPubliclyAvailable: boolean) {
   return updateService(id, { isPubliclyAvailable })
 }
 
 /**
- * Change service status (active, inactive, archived)
+ * Normalise a stored plan entry. Tolerant of nulls and missing keys so that
+ * callers always get a stable `ServicePlan` shape.
  */
-export async function changeServiceStatus(id: number, status: string) {
-  return updateService(id, { status: status as any })
-}
-
-/**
- * List all service plans with optional filtering
- */
-export async function listServicePlans(options: ListServicePlansOptions = {}) {
-  const {
-    page = 1,
-    pageSize = 20,
-    orderBy = 'created',
-    orderDirection = 'desc',
-    service_id,
-    search,
-  } = options
-
-  let query = supabaseFrom('serviceplans').select('*', { count: 'exact' })
-
-  // Apply filters
-  if (service_id) {
-    query = query.eq('service_id', service_id)
-  }
-  if (search) {
-    query = query.or(`label.ilike.%${search}%,description.ilike.%${search}%`)
-  }
-
-  // Sorting
-  query = query.order(orderBy, { ascending: orderDirection === 'asc' })
-
-  // Pagination
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
-  query = query.range(from, to)
-
-  const { data, error, count } = await query
-
-  if (error) {
-    console.error('Error listing service plans:', error)
-    throw error
-  }
-
+export function normalizeServicePlan(raw: unknown): ServicePlan | null {
+  if (!raw || typeof raw !== 'object') return null
+  const r = raw as Record<string, unknown>
+  if (typeof r.slug !== 'string' || !r.slug || typeof r.label !== 'string') return null
+  const options = Array.isArray(r.options)
+    ? r.options.filter((o): o is string => typeof o === 'string')
+    : []
   return {
-    data: data || [],
-    count: count || 0,
-    page,
-    pageSize,
-    totalPages: Math.ceil((count || 0) / pageSize),
+    slug: r.slug,
+    label: r.label,
+    description: typeof r.description === 'string' ? r.description : null,
+    monthlyCreditConsumption: Number(r.monthlyCreditConsumption ?? 0) || 0,
+    options,
   }
 }
 
+export function readServicePlans(service: { plans?: unknown } | null | undefined): ServicePlan[] {
+  if (!service) return []
+  const raw = (service as { plans?: unknown }).plans
+  if (!Array.isArray(raw)) return []
+  const out: ServicePlan[] = []
+  for (const entry of raw) {
+    const plan = normalizeServicePlan(entry)
+    if (plan) out.push(plan)
+  }
+  return out
+}
+
+export function findServicePlan(
+  service: { plans?: unknown } | null | undefined,
+  slug: string,
+): ServicePlan | null {
+  if (!slug) return null
+  return readServicePlans(service).find((p) => p.slug === slug) ?? null
+}
+
 /**
- * Get a single service plan by ID
+ * Get all plans for a service (reads them off services.plans).
  */
-export async function getServicePlan(id: number) {
-  const { data, error } = await supabaseFrom('serviceplans')
-    .select('*')
-    .eq('id', id)
+export async function getServicePlansByServiceId(serviceId: number): Promise<ServicePlan[]> {
+  const { data, error } = await (supabaseFrom('services') as any)
+    .select('plans')
+    .eq('id', serviceId)
     .single()
-
-  if (error) {
-    console.error('Error fetching service plan:', error)
-    throw error
-  }
-
-  return data
-}
-
-/**
- * Get all service plans for a specific service
- */
-export async function getServicePlansByServiceId(serviceId: number) {
-  const { data, error } = await supabaseFrom('serviceplans')
-    .select('*')
-    .eq('service_id', serviceId)
-    .order('created', { ascending: false })
 
   if (error) {
     console.error('Error fetching service plans:', error)
     throw error
   }
 
-  return data || []
+  return readServicePlans(data)
 }
 
 /**
- * Create a new service plan
+ * Replace the whole plans array on a service. Use this when you've edited multiple
+ * entries client-side and want to commit them atomically.
  */
-export async function createServicePlan(plan: ServicePlanInsert) {
-  const { data, error } = await supabaseFrom('serviceplans').insert([plan]).select()
+export async function setServicePlans(
+  serviceId: number,
+  plans: ServicePlanInput[],
+): Promise<ServicePlan[]> {
+  const normalised = plans.map((p) => ({
+    slug: p.slug,
+    label: p.label,
+    description: p.description ?? null,
+    monthlyCreditConsumption: Number(p.monthlyCreditConsumption ?? 0) || 0,
+    options: Array.isArray(p.options) ? p.options.filter((o): o is string => typeof o === 'string') : [],
+  }))
+
+  const slugs = new Set<string>()
+  for (const p of normalised) {
+    if (slugs.has(p.slug)) {
+      throw new Error(`Duplicate plan slug: ${p.slug}`)
+    }
+    slugs.add(p.slug)
+  }
+
+  const { data, error } = await (supabaseFrom('services') as any)
+    .update({ plans: normalised } as any)
+    .eq('id', serviceId)
+    .select('plans')
+    .single()
 
   if (error) {
-    console.error('Error creating service plan:', error)
+    console.error('Error updating service plans:', error)
     throw error
   }
 
-  return data?.[0]
+  return readServicePlans(data)
 }
 
 /**
- * Update an existing service plan
+ * Append (or replace by slug) a single plan on a service.
  */
-export async function updateServicePlan(id: number, updates: ServicePlanUpdate) {
-  const { data, error } = await supabaseFrom('serviceplans')
-    .update(updates)
-    .eq('id', id)
-    .select()
-
-  if (error) {
-    console.error('Error updating service plan:', error)
-    throw error
-  }
-
-  return data?.[0]
+export async function upsertServicePlan(
+  serviceId: number,
+  plan: ServicePlanInput,
+): Promise<ServicePlan[]> {
+  const existing = await getServicePlansByServiceId(serviceId)
+  const idx = existing.findIndex((p) => p.slug === plan.slug)
+  const next: ServicePlanInput[] =
+    idx === -1 ? [...existing, plan] : existing.map((p, i) => (i === idx ? { ...p, ...plan } : p))
+  return setServicePlans(serviceId, next)
 }
 
 /**
- * Delete a service plan
+ * Remove a plan by slug. Caller is responsible for confirming no deployments
+ * still reference the slug — RLS doesn't enforce that with a JSONB array.
  */
-export async function deleteServicePlan(id: number) {
-  const { error } = await supabaseFrom('serviceplans').delete().eq('id', id)
-
-  if (error) {
-    console.error('Error deleting service plan:', error)
-    throw error
-  }
+export async function deleteServicePlanBySlug(serviceId: number, slug: string): Promise<ServicePlan[]> {
+  const existing = await getServicePlansByServiceId(serviceId)
+  const next = existing.filter((p) => p.slug !== slug)
+  return setServicePlans(serviceId, next)
 }
 
-/**
- * Check if a slug is unique for a service plan
- */
-export async function isServicePlanSlugUnique(slug: string, excludeId?: number) {
-  let query = supabaseFrom('serviceplans').select('id').eq('slug', slug)
+export async function uploadServiceLogo(file: File): Promise<string> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
-  if (excludeId) {
-    query = query.neq('id', excludeId)
-  }
-
-  const { data, error } = await query.limit(1)
+  const { error } = await supabase.storage
+    .from(SERVICE_LOGOS_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: false })
 
   if (error) {
-    console.error('Error checking slug uniqueness:', error)
+    console.error('Error uploading service logo:', error)
     throw error
   }
 
-  return (data || []).length === 0
+  const { data } = supabase.storage.from(SERVICE_LOGOS_BUCKET).getPublicUrl(path)
+  return data.publicUrl
 }

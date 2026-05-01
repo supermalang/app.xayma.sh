@@ -138,8 +138,8 @@ export type Database = {
           modified: string | null
           modifiedby: string | null
           partner_id: number
+          plan_slug: string
           service_id: number
-          serviceplanId: number
           serviceVersion: string | null
           slug: string
           status: Database["xayma_app"]["Enums"]["deployment_status"] | null
@@ -154,8 +154,8 @@ export type Database = {
           modified?: string | null
           modifiedby?: string | null
           partner_id: number
+          plan_slug: string
           service_id: number
-          serviceplanId: number
           serviceVersion?: string | null
           slug: string
           status?: Database["xayma_app"]["Enums"]["deployment_status"] | null
@@ -170,8 +170,8 @@ export type Database = {
           modified?: string | null
           modifiedby?: string | null
           partner_id?: number
+          plan_slug?: string
           service_id?: number
-          serviceplanId?: number
           serviceVersion?: string | null
           slug?: string
           status?: Database["xayma_app"]["Enums"]["deployment_status"] | null
@@ -189,13 +189,6 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "deployments_serviceplanId_fkey"
-            columns: ["serviceplanId"]
-            isOneToOne: false
-            referencedRelation: "serviceplans"
             referencedColumns: ["id"]
           },
         ]
@@ -397,94 +390,56 @@ export type Database = {
         }
         Relationships: []
       }
-      serviceplans: {
-        Row: {
-          created: string
-          createdby: string | null
-          description: string | null
-          id: number
-          label: string
-          modified: string | null
-          modifiedby: string | null
-          monthlyCreditConsumption: number
-          options: string[] | null
-          service_id: number
-          slug: string
-        }
-        Insert: {
-          created?: string
-          createdby?: string | null
-          description?: string | null
-          id?: number
-          label: string
-          modified?: string | null
-          modifiedby?: string | null
-          monthlyCreditConsumption: number
-          options?: string[] | null
-          service_id: number
-          slug: string
-        }
-        Update: {
-          created?: string
-          createdby?: string | null
-          description?: string | null
-          id?: number
-          label?: string
-          modified?: string | null
-          modifiedby?: string | null
-          monthlyCreditConsumption?: number
-          options?: string[] | null
-          service_id?: number
-          slug?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "serviceplans_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       services: {
         Row: {
           controlNodeId: number | null
           created: string
           createdby: string | null
+          deployment_template: Json | null
           description: string | null
           dockerimage: string | null
           id: number
           isPubliclyAvailable: boolean | null
+          lifecycle_commands: Json
+          logo_url: string | null
           modified: string | null
           modifiedby: string | null
           name: string
+          plans: Json
           slug: string
         }
         Insert: {
           controlNodeId?: number | null
           created?: string
           createdby?: string | null
+          deployment_template?: Json | null
           description?: string | null
           dockerimage?: string | null
           id?: number
           isPubliclyAvailable?: boolean | null
+          lifecycle_commands?: Json
+          logo_url?: string | null
           modified?: string | null
           modifiedby?: string | null
           name: string
+          plans?: Json
           slug: string
         }
         Update: {
           controlNodeId?: number | null
           created?: string
           createdby?: string | null
+          deployment_template?: Json | null
           description?: string | null
           dockerimage?: string | null
           id?: number
           isPubliclyAvailable?: boolean | null
+          lifecycle_commands?: Json
+          logo_url?: string | null
           modified?: string | null
           modifiedby?: string | null
           name?: string
+          plans?: Json
           slug?: string
         }
         Relationships: [
@@ -672,6 +627,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_company_id: { Args: never; Returns: number }
+      current_user_role: {
+        Args: never
+        Returns: Database["xayma_app"]["Enums"]["user_role"]
+      }
       valid_domain_array: { Args: { domains: string[] }; Returns: boolean }
     }
     Enums: {

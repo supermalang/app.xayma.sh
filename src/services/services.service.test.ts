@@ -37,22 +37,6 @@ describe('Services Service', () => {
       expect(result.totalPages).toBe(1)
     })
 
-    it('should apply status filter', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await serviceService.listServices({ status: 'active' })
-
-      expect(mockQuery.eq).toHaveBeenCalledWith('status', 'active')
-    })
-
     it('should apply isPubliclyAvailable filter', async () => {
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
@@ -267,337 +251,152 @@ describe('Services Service', () => {
     })
   })
 
-  describe('changeServiceStatus', () => {
-    it('should change service status to active', async () => {
-      const mockQuery = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: [{ id: 1, status: 'active' }],
-          error: null,
-        }),
-      }
+  describe('plan helpers (jsonb)', () => {
+    describe('normalizeServicePlan', () => {
+      it('returns null for non-objects or missing slug/label', () => {
+        expect(serviceService.normalizeServicePlan(null)).toBeNull()
+        expect(serviceService.normalizeServicePlan({})).toBeNull()
+        expect(serviceService.normalizeServicePlan({ slug: '' })).toBeNull()
+        expect(serviceService.normalizeServicePlan({ slug: 's' })).toBeNull()
+      })
 
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await serviceService.changeServiceStatus(1, 'active')
-
-      expect(mockQuery.update).toHaveBeenCalledWith({ status: 'active' })
+      it('coerces values into a stable shape', () => {
+        const plan = serviceService.normalizeServicePlan({
+          slug: 'starter',
+          label: 'Starter',
+          description: 'Entry tier',
+          monthlyCreditConsumption: '5000' as unknown as number,
+          options: ['a', 1, 'b'],
+        })
+        expect(plan).toEqual({
+          slug: 'starter',
+          label: 'Starter',
+          description: 'Entry tier',
+          monthlyCreditConsumption: 5000,
+          options: ['a', 'b'],
+        })
+      })
     })
 
-    it('should change service status to inactive', async () => {
-      const mockQuery = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({
-          data: [{ id: 1, status: 'inactive' }],
-          error: null,
-        }),
+    describe('readServicePlans / findServicePlan', () => {
+      const service = {
+        plans: [
+          { slug: 'a', label: 'A', monthlyCreditConsumption: 100 },
+          { slug: 'b', label: 'B', monthlyCreditConsumption: 200, options: ['x'] },
+          'garbage',
+        ],
       }
 
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
+      it('reads the array, dropping invalid entries', () => {
+        const plans = serviceService.readServicePlans(service)
+        expect(plans).toHaveLength(2)
+        expect(plans.map((p) => p.slug)).toEqual(['a', 'b'])
+      })
 
-      await serviceService.changeServiceStatus(1, 'inactive')
-
-      expect(mockQuery.update).toHaveBeenCalledWith({ status: 'inactive' })
-    })
-  })
-
-  describe('listServicePlans', () => {
-    it('should list all service plans with pagination', async () => {
-      const mockData = [
-        { id: 1, label: 'Starter', service_id: 1, monthlyCreditConsumption: 10 },
-        { id: 2, label: 'Pro', service_id: 1, monthlyCreditConsumption: 20 },
-      ]
-
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: mockData, error: null, count: 2 }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const result = await serviceService.listServicePlans({ page: 1, pageSize: 20 })
-
-      expect(result.data).toEqual(mockData)
-      expect(result.count).toBe(2)
-      expect(result.page).toBe(1)
+      it('looks up a plan by slug', () => {
+        expect(serviceService.findServicePlan(service, 'b')?.label).toBe('B')
+        expect(serviceService.findServicePlan(service, 'missing')).toBeNull()
+        expect(serviceService.findServicePlan(null, 'a')).toBeNull()
+        expect(serviceService.findServicePlan(service, '')).toBeNull()
+      })
     })
 
-    it('should filter by service_id', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
-      }
+    describe('getServicePlansByServiceId', () => {
+      it('reads plans off the services row', async () => {
+        const mockQuery = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { plans: [{ slug: 'a', label: 'A', monthlyCreditConsumption: 10 }] },
+            error: null,
+          }),
+        }
+        ;(supabaseFrom as any).mockReturnValue(mockQuery)
 
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
+        const plans = await serviceService.getServicePlansByServiceId(1)
 
-      await serviceService.listServicePlans({ service_id: 1 })
-
-      expect(mockQuery.eq).toHaveBeenCalledWith('service_id', 1)
+        expect(plans).toEqual([
+          { slug: 'a', label: 'A', description: null, monthlyCreditConsumption: 10, options: [] },
+        ])
+        expect(mockQuery.select).toHaveBeenCalledWith('plans')
+      })
     })
 
-    it('should apply search filter on label and description', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
-      }
+    describe('setServicePlans', () => {
+      it('updates services.plans atomically', async () => {
+        const mockQuery = {
+          update: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { plans: [{ slug: 'a', label: 'A', monthlyCreditConsumption: 10 }] },
+            error: null,
+          }),
+        }
+        ;(supabaseFrom as any).mockReturnValue(mockQuery)
 
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
+        const result = await serviceService.setServicePlans(1, [
+          { slug: 'a', label: 'A', monthlyCreditConsumption: 10 },
+        ])
+        expect(result).toHaveLength(1)
+        expect(mockQuery.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            plans: [
+              { slug: 'a', label: 'A', description: null, monthlyCreditConsumption: 10, options: [] },
+            ],
+          }),
+        )
+      })
 
-      await serviceService.listServicePlans({ search: 'starter' })
-
-      expect(mockQuery.or).toHaveBeenCalled()
+      it('rejects duplicate slugs', async () => {
+        await expect(
+          serviceService.setServicePlans(1, [
+            { slug: 'dup', label: 'A' },
+            { slug: 'dup', label: 'B' },
+          ]),
+        ).rejects.toThrow(/Duplicate plan slug/)
+      })
     })
 
-    it('should throw error on query failure', async () => {
-      const error = new Error('Database error')
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockResolvedValue({ data: null, error }),
-      }
+    describe('deleteServicePlanBySlug', () => {
+      it('drops the matching slug and writes back', async () => {
+        const fetchQuery = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              plans: [
+                { slug: 'a', label: 'A', monthlyCreditConsumption: 10 },
+                { slug: 'b', label: 'B', monthlyCreditConsumption: 20 },
+              ],
+            },
+            error: null,
+          }),
+        }
+        const writeQuery = {
+          update: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: { plans: [{ slug: 'a', label: 'A', monthlyCreditConsumption: 10 }] },
+            error: null,
+          }),
+        }
+        ;(supabaseFrom as any)
+          .mockReturnValueOnce(fetchQuery)
+          .mockReturnValueOnce(writeQuery)
 
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await expect(serviceService.listServicePlans()).rejects.toThrow(error)
-    })
-  })
-
-  describe('getServicePlan', () => {
-    it('should fetch a single service plan by id', async () => {
-      const mockPlan = { id: 1, label: 'Starter', service_id: 1 }
-
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockPlan, error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const result = await serviceService.getServicePlan(1)
-
-      expect(result).toEqual(mockPlan)
-      expect(mockQuery.eq).toHaveBeenCalledWith('id', 1)
-    })
-
-    it('should throw error if plan not found', async () => {
-      const error = new Error('Not found')
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await expect(serviceService.getServicePlan(999)).rejects.toThrow(error)
-    })
-  })
-
-  describe('getServicePlansByServiceId', () => {
-    it('should fetch all plans for a service ordered by created desc', async () => {
-      const mockPlans = [
-        { id: 2, label: 'Pro', service_id: 1, created: '2026-04-18' },
-        { id: 1, label: 'Starter', service_id: 1, created: '2026-04-17' },
-      ]
-
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockPlans, error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const result = await serviceService.getServicePlansByServiceId(1)
-
-      expect(result).toEqual(mockPlans)
-      expect(mockQuery.eq).toHaveBeenCalledWith('service_id', 1)
-    })
-
-    it('should return empty array when no plans found', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const result = await serviceService.getServicePlansByServiceId(999)
-
-      expect(result).toEqual([])
+        const remaining = await serviceService.deleteServicePlanBySlug(1, 'b')
+        expect(remaining.map((p) => p.slug)).toEqual(['a'])
+        expect(writeQuery.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            plans: [
+              { slug: 'a', label: 'A', description: null, monthlyCreditConsumption: 10, options: [] },
+            ],
+          }),
+        )
+      })
     })
   })
 
-  describe('createServicePlan', () => {
-    it('should create a new service plan', async () => {
-      const newPlan = {
-        label: 'Starter',
-        service_id: 1,
-        monthlyCreditConsumption: 10,
-      }
-
-      const mockQuery = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({ data: [newPlan], error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const result = await serviceService.createServicePlan(newPlan)
-
-      expect(result).toEqual(newPlan)
-      expect(mockQuery.insert).toHaveBeenCalledWith([newPlan])
-    })
-
-    it('should throw error on creation failure', async () => {
-      const error = new Error('Creation failed')
-      const newPlan = { label: 'Test' }
-
-      const mockQuery = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({ data: null, error }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await expect(serviceService.createServicePlan(newPlan as any)).rejects.toThrow(error)
-    })
-  })
-
-  describe('updateServicePlan', () => {
-    it('should update an existing service plan', async () => {
-      const updates = { label: 'Premium' }
-      const updatedPlan = { id: 1, label: 'Premium' }
-
-      const mockQuery = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({ data: [updatedPlan], error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const result = await serviceService.updateServicePlan(1, updates)
-
-      expect(result).toEqual(updatedPlan)
-      expect(mockQuery.eq).toHaveBeenCalledWith('id', 1)
-    })
-
-    it('should throw error on update failure', async () => {
-      const error = new Error('Update failed')
-      const mockQuery = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockResolvedValue({ data: null, error }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await expect(serviceService.updateServicePlan(1, {})).rejects.toThrow(error)
-    })
-  })
-
-  describe('deleteServicePlan', () => {
-    it('should delete a service plan', async () => {
-      const mockQuery = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await serviceService.deleteServicePlan(1)
-
-      expect(mockQuery.delete).toHaveBeenCalled()
-      expect(mockQuery.eq).toHaveBeenCalledWith('id', 1)
-    })
-
-    it('should throw error on deletion failure', async () => {
-      const error = new Error('Deletion failed')
-      const mockQuery = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await expect(serviceService.deleteServicePlan(1)).rejects.toThrow(error)
-    })
-  })
-
-  describe('isServicePlanSlugUnique', () => {
-    it('should return true for unique slug', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const isUnique = await serviceService.isServicePlanSlugUnique('unique-slug')
-
-      expect(isUnique).toBe(true)
-    })
-
-    it('should return false for duplicate slug', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      const isUnique = await serviceService.isServicePlanSlugUnique('duplicate-slug')
-
-      expect(isUnique).toBe(false)
-    })
-
-    it('should exclude plan id when checking uniqueness', async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await serviceService.isServicePlanSlugUnique('slug', 1)
-
-      expect(mockQuery.neq).toHaveBeenCalledWith('id', 1)
-    })
-
-    it('should throw error on query failure', async () => {
-      const error = new Error('Query failed')
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: null, error }),
-      }
-
-      ;(supabaseFrom as any).mockReturnValue(mockQuery)
-
-      await expect(serviceService.isServicePlanSlugUnique('slug')).rejects.toThrow(error)
-    })
-  })
 })
