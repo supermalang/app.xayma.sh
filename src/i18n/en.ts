@@ -509,6 +509,34 @@ export default {
       deployment_engine_config: 'Deployment Configuration',
       lifecycle_commands: 'Lifecycle Commands',
     },
+    detail: {
+      breadcrumb_root: 'Services',
+      id_prefix: 'SVC-',
+      system_active: 'System Active',
+      edit: 'Edit Service',
+      deployment_engine_label: 'Deployment Engine',
+      created_label: 'Created',
+      sections: {
+        plans: 'Service Plans',
+        deployment_config: 'Deployment Configuration',
+      },
+      performance: {
+        title: 'Service Performance',
+        active_deployments: 'Active Deployments',
+        total_plans: 'Plans Available',
+      },
+      hooks: {
+        title: 'Technical Hooks',
+        events: {
+          start: 'EVENT_START',
+          stop: 'EVENT_STOP',
+          restart: 'EVENT_RESTART',
+          suspend: 'EVENT_SUSPEND',
+          archive: 'EVENT_ARCHIVE',
+          domain: 'UPDATE_DOMAIN',
+        },
+      },
+    },
     lifecycle_section: {
       hint: 'Shell commands the orchestrator runs when each lifecycle event fires for this service.',
       save: 'Save commands',
@@ -520,6 +548,7 @@ export default {
       configure_new_tier: 'Configure New Tier',
       empty: 'No plans available for this service',
       credits_per_month: 'credits/month',
+      credits_header: 'Credits',
       tier_label_placeholder: 'Starter Tier',
       tier_options_placeholder: 'One option per line',
       tier_credits: 'credits / month',

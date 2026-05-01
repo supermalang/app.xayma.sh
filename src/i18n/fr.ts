@@ -509,6 +509,34 @@ export default {
       deployment_engine_config: 'Configuration du déploiement',
       lifecycle_commands: 'Commandes de cycle de vie',
     },
+    detail: {
+      breadcrumb_root: 'Services',
+      id_prefix: 'SVC-',
+      system_active: 'Système actif',
+      edit: 'Modifier le service',
+      deployment_engine_label: 'Moteur de déploiement',
+      created_label: 'Créé le',
+      sections: {
+        plans: 'Formules de service',
+        deployment_config: 'Configuration du déploiement',
+      },
+      performance: {
+        title: 'Performance du service',
+        active_deployments: 'Déploiements actifs',
+        total_plans: 'Formules disponibles',
+      },
+      hooks: {
+        title: 'Hooks techniques',
+        events: {
+          start: 'EVENT_START',
+          stop: 'EVENT_STOP',
+          restart: 'EVENT_RESTART',
+          suspend: 'EVENT_SUSPEND',
+          archive: 'EVENT_ARCHIVE',
+          domain: 'UPDATE_DOMAIN',
+        },
+      },
+    },
     lifecycle_section: {
       hint: 'Commandes shell exécutées par l’orchestrateur lorsqu’un événement de cycle de vie se déclenche pour ce service.',
       save: 'Enregistrer les commandes',
@@ -520,6 +548,7 @@ export default {
       configure_new_tier: 'Configurer un nouveau palier',
       empty: 'Aucun plan disponible pour ce service',
       credits_per_month: 'crédits/mois',
+      credits_header: 'Crédits',
       tier_label_placeholder: 'Palier de démarrage',
       tier_options_placeholder: 'Une option par ligne',
       tier_credits: 'crédits / mois',

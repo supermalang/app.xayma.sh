@@ -12,7 +12,7 @@ const i18n = createI18n({
       errors: { fetch_failed: 'Failed to fetch data' },
       services: {
         tabs: { plans: 'Plans', deployment_engine_config: 'Deployment Configuration', lifecycle_commands: 'Lifecycle Commands' },
-        plans: { add: 'Add Plan', empty: 'No plans configured for this service', credits_per_month: 'credits/month' },
+        plans: { add: 'Add Plan', empty: 'No plans configured for this service', credits_per_month: 'credits/month', credits_header: 'Credits', tier_label_placeholder: 'Starter' },
         form: { control_node_id: 'Control Node' },
         deployment_engine: { job_template_id: 'Deployment Engine Job Template ID', not_configured: 'Deployment engine configuration not set for this service' },
         tags_section: {
@@ -20,6 +20,20 @@ const i18n = createI18n({
           command_placeholder: 'exec_sh: …',
         },
         lifecycle_section: { hint: 'Lifecycle commands hint', save: 'Save commands', saved: 'Saved' },
+        detail: {
+          breadcrumb_root: 'Services',
+          id_prefix: 'SVC-',
+          system_active: 'System Active',
+          edit: 'Edit Service',
+          deployment_engine_label: 'Deployment Engine',
+          created_label: 'Created',
+          sections: { plans: 'Service Plans', deployment_config: 'Deployment Configuration' },
+          performance: { title: 'Service Performance', active_deployments: 'Active Deployments', total_plans: 'Plans Available' },
+          hooks: {
+            title: 'Technical Hooks',
+            events: { start: 'EVENT_START', stop: 'EVENT_STOP', restart: 'EVENT_RESTART', suspend: 'EVENT_SUSPEND', archive: 'EVENT_ARCHIVE', domain: 'UPDATE_DOMAIN' },
+          },
+        },
       },
       service_plans: {
         form: { label: 'Plan Name', slug: 'Slug', description: 'Description', monthlyCreditConsumption: 'Monthly Credit Consumption' },
@@ -45,6 +59,11 @@ vi.mock('vue-router', () => ({
     back: vi.fn(),
     push: vi.fn(),
   }),
+  RouterLink: { name: 'RouterLink', props: ['to'], template: '<a><slot /></a>' },
+}))
+
+vi.mock('@/services/deployments.service', () => ({
+  listDeployments: vi.fn(() => Promise.resolve({ data: [], count: 0, page: 1, pageSize: 1, totalPages: 0 })),
 }))
 
 vi.mock('primevue/usetoast', () => ({
