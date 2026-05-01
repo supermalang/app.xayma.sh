@@ -22,8 +22,8 @@
       </div>
     </div>
 
-    <!-- Stats row — 4 cards, always visible -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stats-section">
+    <!-- Stats row — 3 cards, always visible -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stats-section">
       <div class="stat-stagger" style="--stat-delay: 0ms">
         <StatCard
           :title="$t('deployments.stats.instances_active')"
@@ -36,16 +36,10 @@
           :value="String(partnerCredits)"
         />
       </div>
-      <div class="stat-stagger" style="--stat-delay: 120ms">
-        <StatCard
-          :title="$t('deployments.stats.uptime')"
-          value="99.98%"
-        />
-      </div>
       <!-- Monthly Cost — dark card variant -->
       <div
         class="stat-stagger rounded-lg p-6 bg-primary text-on-primary flex items-start justify-between monthly-cost-card"
-        style="--stat-delay: 180ms"
+        style="--stat-delay: 120ms"
       >
         <div class="space-y-2">
           <p class="text-xs font-bold uppercase tracking-widest" style="opacity: 0.75">
@@ -84,9 +78,18 @@
           aria-hidden="true"
         />
       </div>
-      <div class="flex gap-1 pb-2">
-        <Button icon="pi pi-filter" text size="small" severity="secondary" aria-label="Filter" />
-        <Button icon="pi pi-ellipsis-v" text size="small" severity="secondary" aria-label="More options" />
+      <div v-if="isAdmin" class="flex gap-2 pb-2">
+        <Select
+          v-model="partnerFilter"
+          :options="partnerFilterOptions"
+          option-label="label"
+          option-value="value"
+          :placeholder="$t('deployments.filter.all_partners')"
+          show-clear
+          size="small"
+          class="partner-filter"
+          :aria-label="$t('deployments.filter.partner')"
+        />
       </div>
     </div>
 
@@ -195,6 +198,7 @@ import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Select from 'primevue/select'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import StatCard from '@/components/common/StatCard.vue'
@@ -213,6 +217,7 @@ const notificationStore = useNotificationStore()
 
 const pageSize = ref(20)
 const activeTabFilter = ref<string | null>(null)
+const partnerFilter = ref<number | null>(null)
 
 // Tab underline indicator: slides between active tabs instead of redrawing
 const tabsContainerRef = ref<HTMLElement | null>(null)
@@ -264,9 +269,19 @@ const filterTabs = computed(() => [
   { label: t('deployments.status.suspended'), value: 'suspended', count: suspendedCount.value },
 ])
 
+const partnerFilterOptions = computed(() =>
+  partnerStore.partners.map((p) => ({ label: p.name ?? `#${p.id}`, value: p.id }))
+)
+
 const filteredDeployments = computed(() => {
-  if (!activeTabFilter.value) return deployments.value
-  return deployments.value.filter((d: any) => d.status === activeTabFilter.value)
+  let list = deployments.value
+  if (activeTabFilter.value) {
+    list = list.filter((d: any) => d.status === activeTabFilter.value)
+  }
+  if (isAdmin.value && partnerFilter.value != null) {
+    list = list.filter((d: any) => d.partner_id === partnerFilter.value)
+  }
+  return list
 })
 
 // Deterministic avatar color based on first character
@@ -337,8 +352,8 @@ function exportDeployments() {
 
 async function loadDeploymentsList() {
   try {
-    const partnerId = isAdmin ? undefined : partnerStore.selectedPartner?.id
-    if (!isAdmin && !partnerId) {
+    const partnerId = isAdmin.value ? undefined : partnerStore.selectedPartner?.id
+    if (!isAdmin.value && !partnerId) {
       notificationStore.addError(t('errors.fetch_failed'))
       return
     }
@@ -353,7 +368,14 @@ onMounted(async () => {
   updateTabIndicator()
   window.addEventListener('resize', updateTabIndicator)
 
-  if (isAdmin) {
+  if (isAdmin.value) {
+    if (partnerStore.partners.length === 0) {
+      try {
+        await partnerStore.fetchPartners()
+      } catch {
+        // Surfacing errors is handled by the store; non-fatal for the page.
+      }
+    }
     await loadDeploymentsList()
     subscribeToDeploymentUpdates()
   } else if (partnerStore.selectedPartner?.id) {
@@ -428,6 +450,10 @@ onMounted(async () => {
     width var(--duration-standard) var(--easing-standard);
   pointer-events: none;
   border-radius: 2px;
+}
+
+.partner-filter {
+  min-width: 12rem;
 }
 
 /* Filter swap: short crossfade when switching tabs */

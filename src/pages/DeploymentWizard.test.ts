@@ -69,18 +69,18 @@ describe('DeploymentWizard', () => {
 
     ;(servicesService.getServicePlansByServiceId as any).mockResolvedValue([
       {
-        id: 10,
+        slug: 'basic',
         label: 'Basic',
         description: 'Basic plan',
         monthlyCreditConsumption: 5000,
-        service_id: 1,
+        options: [],
       },
       {
-        id: 11,
+        slug: 'pro',
         label: 'Pro',
         description: 'Pro plan',
         monthlyCreditConsumption: 10000,
-        service_id: 1,
+        options: [],
       },
     ])
   })
@@ -163,8 +163,8 @@ describe('DeploymentWizard', () => {
     // Select plan
     await wrapper.vm.selectPlan(wrapper.vm.plans[0])
 
-    expect(wrapper.vm.form.servicePlanId).toBe(10)
-    expect(wrapper.vm.selectedPlan?.id).toBe(10)
+    expect(wrapper.vm.form.planSlug).toBe('basic')
+    expect(wrapper.vm.selectedPlan?.slug).toBe('basic')
     expect(wrapper.vm.activeStep).toBe(2)
   })
 
@@ -216,10 +216,10 @@ describe('DeploymentWizard', () => {
 
     // Set form data
     wrapper.vm.form.serviceId = 1
-    wrapper.vm.form.servicePlanId = 10
+    wrapper.vm.form.planSlug = 'basic'
     wrapper.vm.form.label = 'My Deployment'
     wrapper.vm.form.domainNames = ['example.com']
-    wrapper.vm.selectedPlan = { id: 10, label: 'Basic', monthlyCreditConsumption: 5000 }
+    wrapper.vm.selectedPlan = { slug: 'basic', label: 'Basic', monthlyCreditConsumption: 5000 }
 
     // Go to step 4
     wrapper.vm.activeStep = 3

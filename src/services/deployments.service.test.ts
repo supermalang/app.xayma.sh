@@ -36,7 +36,7 @@ describe('Deployments Service', () => {
 
       const result = await deploymentService.listDeployments({ page: 1, pageSize: 20 })
 
-      expect(result.data).toEqual(mockData)
+      expect(result.data).toMatchObject(mockData)
       expect(result.count).toBe(1)
       expect(result.page).toBe(1)
       expect(result.totalPages).toBe(1)
@@ -97,8 +97,14 @@ describe('Deployments Service', () => {
         id: 1,
         label: 'Odoo Instance',
         status: 'active',
-        service: { id: 1, name: 'Odoo Community' },
-        serviceplan: { id: 1, label: 'Starter' },
+        plan_slug: 'starter',
+        service: {
+          id: 1,
+          name: 'Odoo Community',
+          plans: [
+            { slug: 'starter', label: 'Starter', description: null, monthlyCreditConsumption: 100, options: [] },
+          ],
+        },
         partner: { id: 1, name: 'Partner 1' },
       }
 
@@ -112,7 +118,10 @@ describe('Deployments Service', () => {
 
       const result = await deploymentService.getDeployment(1)
 
-      expect(result).toEqual(mockDeployment)
+      expect(result).toMatchObject({
+        ...mockDeployment,
+        serviceplan: expect.objectContaining({ slug: 'starter', label: 'Starter' }),
+      })
     })
   })
 
@@ -123,10 +132,10 @@ describe('Deployments Service', () => {
         domainNames: ['odoo.example.com'],
         slug: 'new-odoo-instance',
         service_id: 1,
-        serviceplanId: 1,
+        plan_slug: 'starter',
         partner_id: 1,
         status: 'pending_deployment' as const,
-      }
+      } as any
 
       const mockQuery = {
         insert: vi.fn().mockReturnThis(),
@@ -305,13 +314,16 @@ describe('Deployments Service', () => {
     it('should calculate total monthly credit consumption for a partner', async () => {
       const mockDeployments = [
         {
-          serviceplan: { monthlyCreditConsumption: 100 },
+          plan_slug: 'a',
+          service: { plans: [{ slug: 'a', label: 'A', description: null, monthlyCreditConsumption: 100, options: [] }] },
         },
         {
-          serviceplan: { monthlyCreditConsumption: 150 },
+          plan_slug: 'b',
+          service: { plans: [{ slug: 'b', label: 'B', description: null, monthlyCreditConsumption: 150, options: [] }] },
         },
         {
-          serviceplan: { monthlyCreditConsumption: 75 },
+          plan_slug: 'c',
+          service: { plans: [{ slug: 'c', label: 'C', description: null, monthlyCreditConsumption: 75, options: [] }] },
         },
       ]
 

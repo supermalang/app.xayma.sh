@@ -1,21 +1,26 @@
 /**
  * Deployments service
- * CRUD operations for xayma_app.deployments table
+ * CRUD on xayma_app.deployments. Plan data lives on services.plans (jsonb),
+ * keyed by plan_slug from the deployment row.
  */
 
 import { supabase, supabaseFrom } from '@/services/supabase'
 import type { Database } from '@/types/supabase'
+import {
+  findServicePlan,
+  type ServicePlan as ServicePlanShape,
+} from '@/services/services.service'
 
 export type Deployment = Database['xayma_app']['Tables']['deployments']['Row']
 export type DeploymentInsert = Database['xayma_app']['Tables']['deployments']['Insert']
 export type DeploymentUpdate = Database['xayma_app']['Tables']['deployments']['Update']
 export type Service = Database['xayma_app']['Tables']['services']['Row']
-export type ServicePlan = Database['xayma_app']['Tables']['serviceplans']['Row']
+export type ServicePlan = ServicePlanShape
 export type Partner = Database['xayma_app']['Tables']['partners']['Row']
 
 export interface DeploymentWithRelations extends Deployment {
   service?: Service
-  serviceplan?: ServicePlan
+  serviceplan?: ServicePlan | null
   partner?: Partner
 }
 
@@ -34,9 +39,18 @@ export interface ListDeploymentsOptions extends ListDeploymentsFilter {
 }
 
 /**
- * List all deployments with optional filtering and pagination
- * RLS policies should handle role-based filtering on the database level
+ * Hydrate a deployment row with its plan looked up from `service.plans`.
+ * `service.plans` arrives as the JSONB array via the embedded `services(*)` join.
+ * Typing is loose because generated supabase types don't yet expose plan_slug / plans.
  */
+function attachServicePlan(row: any): any {
+  const slug = row?.plan_slug ?? ''
+  return {
+    ...row,
+    serviceplan: slug ? findServicePlan(row?.service ?? null, slug) : null,
+  }
+}
+
 export async function listDeployments(options: ListDeploymentsOptions = {}) {
   const {
     page = 1,
@@ -52,12 +66,10 @@ export async function listDeployments(options: ListDeploymentsOptions = {}) {
   let query = supabaseFrom('deployments').select(
     `*,
     service:services(*),
-    serviceplan:serviceplans(*),
     partner:partners(*)`,
-    { count: 'exact' }
+    { count: 'exact' },
   )
 
-  // Apply filters
   if (partner_id) {
     query = query.eq('partner_id', partner_id)
   }
@@ -71,10 +83,8 @@ export async function listDeployments(options: ListDeploymentsOptions = {}) {
     query = query.or(`label.ilike.%${search}%,slug.ilike.%${search}%`)
   }
 
-  // Sorting
   query = query.order(orderBy, { ascending: orderDirection === 'asc' })
 
-  // Pagination
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
   query = query.range(from, to)
@@ -86,8 +96,11 @@ export async function listDeployments(options: ListDeploymentsOptions = {}) {
     throw error
   }
 
+  const rows = (data || []) as unknown as Array<DeploymentWithRelations & { plan_slug?: string | null }>
+  const hydrated = rows.map((r) => attachServicePlan(r) as DeploymentWithRelations)
+
   return {
-    data: (data || []) as unknown as DeploymentWithRelations[],
+    data: hydrated,
     count: count || 0,
     page,
     pageSize,
@@ -95,16 +108,12 @@ export async function listDeployments(options: ListDeploymentsOptions = {}) {
   }
 }
 
-/**
- * Get a single deployment by ID with related data
- */
 export async function getDeployment(id: number): Promise<DeploymentWithRelations | null> {
   const { data, error } = await supabaseFrom('deployments')
     .select(
       `*,
       service:services(*),
-      serviceplan:serviceplans(*),
-      partner:partners(*)`
+      partner:partners(*)`,
     )
     .eq('id', id)
     .single()
@@ -114,18 +123,15 @@ export async function getDeployment(id: number): Promise<DeploymentWithRelations
     throw error
   }
 
-  return data as unknown as DeploymentWithRelations | null
+  if (!data) return null
+  return attachServicePlan(data as unknown as DeploymentWithRelations) as DeploymentWithRelations
 }
 
-/**
- * Get deployments by partner ID
- */
 export async function getDeploymentsByPartnerId(partnerId: number) {
   const { data, error } = await supabaseFrom('deployments')
     .select(
       `*,
-      service:services(*),
-      serviceplan:serviceplans(*)`
+      service:services(*)`,
     )
     .eq('partner_id', partnerId)
     .order('created', { ascending: false })
@@ -135,12 +141,10 @@ export async function getDeploymentsByPartnerId(partnerId: number) {
     throw error
   }
 
-  return data || []
+  const rows = (data || []) as unknown as Array<DeploymentWithRelations & { plan_slug?: string | null }>
+  return rows.map((r) => attachServicePlan(r))
 }
 
-/**
- * Create a new deployment
- */
 export async function createDeployment(deployment: DeploymentInsert): Promise<Deployment | undefined> {
   const { data, error } = await supabaseFrom('deployments').insert([deployment]).select()
 
@@ -152,9 +156,6 @@ export async function createDeployment(deployment: DeploymentInsert): Promise<De
   return (data?.[0]) as unknown as Deployment | undefined
 }
 
-/**
- * Update an existing deployment
- */
 export async function updateDeployment(id: number, updates: DeploymentUpdate) {
   const { data, error } = await supabaseFrom('deployments')
     .update(updates)
@@ -169,9 +170,6 @@ export async function updateDeployment(id: number, updates: DeploymentUpdate) {
   return data?.[0]
 }
 
-/**
- * Update deployment status
- */
 export async function updateDeploymentStatus(
   id: number,
   status:
@@ -182,14 +180,11 @@ export async function updateDeploymentStatus(
     | 'stopped'
     | 'suspended'
     | 'archived'
-    | 'pending_deletion'
+    | 'pending_deletion',
 ) {
   return updateDeployment(id, { status })
 }
 
-/**
- * Delete a deployment
- */
 export async function deleteDeployment(id: number) {
   const { error } = await supabaseFrom('deployments').delete().eq('id', id)
 
@@ -199,10 +194,6 @@ export async function deleteDeployment(id: number) {
   }
 }
 
-/**
- * Validate domain names via database function valid_domain_array.
- * Returns true if all domains are valid.
- */
 export async function validateDomains(domains: string[]): Promise<boolean> {
   if (domains.length === 0) return false
 
@@ -218,9 +209,6 @@ export async function validateDomains(domains: string[]): Promise<boolean> {
   return data === true
 }
 
-/**
- * Check if a slug is unique
- */
 export async function isDeploymentSlugUnique(slug: string, excludeId?: number) {
   let query = supabaseFrom('deployments').select('id').eq('slug', slug)
 
@@ -238,13 +226,9 @@ export async function isDeploymentSlugUnique(slug: string, excludeId?: number) {
   return (data || []).length === 0
 }
 
-/**
- * Check if partner has sufficient credits for a deployment plan
- * Returns true if partner has enough credits, false otherwise
- */
 export async function hasPartnerSufficientCredits(
   partnerId: number,
-  monthlyCreditConsumption: number
+  monthlyCreditConsumption: number,
 ): Promise<boolean> {
   const { data, error } = await supabaseFrom('partners')
     .select('remainingCredits')
@@ -260,9 +244,6 @@ export async function hasPartnerSufficientCredits(
   return (row?.remainingCredits || 0) >= monthlyCreditConsumption
 }
 
-/**
- * Get deployment count by status for a partner
- */
 export async function getDeploymentCountByStatus(partnerId: number, status: string) {
   const { count, error } = await supabaseFrom('deployments')
     .select('id', { count: 'exact', head: true })
@@ -278,12 +259,12 @@ export async function getDeploymentCountByStatus(partnerId: number, status: stri
 }
 
 /**
- * Get total monthly credit consumption for a partner
- * (sum of all active deployment plans' monthly consumption)
+ * Sum monthly credit consumption across a partner's running deployments.
+ * Joins through services(plans) and resolves each deployment's plan by slug.
  */
 export async function getPartnerTotalMonthlyConsumption(partnerId: number): Promise<number> {
   const { data, error } = await supabaseFrom('deployments')
-    .select('serviceplan:serviceplans(monthlyCreditConsumption)')
+    .select('plan_slug, service:services(plans)')
     .eq('partner_id', partnerId)
     .in('status', ['active', 'deploying', 'pending_deployment'])
 
@@ -294,7 +275,11 @@ export async function getPartnerTotalMonthlyConsumption(partnerId: number): Prom
 
   if (!data) return 0
 
-  return (data as Array<{ serviceplan?: ServicePlan }>).reduce((total, deployment) => {
-    return total + (deployment.serviceplan?.monthlyCreditConsumption || 0)
-  }, 0)
+  return (data as unknown as Array<{ plan_slug: string | null; service?: { plans?: unknown } | null }>).reduce(
+    (total, dep) => {
+      const plan = findServicePlan(dep.service ?? null, dep.plan_slug ?? '')
+      return total + (plan?.monthlyCreditConsumption || 0)
+    },
+    0,
+  )
 }

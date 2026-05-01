@@ -13,7 +13,7 @@ import { useNotificationStore } from '@/stores/notifications.store'
 
 export interface DeploymentFormData {
   serviceId: number | null
-  servicePlanId: number | null
+  planSlug: string | null
   label: string
   domainNames: string[]
   serviceVersion?: string
@@ -128,12 +128,12 @@ export function useDeployments() {
         domainNames: formData.domainNames,
         slug,
         service_id: formData.serviceId!,
-        serviceplanId: formData.servicePlanId!,
+        plan_slug: formData.planSlug!,
         serviceVersion: formData.serviceVersion ?? null,
         deploymentPlan: formData.deploymentPlan ?? null,
         partner_id: partnerId,
         status: 'pending_deployment',
-      })
+      } as any)
 
       if (!newDeployment) {
         notificationStore.addError(t('errors.webhook_failed'))
@@ -146,7 +146,7 @@ export function useDeployments() {
           deploymentId: newDeployment.id,
           partnerId,
           serviceId: formData.serviceId!,
-          servicePlanId: formData.servicePlanId!,
+          planSlug: formData.planSlug!,
           serviceVersion: formData.serviceVersion,
           domainNames: formData.domainNames,
           label: formData.label,
@@ -180,7 +180,7 @@ export function useDeployments() {
     action: 'stop' | 'start' | 'restart'
   ) {
     isLoading.value = true
-    const deployment = deployments.value.find((d) => d.id === deploymentId)
+    const deployment = (deployments.value as DeploymentWithRelations[]).find((d) => d.id === deploymentId)
     const previousStatus = deployment?.status ?? null
     try {
       // Optimistic update before the webhook call
@@ -237,7 +237,7 @@ export function useDeployments() {
       await workflowEngineService.terminateDeployment({ deploymentId })
 
       // Update local state optimistically
-      const deployment = deployments.value.find((d) => d.id === deploymentId)
+      const deployment = (deployments.value as DeploymentWithRelations[]).find((d) => d.id === deploymentId)
       if (deployment) {
         deployment.status = 'pending_deletion'
       }
@@ -258,7 +258,8 @@ export function useDeployments() {
     isLoading.value = true
     try {
       await deploymentService.deleteDeployment(deploymentId)
-      deployments.value = deployments.value.filter((d) => d.id !== deploymentId)
+      const next = (deployments.value as DeploymentWithRelations[]).filter((d) => d.id !== deploymentId)
+      deployments.value = next as DeploymentWithRelations[]
       notificationStore.addSuccess(t('deployments.delete_success'))
     } catch (error) {
       console.error('Error deleting deployment:', error)
@@ -294,20 +295,23 @@ export function useDeployments() {
         },
         (payload) => {
           // Update deployment in local array
-          const index = deployments.value.findIndex((d) => d.id === payload.new.id)
+          const list = deployments.value as DeploymentWithRelations[]
+          const index = list.findIndex((d) => d.id === payload.new.id)
           if (index !== -1) {
-            deployments.value[index] = {
-              ...deployments.value[index],
+            list[index] = {
+              ...list[index],
               ...(payload.new as Partial<DeploymentWithRelations>),
             } as DeploymentWithRelations
           }
 
           // Update selected deployment if it matches
-          if (selectedDeployment.value?.id === payload.new.id) {
-            selectedDeployment.value = {
-              ...selectedDeployment.value,
+          const sel = selectedDeployment.value as DeploymentWithRelations | null
+          if (sel?.id === payload.new.id) {
+            const merged: DeploymentWithRelations = {
+              ...sel,
               ...(payload.new as Partial<DeploymentWithRelations>),
             } as DeploymentWithRelations
+            selectedDeployment.value = merged
           }
         }
       )

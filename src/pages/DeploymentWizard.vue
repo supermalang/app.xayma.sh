@@ -99,14 +99,21 @@
         >
           <div class="flex justify-center mb-6">
             <div
-              class="w-16 h-16 rounded-full flex items-center justify-center transition-colors"
+              class="service-logo w-24 h-24 rounded-2xl flex items-center justify-center transition-colors overflow-hidden"
               :class="
                 form.serviceId === service.id
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface-variant'
               "
             >
-              <i :class="serviceIcon(service)" class="text-3xl" />
+              <img
+                v-if="service.logo_url && !logoLoadFailed.has(service.id)"
+                :src="service.logo_url"
+                :alt="service.name"
+                class="w-full h-full object-contain p-3"
+                @error="logoLoadFailed.add(service.id)"
+              />
+              <i v-else :class="serviceIcon(service)" class="text-4xl" aria-hidden="true" />
             </div>
           </div>
           <h3 class="text-lg font-bold mb-2 text-center text-on-surface">
@@ -166,11 +173,11 @@
       <div v-else class="space-y-4">
         <button
           v-for="(plan, idx) in plans"
-          :key="plan.id"
+          :key="plan.slug"
           type="button"
           class="w-full flex items-center justify-between p-6 rounded-lg cursor-pointer text-start transition-colors border-s-4"
           :class="
-            form.servicePlanId === plan.id
+            form.planSlug === plan.slug
               ? 'bg-surface-container-lowest border-primary'
               : 'bg-surface-container-low border-transparent hover:bg-surface-container-lowest'
           "
@@ -180,7 +187,7 @@
             <div
               class="w-12 h-12 flex items-center justify-center rounded-full transition-colors"
               :class="
-                form.servicePlanId === plan.id
+                form.planSlug === plan.slug
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface-variant'
               "
@@ -344,7 +351,7 @@
     </Message>
 
     <Message
-      v-if="form.servicePlanId && !hasSufficientCredits"
+      v-if="form.planSlug && !hasSufficientCredits"
       severity="error"
       :closable="false"
     >
@@ -431,25 +438,26 @@ type Service = {
   description: string
   status: string
   isPubliclyAvailable: boolean
+  logo_url?: string | null
 }
 
 type ServicePlan = {
-  id: number
+  slug: string
   label: string
-  description: string
+  description: string | null
   monthlyCreditConsumption: number
-  service_id: number
+  options: string[]
 }
 
 type PlanInfo = {
-  id?: number
+  slug?: string
   monthlyCreditConsumption?: number
   label?: string
 }
 </script>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
@@ -459,6 +467,7 @@ import RadioButton from 'primevue/radiobutton'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import { listServices, getServicePlansByServiceId } from '@/services/services.service'
+import type { ServicePlan as ServicePlanShape } from '@/services/services.service'
 import { validateDomains as validateDomainsService } from '@/services/deployments.service'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
@@ -473,6 +482,7 @@ const notificationStore = useNotificationStore()
 const { createDeployment } = useDeployments()
 
 const services = ref<Service[]>([])
+const logoLoadFailed = reactive(new Set<number>())
 const plans = ref<ServicePlan[]>([])
 const isLoadingServices = ref(false)
 const isLoadingPlans = ref(false)
@@ -483,7 +493,7 @@ const selectedPlan = ref<PlanInfo | null>(null)
 
 const form = ref({
   serviceId: null as number | null,
-  servicePlanId: null as number | null,
+  planSlug: null as string | null,
   serviceVersion: '17.0',
   label: '',
   prefixedDomain: '',
@@ -507,7 +517,7 @@ const stepperItems = computed(() => [
 
 const activeStep = computed(() => {
   if (!form.value.serviceId) return 0
-  if (!form.value.servicePlanId) return 1
+  if (!form.value.planSlug) return 1
   if (!form.value.serviceVersion) return 2
   if (form.value.label.trim() && form.value.prefixedDomain.trim()) return 3
   return 2
@@ -524,7 +534,7 @@ const hasSufficientCredits = computed(() => {
 const canSubmit = computed(() => {
   return (
     !!form.value.serviceId &&
-    !!form.value.servicePlanId &&
+    !!form.value.planSlug &&
     !!form.value.serviceVersion &&
     form.value.label.trim().length > 0 &&
     form.value.prefixedDomain.trim().length > 0 &&
@@ -585,7 +595,7 @@ async function loadServices() {
 
 async function selectService(service: Service) {
   form.value.serviceId = service.id
-  form.value.servicePlanId = null
+  form.value.planSlug = null
   selectedPlan.value = null
   plans.value = []
 
@@ -601,10 +611,10 @@ async function selectService(service: Service) {
   }
 }
 
-function selectPlan(plan: ServicePlan) {
-  form.value.servicePlanId = plan.id
+function selectPlan(plan: ServicePlanShape | ServicePlan) {
+  form.value.planSlug = plan.slug
   selectedPlan.value = {
-    id: plan.id,
+    slug: plan.slug,
     label: plan.label,
     monthlyCreditConsumption: plan.monthlyCreditConsumption,
   }
@@ -671,7 +681,7 @@ async function submitDeployment() {
     const result = await createDeployment(
       {
         serviceId: form.value.serviceId,
-        servicePlanId: form.value.servicePlanId,
+        planSlug: form.value.planSlug,
         label: form.value.label,
         domainNames,
         serviceVersion: form.value.serviceVersion,
