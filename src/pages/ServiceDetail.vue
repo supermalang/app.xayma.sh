@@ -9,18 +9,11 @@
         class="mb-3 -ms-2"
         @click="router.back()"
       />
-      <div v-if="service" class="flex items-start justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-on-surface">{{ service.name }}</h1>
-          <p v-if="service.description" class="mt-1 text-on-surface-variant">
-            {{ service.description }}
-          </p>
-        </div>
-        <Tag
-          :value="$t(`services.status.${service.status}`)"
-          :severity="statusSeverity"
-          class="mt-1"
-        />
+      <div v-if="service">
+        <h1 class="text-3xl font-bold text-on-surface">{{ service.name }}</h1>
+        <p v-if="service.description" class="mt-1 text-on-surface-variant">
+          {{ service.description }}
+        </p>
       </div>
       <div v-else-if="loading" class="space-y-2">
         <Skeleton width="300px" height="36px" />
@@ -48,7 +41,7 @@
             :loading="plansLoading"
             edit-mode="row"
             :editing-rows="editingRows"
-            data-key="id"
+            data-key="slug"
             @row-edit-save="onRowEditSave"
             @row-edit-cancel="onRowEditCancel"
           >
@@ -113,6 +106,42 @@
         </div>
       </TabPanel>
 
+      <!-- Lifecycle Commands tab -->
+      <TabPanel :value="$t('services.tabs.lifecycle_commands')">
+        <div class="space-y-6 max-w-3xl">
+          <p class="text-sm text-on-surface-variant">{{ $t('services.lifecycle_section.hint') }}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div
+              v-for="tag in lifecycleTags"
+              :key="tag.key"
+              class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all"
+            >
+              <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-primary text-lg">{{ tag.icon }}</span>
+                <span class="text-[11px] font-bold uppercase text-on-surface">
+                  {{ $t(`services.tags_section.${tag.key}`) }}
+                </span>
+              </div>
+              <InputText
+                v-model="lifecycleTagValues[tag.key]"
+                :data-test="`tag-command-${tag.key}`"
+                :placeholder="$t('services.tags_section.command_placeholder')"
+                class="w-full !border-0 !rounded-none !bg-surface-container-lowest !p-2 !text-[10px] !font-mono !text-primary"
+              />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <Button
+              :label="$t('services.lifecycle_section.save')"
+              :loading="lifecycleSaving"
+              :disabled="!lifecycleDirty"
+              data-test="save-lifecycle"
+              @click="saveLifecycleCommands"
+            />
+          </div>
+        </div>
+      </TabPanel>
+
       <!-- Deployment Engine Config tab -->
       <TabPanel :value="$t('services.tabs.deployment_engine_config')">
         <div class="space-y-4 max-w-lg">
@@ -145,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from 'primevue/useconfirm'
@@ -157,16 +186,15 @@ import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
-import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import ConfirmDialog from 'primevue/confirmdialog'
 import {
   getService,
-  getServicePlansByServiceId,
-  updateServicePlan,
-  createServicePlan,
-  deleteServicePlan,
+  readServicePlans,
+  setServicePlans,
+  updateService,
+  type ServicePlan,
 } from '@/services/services.service'
 
 const route = useRoute()
@@ -176,16 +204,34 @@ const confirm = useConfirm()
 const toast = useToast()
 
 const service = ref<any>(null)
-const plans = ref<any[]>([])
+const plans = ref<ServicePlan[]>([])
 const loading = ref(false)
 const plansLoading = ref(false)
 const error = ref<string | null>(null)
-const editingRows = ref<any[]>([])
+const editingRows = ref<ServicePlan[]>([])
 
-const statusSeverity = computed(() => {
-  if (service.value?.status === 'active') return 'success'
-  if (service.value?.status === 'inactive') return 'warn'
-  return 'secondary'
+const lifecycleTags = [
+  { key: 'start', icon: 'play_arrow' },
+  { key: 'stop', icon: 'stop' },
+  { key: 'restart', icon: 'refresh' },
+  { key: 'suspend', icon: 'pause' },
+  { key: 'archive', icon: 'archive' },
+  { key: 'domain', icon: 'dns' },
+] as const
+
+const lifecycleTagValues = reactive<Record<string, string>>(
+  Object.fromEntries(lifecycleTags.map((tag) => [tag.key, ''])),
+)
+const lifecycleBaseline = ref<Record<string, string>>({})
+const lifecycleSaving = ref(false)
+
+const lifecycleDirty = computed(() => {
+  for (const tag of lifecycleTags) {
+    if ((lifecycleTagValues[tag.key] || '') !== (lifecycleBaseline.value[tag.key] || '')) {
+      return true
+    }
+  }
+  return false
 })
 
 onMounted(async () => {
@@ -193,7 +239,8 @@ onMounted(async () => {
   loading.value = true
   try {
     service.value = await getService(id)
-    await loadPlans(id)
+    hydrateLifecycleCommands(service.value?.lifecycle_commands)
+    plans.value = readServicePlans(service.value)
   } catch {
     error.value = t('errors.fetch_failed')
   } finally {
@@ -201,28 +248,58 @@ onMounted(async () => {
   }
 })
 
-async function loadPlans(serviceId: number) {
-  plansLoading.value = true
+function hydrateLifecycleCommands(stored: unknown) {
+  const source = (stored && typeof stored === 'object' ? stored : {}) as Record<string, unknown>
+  const next: Record<string, string> = {}
+  for (const tag of lifecycleTags) {
+    const v = source[tag.key]
+    next[tag.key] = typeof v === 'string' ? v : ''
+    lifecycleTagValues[tag.key] = next[tag.key]
+  }
+  lifecycleBaseline.value = next
+}
+
+async function saveLifecycleCommands() {
+  const id = Number(route.params.id)
+  const lifecycle_commands = Object.fromEntries(
+    Object.entries(lifecycleTagValues)
+      .map(([k, v]) => [k, v.trim()])
+      .filter(([, v]) => v.length > 0),
+  )
+  lifecycleSaving.value = true
   try {
-    plans.value = await getServicePlansByServiceId(serviceId)
+    await updateService(id, { lifecycle_commands } as any)
+    if (service.value) service.value.lifecycle_commands = lifecycle_commands
+    hydrateLifecycleCommands(lifecycle_commands)
+    toast.add({
+      severity: 'success',
+      summary: t('common.success'),
+      detail: t('services.lifecycle_section.saved'),
+      life: 3000,
+    })
+  } catch {
+    toast.add({ severity: 'error', summary: t('common.error'), detail: t('errors.fetch_failed'), life: 4000 })
   } finally {
-    plansLoading.value = false
+    lifecycleSaving.value = false
   }
 }
 
+async function persistPlans(next: ServicePlan[]) {
+  const id = Number(route.params.id)
+  const saved = await setServicePlans(id, next)
+  plans.value = saved
+  if (service.value) service.value.plans = saved
+}
+
 async function onRowEditSave(event: any) {
-  const { newData } = event
+  const { newData, index } = event as { newData: ServicePlan; index: number }
+  const previous = plans.value
+  const next = previous.map((p, i) => (i === index ? { ...p, ...newData } : p))
   try {
-    await updateServicePlan(newData.id, {
-      label: newData.label,
-      slug: newData.slug,
-      description: newData.description,
-      monthlyCreditConsumption: newData.monthlyCreditConsumption,
-    })
-    const idx = plans.value.findIndex((p) => p.id === newData.id)
-    if (idx !== -1) plans.value[idx] = { ...plans.value[idx], ...newData }
+    await persistPlans(next)
     toast.add({ severity: 'success', summary: t('common.success'), life: 3000 })
   } catch {
+    plans.value = previous
     toast.add({ severity: 'error', summary: t('common.error'), detail: t('errors.fetch_failed'), life: 4000 })
   }
 }
@@ -232,32 +309,34 @@ function onRowEditCancel() {
 }
 
 async function startAddPlan() {
-  const id = Number(route.params.id)
-  try {
-    const newPlan = await createServicePlan({
-      service_id: id,
-      label: 'New Plan',
-      slug: `plan-${Date.now()}`,
-      monthlyCreditConsumption: 0,
-    })
-    plans.value = [newPlan, ...plans.value]
-    editingRows.value = [newPlan]
-  } catch {
-    toast.add({ severity: 'error', summary: t('common.error'), detail: t('errors.fetch_failed'), life: 4000 })
+  const used = new Set(plans.value.map((p) => p.slug))
+  let candidate = 'plan'
+  let n = plans.value.length + 1
+  while (used.has(candidate)) candidate = `plan-${n++}`
+  const newPlan: ServicePlan = {
+    slug: candidate,
+    label: t('services.plans.tier_label_placeholder'),
+    description: null,
+    monthlyCreditConsumption: 0,
+    options: [],
   }
+  plans.value = [newPlan, ...plans.value]
+  editingRows.value = [newPlan]
 }
 
-function confirmDeletePlan(plan: any) {
+function confirmDeletePlan(plan: ServicePlan) {
   confirm.require({
     message: t('common.confirm_delete'),
     header: t('common.delete'),
     icon: 'pi pi-exclamation-triangle',
     accept: async () => {
+      const previous = plans.value
+      const next = previous.filter((p) => p.slug !== plan.slug)
       try {
-        await deleteServicePlan(plan.id)
-        plans.value = plans.value.filter((p) => p.id !== plan.id)
+        await persistPlans(next)
         toast.add({ severity: 'success', summary: t('common.success'), life: 3000 })
       } catch {
+        plans.value = previous
         toast.add({ severity: 'error', summary: t('common.error'), detail: t('errors.fetch_failed'), life: 4000 })
       }
     },
