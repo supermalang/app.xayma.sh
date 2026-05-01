@@ -1,7 +1,7 @@
 <template>
   <div class="-mt-8 -mx-8">
     <!-- Editorial header: left primary border, generous gutter -->
-    <div class="px-12 pt-12 pb-8 max-w-6xl mx-auto w-full">
+    <div class="px-12 pt-12 pb-8 max-w-screen-2xl mx-auto w-full">
       <div class="border-l-4 border-primary ps-8">
         <h1 class="text-4xl font-bold tracking-tight text-on-surface">
           {{ $t('services.create_page.title') }}
@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <form class="px-12 pb-16 max-w-6xl mx-auto w-full space-y-16" @submit.prevent="handleSave">
+    <form class="px-12 pb-16 max-w-screen-2xl mx-auto w-full space-y-16" @submit.prevent="handleSave">
       <!-- ============== 01. Basic Info ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
@@ -73,25 +73,89 @@
             <label class="text-[10px] font-bold uppercase tracking-wider text-outline">
               {{ $t('services.form.deployment_template') }}
             </label>
-            <!-- Visual stub: column not in DB. Disabled to avoid suggesting it persists. -->
-            <Dropdown
-              :options="[]"
-              :placeholder="$t('services.form.deployment_template_placeholder')"
-              disabled
+            <Select
+              v-model="form.deployment_template"
+              :options="deploymentTemplates"
+              option-label="name"
+              data-key="id"
+              :loading="templatesLoading"
+              :disabled="templatesLoading || templatesError || deploymentTemplates.length === 0"
+              :placeholder="
+                templatesLoading
+                  ? $t('services.form.deployment_template_loading')
+                  : templatesError
+                    ? $t('services.form.deployment_template_error')
+                    : deploymentTemplates.length === 0
+                      ? $t('services.form.deployment_template_empty')
+                      : $t('services.form.deployment_template_placeholder')
+              "
+              data-test="deployment-template"
               class="w-full"
             />
+            <p v-if="templatesError" class="text-[10px] text-error">
+              {{ $t('services.form.deployment_template_error') }}
+            </p>
           </div>
 
           <div class="space-y-2">
             <label class="text-[10px] font-bold uppercase tracking-wider text-outline">
-              {{ $t('services.form.logo_url') }}
+              {{ $t('services.form.logo') }}
             </label>
-            <InputText
-              v-model="form.logo_url"
-              :placeholder="$t('services.form.logo_url_placeholder')"
-              class="w-full !border-0 !bg-surface-container-low !p-3 !text-sm font-medium"
+            <input
+              ref="logoInputEl"
+              type="file"
+              accept="image/png,image/jpeg,image/svg+xml,image/webp"
+              class="hidden"
+              data-test="service-logo-input"
+              @change="handleLogoUpload"
             />
+            <div
+              v-if="form.logo_url"
+              data-test="service-logo-preview"
+              class="flex items-center gap-4 bg-surface-container-low p-3"
+            >
+              <img :src="form.logo_url" alt="" class="w-12 h-12 object-contain bg-white" />
+              <div class="flex-1 truncate font-mono text-[10px] text-on-surface-variant">
+                {{ form.logo_url }}
+              </div>
+              <button
+                type="button"
+                class="text-[10px] font-bold uppercase tracking-widest text-on-surface hover:text-primary"
+                @click="triggerLogoPicker"
+              >
+                {{ $t('services.form.logo_replace') }}
+              </button>
+              <button
+                type="button"
+                data-test="service-logo-remove"
+                class="text-[10px] font-bold uppercase tracking-widest text-outline hover:text-error"
+                @click="form.logo_url = ''"
+              >
+                {{ $t('services.form.logo_remove') }}
+              </button>
+            </div>
+            <button
+              v-else
+              type="button"
+              data-test="service-logo-upload"
+              :disabled="logoUploading"
+              class="w-full bg-surface-container-low border-2 border-dashed border-outline-variant/30 p-6 flex flex-col items-center justify-center gap-2 hover:border-primary-container transition-colors disabled:opacity-50"
+              @click="triggerLogoPicker"
+            >
+              <span class="material-symbols-outlined text-outline-variant text-3xl">cloud_upload</span>
+              <p class="text-[11px] font-bold text-outline-variant uppercase tracking-wider">
+                {{ logoUploading ? $t('services.form.logo_uploading') : $t('services.form.logo_upload_cta') }}
+              </p>
+            </button>
             <p class="text-[10px] text-on-surface-variant">{{ $t('services.form.logo_hint') }}</p>
+            <details class="text-[10px] text-on-surface-variant">
+              <summary class="cursor-pointer">{{ $t('services.form.logo_url_or') }}</summary>
+              <InputText
+                v-model="form.logo_url"
+                :placeholder="$t('services.form.logo_url_placeholder')"
+                class="w-full !border-0 !bg-surface-container-low !p-3 !text-sm font-medium mt-2"
+              />
+            </details>
           </div>
 
           <div class="flex items-center gap-3 pt-2">
@@ -192,7 +256,7 @@
 
       <div class="h-px bg-outline-variant/20"></div>
 
-      <!-- ============== 03. Versions (visual stub) ============== -->
+      <!-- ============== 03. Versions ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
           <h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -203,23 +267,27 @@
           </p>
         </div>
         <div class="col-span-12 md:col-span-8">
-          <p class="text-xs text-on-surface-variant italic mb-4">
-            {{ $t('services.versions_section.placeholder') }}
+          <InputChips
+            v-model="versionList"
+            data-test="service-versions"
+            :placeholder="$t('services.versions_section.input_placeholder')"
+            separator=","
+            :add-on-blur="true"
+            class="w-full"
+            :pt="{
+              root: '!w-full !border-0 !rounded-none !bg-surface-container-lowest !p-3',
+              inputItemField: '!text-xs !font-mono !text-primary',
+            }"
+          />
+          <p class="mt-2 text-[10px] text-on-surface-variant">
+            {{ $t('services.versions_section.hint') }}
           </p>
-          <button
-            type="button"
-            disabled
-            class="flex items-center gap-2 py-2 text-[10px] font-bold text-primary uppercase tracking-widest opacity-50 cursor-not-allowed"
-          >
-            <span class="material-symbols-outlined text-sm">add_circle</span>
-            {{ $t('services.versions_section.register') }}
-          </button>
         </div>
       </section>
 
       <div class="h-px bg-outline-variant/20"></div>
 
-      <!-- ============== 04. Technical Tags (visual stub) ============== -->
+      <!-- ============== 04. Technical Tags ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
           <h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2">
@@ -242,9 +310,12 @@
                   {{ $t(`services.tags_section.${tag.key}`) }}
                 </span>
               </div>
-              <div class="font-mono text-[10px] text-primary bg-surface-container-lowest p-2">
-                {{ $t('services.tags_section.placeholder') }}
-              </div>
+              <InputText
+                v-model="lifecycleTagValues[tag.key]"
+                :data-test="`tag-command-${tag.key}`"
+                :placeholder="$t(`services.tags_section.${tag.key}_placeholder`)"
+                class="w-full !border-0 !rounded-none !bg-surface-container-lowest !p-2 !text-[10px] !font-mono !text-primary"
+              />
             </div>
           </div>
         </div>
@@ -273,16 +344,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
+import InputChips from 'primevue/inputchips'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
-import { createService, createServicePlan } from '@/services/services.service'
+import { createService, uploadServiceLogo } from '@/services/services.service'
+import { useSettings } from '@/composables/useSettings'
+import {
+  fetchDeploymentTemplates,
+  type DeploymentTemplate,
+} from '@/services/workflow-engine'
 import { slugify } from '@/utils/slug'
 
 interface BasicInfoForm {
@@ -290,6 +367,7 @@ interface BasicInfoForm {
   description: string
   logo_url: string
   isPubliclyAvailable: boolean
+  deployment_template: DeploymentTemplate | null
 }
 
 interface PlanDraft {
@@ -308,10 +386,19 @@ const form = reactive<BasicInfoForm>({
   description: '',
   logo_url: '',
   isPubliclyAvailable: false,
+  deployment_template: null,
 })
 
 const draftPlans = ref<PlanDraft[]>([])
+const versionList = ref<string[]>([])
 const saving = ref(false)
+const logoUploading = ref(false)
+const logoInputEl = ref<HTMLInputElement | null>(null)
+
+const { settings, loadSettings } = useSettings()
+const deploymentTemplates = ref<DeploymentTemplate[]>([])
+const templatesLoading = ref(false)
+const templatesError = ref(false)
 
 const slug = computed(() => slugify(form.name))
 const canSave = computed(() => form.name.trim().length > 0)
@@ -323,7 +410,33 @@ const lifecycleTags = [
   { key: 'suspend', icon: 'pause' },
   { key: 'archive', icon: 'archive' },
   { key: 'domain', icon: 'dns' },
-]
+] as const
+
+const lifecycleTagValues = reactive<Record<string, string>>(
+  Object.fromEntries(lifecycleTags.map((t) => [t.key, ''])),
+)
+
+async function loadDeploymentTemplates() {
+  templatesLoading.value = true
+  templatesError.value = false
+  try {
+    if (!Object.keys(settings.value).length) await loadSettings()
+    const url = settings.value.DEPLOYMENT_ENGINE_URL || ''
+    const token = settings.value.DEPLOYMENT_ENGINE_API_KEY || ''
+    if (!url || !token) {
+      templatesError.value = true
+      return
+    }
+    deploymentTemplates.value = await fetchDeploymentTemplates(url, token)
+  } catch {
+    templatesError.value = true
+    deploymentTemplates.value = []
+  } finally {
+    templatesLoading.value = false
+  }
+}
+
+onMounted(loadDeploymentTemplates)
 
 function addTier() {
   draftPlans.value.push({
@@ -338,6 +451,31 @@ function removeTier(idx: number) {
   draftPlans.value.splice(idx, 1)
 }
 
+function triggerLogoPicker() {
+  logoInputEl.value?.click()
+}
+
+async function handleLogoUpload(e: Event) {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  logoUploading.value = true
+  try {
+    form.logo_url = await uploadServiceLogo(file)
+  } catch {
+    toast.add({
+      severity: 'error',
+      summary: t('common.error'),
+      detail: t('services.form.logo_upload_failed'),
+      life: 4000,
+    })
+  } finally {
+    logoUploading.value = false
+    target.value = ''
+  }
+}
+
 async function copySlug() {
   try {
     await navigator.clipboard.writeText(slug.value)
@@ -347,7 +485,13 @@ async function copySlug() {
 }
 
 function handleDiscard() {
-  if (form.name || form.description || form.logo_url || draftPlans.value.length) {
+  if (
+    form.name ||
+    form.description ||
+    form.logo_url ||
+    draftPlans.value.length ||
+    versionList.value.length
+  ) {
     if (!window.confirm(t('services.confirm_discard'))) return
   }
   router.back()
@@ -357,26 +501,49 @@ async function handleSave() {
   if (!canSave.value) return
   saving.value = true
   try {
+    const lifecycle_commands = Object.fromEntries(
+      Object.entries(lifecycleTagValues)
+        .map(([k, v]) => [k, v.trim()])
+        .filter(([, v]) => v.length > 0),
+    )
+
+    const usedSlugs = new Set<string>()
+    const plans = draftPlans.value.map((p, idx) => {
+      const baseLabel = p.label.trim() || `${t('services.plans.tier_label_placeholder')} ${idx + 1}`
+      let baseSlug = slugify(p.label) || `plan-${idx + 1}`
+      let slugCandidate = baseSlug
+      let n = 2
+      while (usedSlugs.has(slugCandidate)) {
+        slugCandidate = `${baseSlug}-${n++}`
+      }
+      usedSlugs.add(slugCandidate)
+      return {
+        slug: slugCandidate,
+        label: baseLabel,
+        description: p.description.trim() || null,
+        monthlyCreditConsumption: Number(p.monthlyCreditConsumption) || 0,
+        options: p.optionsRaw.split('\n').map((s) => s.trim()).filter(Boolean),
+      }
+    })
+
     const created = await createService({
       name: form.name.trim(),
       slug: slug.value,
       description: form.description.trim() || null,
       logo_url: form.logo_url.trim() || null,
       isPubliclyAvailable: form.isPubliclyAvailable,
+      lifecycle_commands,
+      plans,
+      deployment_template: form.deployment_template
+        ? {
+            id: form.deployment_template.id,
+            url: form.deployment_template.url,
+            name: form.deployment_template.name,
+          }
+        : null,
     })
 
     const serviceId = (created as { id: number }).id
-
-    for (const p of draftPlans.value) {
-      await createServicePlan({
-        service_id: serviceId,
-        label: p.label.trim() || t('services.plans.tier_label_placeholder'),
-        slug: slugify(p.label) || `plan-${Date.now()}`,
-        description: p.description.trim() || null,
-        monthlyCreditConsumption: Number(p.monthlyCreditConsumption) || 0,
-        options: p.optionsRaw.split('\n').map((s) => s.trim()).filter(Boolean),
-      })
-    }
 
     toast.add({ severity: 'success', summary: t('common.success'), life: 3000 })
     router.push(`/services/${serviceId}`)
@@ -391,4 +558,6 @@ async function handleSave() {
     saving.value = false
   }
 }
+
+defineExpose({ form })
 </script>

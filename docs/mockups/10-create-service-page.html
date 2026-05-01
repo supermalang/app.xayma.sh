@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Service Management | Xayma.sh</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-high": "#dce9ff",
+                        "on-tertiary-fixed": "#002114",
+                        "secondary": "#9d4300",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#b8c4ff",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "on-secondary-container": "#5c2400",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#b8c4ff",
+                        "on-tertiary-container": "#5bcf9e",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#1e40af",
+                        "primary-fixed": "#dde1ff",
+                        "surface-dim": "#cbdbf5",
+                        "surface-bright": "#f8f9ff",
+                        "on-error-container": "#93000a",
+                        "outline": "#757684",
+                        "tertiary-fixed": "#85f8c4",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#341100",
+                        "inverse-surface": "#213145",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#fd761a",
+                        "on-surface": "#0b1c30",
+                        "surface-container": "#e5eeff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#783200",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-container": "#00563a",
+                        "on-primary-fixed-variant": "#173bab",
+                        "surface": "#f8f9ff",
+                        "surface-tint": "#3755c3",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f8f9ff",
+                        "primary": "#00288e",
+                        "on-surface-variant": "#444653",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "tertiary": "#003d28",
+                        "on-background": "#0b1c30",
+                        "on-primary-container": "#a8b8ff",
+                        "secondary-fixed-dim": "#ffb690",
+                        "secondary-fixed": "#ffdbca",
+                        "surface-variant": "#d3e4fe",
+                        "on-primary-fixed": "#001453",
+                        "outline-variant": "#c4c5d5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9ff;
+            color: #0b1c30;
+        }
+        .technical-data {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="flex flex-col h-full sticky top-0 h-screen w-64 bg-slate-50 border-r-0">
+<div class="p-8 pb-4">
+<h1 class="text-lg font-black text-blue-900 leading-tight" style="">Admin Console</h1>
+<p class="text-xs font-semibold uppercase tracking-widest text-slate-500 mt-1" style="">Xayma Operations</p>
+</div>
+<nav class="flex-1 mt-4 px-4 space-y-1">
+<a class="flex items-center px-4 py-3 bg-white text-blue-800 font-semibold transition-all duration-200 ease-in-out group" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-blue-800" data-icon="settings_suggest" style="">settings_suggest</span>
+<span class="text-sm" style="">Services</span>
+</a>
+<a class="flex items-center px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-slate-400 group-hover:text-blue-800" data-icon="receipt_long" style="">receipt_long</span>
+<span class="text-sm" style="">Service Plans</span>
+</a>
+<a class="flex items-center px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-slate-400 group-hover:text-blue-800" data-icon="history" style="">history</span>
+<span class="text-sm" style="">Versions</span>
+</a>
+<a class="flex items-center px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-slate-400 group-hover:text-blue-800" data-icon="terminal" style="">terminal</span>
+<span class="text-sm" style="">Lifecycle</span>
+</a>
+<a class="flex items-center px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all duration-200 ease-in-out group" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-slate-400 group-hover:text-blue-800" data-icon="inventory_2" style="">inventory_2</span>
+<span class="text-sm" style="">Registry</span>
+</a>
+</nav>
+<div class="px-8 mb-6">
+<button class="w-full bg-primary-container text-on-primary py-3 px-4 font-bold text-sm tracking-wide transition-all hover:brightness-110" style="">
+                Create Service
+            </button>
+</div>
+<div class="mt-auto border-t border-slate-200/50 p-4 space-y-1">
+<a class="flex items-center px-4 py-2 text-slate-500 hover:text-blue-800 text-xs font-medium" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-sm" data-icon="menu_book" style="">menu_book</span>
+                Docs
+            </a>
+<a class="flex items-center px-4 py-2 text-slate-500 hover:text-blue-800 text-xs font-medium" href="#" style="">
+<span class="material-symbols-outlined mr-3 text-sm" data-icon="support_agent" style="">support_agent</span>
+                Support
+            </a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar (Shared Component) -->
+<header class="flex justify-between items-center w-full px-8 py-4 max-w-full bg-white sticky top-0 z-10">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-blue-900" style="">Xayma.sh</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 hover:text-blue-700 transition-colors text-sm font-medium" href="#" style="">Dashboard</a>
+<a class="text-blue-800 font-bold border-b-2 border-blue-800 pb-1 text-sm" href="#" style="">Deployments</a>
+<a class="text-slate-500 hover:text-blue-700 transition-colors text-sm font-medium" href="#" style="">Invoices</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex items-center bg-surface-container px-3 py-1.5 rounded-sm">
+<span class="material-symbols-outlined text-outline text-lg" data-icon="search" style="">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 text-on-surface" placeholder="Search resources..." type="text"/>
+</div>
+<button class="text-slate-500 hover:text-blue-700" style="">
+<span class="material-symbols-outlined" data-icon="notifications" style="">notifications</span>
+</button>
+<button class="text-slate-500 hover:text-blue-700" style="">
+<span class="material-symbols-outlined" data-icon="settings" style="">settings</span>
+</button>
+<div class="h-8 w-8 bg-slate-200 overflow-hidden">
+<img alt="Administrator Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a senior platform administrator in a minimalist office setting. The lighting is bright and clean, emphasizing a high-end corporate environment. The administrator wears a modern navy suit, and the background is slightly blurred with soft blue and white tones to match the architectural UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-K0j0g0C03Qy8HpqrGBQV0nnEVB__6iOQHnRZ0fFTRk9kG1_zZ7gPvfYzpz9lsZ_q9SFw4zdS4VkJIMmZ6XzcEOXjDo9C7U-1tDOfApLALyeHrgTCwfDjB5E9ytgloieZRctlUf23vHMz68BX6ZbWY6iT92PxfbE7NZpuJF-3YxhJ4xALQwRJnZfiXViLJm7Nbu2_JFSrMIufiMonMaW5Ls9Xw5EOtu3LKI8xZUSWC0pGa6urKSuZ4QfVdqMF4l4T5LES_9dScimh" style=""/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-12 max-w-6xl mx-auto w-full">
+<div class="mb-12 border-l-4 border-primary pl-8">
+<h2 class="text-4xl font-bold tracking-tight text-on-surface mb-2" style="">Create New Service</h2>
+<p class="text-on-surface-variant max-w-2xl font-medium" style="">Define a new core service or third-party integration for the deployment registry. All technical parameters must strictly follow the system schema.</p>
+</div>
+<form class="space-y-16">
+<!-- Section 1: Basic Info -->
+<section class="grid grid-cols-12 gap-8">
+<div class="col-span-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2" style="">01. Basic Info</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed" style="">Identity and visual representation of the service across the marketplace.</p>
+</div>
+<div class="col-span-8 space-y-6">
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-wider text-outline" style="">Service Name</label>
+<input class="w-full border-0 bg-surface-container-low focus:ring-2 focus:ring-primary-container p-3 text-sm font-medium" placeholder="e.g. Odoo Enterprise v16" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-wider text-outline" style="">Slug</label>
+<div class="technical-data text-xs bg-surface-container p-3 flex items-center justify-between">
+<span class="text-on-surface-variant" style="">srv_auto_gen_2024</span>
+<span class="material-symbols-outlined text-xs cursor-pointer" data-icon="content_copy" style="">content_copy</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-wider text-outline" style="">Description</label>
+<textarea class="w-full border-0 bg-surface-container-low focus:ring-2 focus:ring-primary-container p-3 text-sm font-medium" placeholder="High-level overview of the service capabilities..." rows="3"></textarea>
+</div><div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-wider text-outline" style="">Deployment Template</label>
+<div class="relative">
+<select class="w-full border-0 bg-surface-container-low focus:ring-2 focus:ring-primary-container p-3 text-sm font-medium appearance-none cursor-pointer">
+<option disabled="" selected="" value="">Select a deployment engine template...</option>
+<option value="odoo-std">Standard Odoo Instance (v14-v17)</option>
+<option value="microservice">Generic Dockerized Microservice</option>
+<option value="db-only">Database Provisioning Only</option>
+<option value="static-web">Static Assets / Frontend Shell</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline" style="">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-wider text-outline" style="">Service Logo</label>
+<div class="flex items-center gap-6 p-6 bg-surface-container-lowest outline outline-1 outline-outline-variant/20">
+<div class="h-16 w-16 bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-3xl" data-icon="cloud_upload" style="">cloud_upload</span>
+</div>
+<div class="flex-1">
+<p class="text-xs font-semibold mb-1" style="">Drag and drop service branding</p>
+<p class="text-[10px] text-on-surface-variant" style="">SVG or PNG. Maximum 500kb. 512x512px recommended.</p>
+</div>
+<button class="text-primary text-xs font-bold px-4 py-2 hover:bg-surface-container-low transition-colors" style="" type="button">Select File</button>
+</div>
+</div>
+</div>
+</section>
+<div class="h-px bg-outline-variant/20"></div>
+<!-- Section 2: Service Plans (Bento Grid Style for List) -->
+<section class="grid grid-cols-12 gap-8">
+<div class="col-span-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2" style="">02. Service Plans</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed" style="">Define subscription tiers and their respective computational limits.</p>
+<button class="mt-6 flex items-center gap-2 text-xs font-bold text-secondary-container hover:text-secondary" style="" type="button">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle" style="">add_circle</span>
+                            Add New Tier
+                        </button>
+</div>
+<div class="col-span-8">
+<div class="grid grid-cols-2 gap-4">
+<!-- Plan Card 1 -->
+<div class="bg-surface-container-lowest p-6 flex flex-col justify-between min-h-[220px]">
+<div>
+<div class="flex justify-between items-start mb-4">
+<h4 class="text-sm font-bold text-on-surface" style="">Starter Tier</h4>
+<span class="technical-data text-[10px] px-2 py-0.5 bg-surface-container-high text-primary" style="">PLAN-S1</span>
+</div>
+<ul class="space-y-2 mb-6">
+<li class="flex items-center gap-2 text-[11px] text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-[14px] text-tertiary-container" data-icon="check_circle" style="">check_circle</span>
+                                            Single Database Instance
+                                        </li>
+<li class="flex items-center gap-2 text-[11px] text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-[14px] text-tertiary-container" data-icon="check_circle" style="">check_circle</span>
+                                            2GB Memory Limit
+                                        </li>
+<li class="flex items-center gap-2 text-[11px] text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-[14px] text-tertiary-container" data-icon="check_circle" style="">check_circle</span>
+                                            Community Modules Only
+                                        </li>
+</ul>
+</div>
+<div class="flex justify-between items-end pt-4 border-t border-outline-variant/10">
+<div>
+<span class="technical-data text-lg font-bold text-on-surface" style="">15,000</span>
+<span class="technical-data text-[10px] text-outline ml-1" style="">FCFA / 30D</span>
+</div>
+<button class="text-outline hover:text-error transition-colors" style="" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="delete_outline" style="">delete_outline</span>
+</button>
+</div>
+</div>
+<!-- Plan Card 2 (Incomplete/Adding) -->
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant/30 p-6 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-outline-variant mb-2 text-3xl" data-icon="post_add" style="">post_add</span>
+<p class="text-[11px] font-bold text-outline-variant uppercase tracking-wider" style="">Configure New Tier</p>
+</div>
+</div>
+</div>
+</section>
+<div class="h-px bg-outline-variant/20"></div>
+<!-- Section 3: Versions -->
+<section class="grid grid-cols-12 gap-8">
+<div class="col-span-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2" style="">03. Versions</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed" style="">Map software builds to their respective Docker image tags.</p>
+</div>
+<div class="col-span-8">
+<div class=""><div class="flex flex-wrap gap-2 mb-6">
+<span class="technical-data text-[11px] font-semibold px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/20" style="">v16.0.202401</span>
+<span class="technical-data text-[11px] font-semibold px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full border border-outline-variant/20" style="">v15.0.202305</span>
+</div>
+<button class="flex items-center gap-2 py-2 text-[10px] font-bold text-primary uppercase tracking-widest hover:text-primary-container transition-colors" style="" type="button">
+<span class="material-symbols-outlined text-sm" style="">add_circle</span>
+    Register New Build
+</button></div>
+</div>
+</section>
+<div class="h-px bg-outline-variant/20"></div>
+<!-- Section 4: Technical Tags (Asymmetric Layout) -->
+<section class="grid grid-cols-12 gap-8">
+<div class="col-span-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2" style="">04. Technical Tags</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed" style="">Map lifecycle events to automated script triggers within the orchestrator.</p>
+</div>
+<div class="col-span-8">
+<div class="grid grid-cols-3 gap-3">
+<!-- Lifecycle Operation -->
+<div class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="play_arrow" style="">play_arrow</span>
+<span class="text-[11px] font-bold uppercase text-on-surface" style="">Start</span>
+</div>
+<div class="technical-data text-[10px] text-primary bg-white p-2" style="">
+                                    exec_sh: init_srv.sh
+                                </div>
+</div>
+<div class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="stop" style="">stop</span>
+<span class="text-[11px] font-bold uppercase text-on-surface" style="">Stop</span>
+</div>
+<div class="technical-data text-[10px] text-primary bg-white p-2" style="">
+                                    exec_sh: graceful_stop.sh
+                                </div>
+</div>
+<div class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="refresh" style="">refresh</span>
+<span class="text-[11px] font-bold uppercase text-on-surface" style="">Restart</span>
+</div>
+<div class="technical-data text-[10px] text-primary bg-white p-2" style="">
+                                    exec_sh: reload_env.sh
+                                </div>
+</div>
+<div class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="pause" style="">pause</span>
+<span class="text-[11px] font-bold uppercase text-on-surface" style="">Suspend</span>
+</div>
+<div class="technical-data text-[10px] text-primary bg-white p-2" style="">
+                                    exec_sh: freeze_state.sh
+                                </div>
+</div>
+<div class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="archive" style="">archive</span>
+<span class="text-[11px] font-bold uppercase text-on-surface" style="">Archive</span>
+</div>
+<div class="technical-data text-[10px] text-primary bg-white p-2" style="">
+                                    exec_sh: backup_then_kill.sh
+                                </div>
+</div>
+<div class="p-4 bg-surface-container-low border border-transparent hover:border-primary-container transition-all">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="dns" style="">dns</span>
+<span class="text-[11px] font-bold uppercase text-on-surface" style="">Domain</span>
+</div>
+<div class="technical-data text-[10px] text-primary bg-white p-2" style="">
+                                    exec_sh: update_cname.sh
+                                </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Actions -->
+<div class="pt-8 flex justify-end gap-4 border-t border-outline-variant/30">
+<button class="px-8 py-3 text-sm font-bold text-on-surface hover:bg-surface-container transition-colors" style="" type="button">Discard Draft</button>
+<button class="px-10 py-3 bg-primary-container text-on-primary font-bold text-sm tracking-widest hover:brightness-110 transition-all" style="" type="submit">SAVE</button>
+</div>
+</form>
+</div>
+<!-- Footer Metric / Bottom Bar -->
+<footer class="mt-auto bg-surface-container-low px-8 py-4 flex items-center justify-between border-t border-outline-variant/10">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-bold uppercase text-outline" style="">System Load</span>
+<div class="w-24 h-1 bg-surface-container-highest">
+<div class="w-3/4 h-full bg-primary"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase text-outline" style="">API Status</span>
+<span class="h-2 w-2 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="technical-data text-[10px] text-on-tertiary-fixed-variant font-bold" style="">OPERATIONAL</span>
+</div>
+</div>
+<div class="technical-data text-[10px] text-outline" style="">
+                v2.4.8_BUILD_2024-05-20_14:30
+            </div>
+</footer>
+</main>
+</body></html>

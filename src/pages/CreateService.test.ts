@@ -17,7 +17,18 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@/services/services.service', () => ({
   createService: vi.fn(),
-  createServicePlan: vi.fn(),
+  uploadServiceLogo: vi.fn(),
+}))
+
+const fetchTemplatesMock = vi.fn()
+vi.mock('@/services/workflow-engine', () => ({
+  fetchDeploymentTemplates: (...args: unknown[]) => fetchTemplatesMock(...args),
+}))
+
+const loadSettingsMock = vi.fn()
+const settingsRef = { value: {} as Record<string, string> }
+vi.mock('@/composables/useSettings', () => ({
+  useSettings: () => ({ settings: settingsRef, loadSettings: loadSettingsMock }),
 }))
 
 const toastAdd = vi.fn()
@@ -43,6 +54,11 @@ function makeWrapper() {
 describe('CreateService.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    settingsRef.value = {
+      DEPLOYMENT_ENGINE_URL: 'https://engine.example/webhook/x',
+      DEPLOYMENT_ENGINE_API_KEY: 'tok',
+    }
+    fetchTemplatesMock.mockResolvedValue([])
   })
 
   it('renders the four mockup sections', () => {
@@ -81,9 +97,8 @@ describe('CreateService.vue', () => {
     expect(w.findAll('[data-test="tier-card"]').length).toBe(0)
   })
 
-  it('submits service then plans and navigates to detail', async () => {
+  it('submits service with inline plans and navigates to detail', async () => {
     ;(servicesService.createService as any).mockResolvedValue({ id: 42, name: 'X', slug: 'x' })
-    ;(servicesService.createServicePlan as any).mockResolvedValue({ id: 1 })
     const w = makeWrapper()
     await w.find('[data-test="service-name"] input').setValue('My Service')
     await w.find('button[data-test="add-tier"]').trigger('click')
@@ -94,12 +109,65 @@ describe('CreateService.vue', () => {
     await w.find('form').trigger('submit.prevent')
     await flushPromises()
     expect(servicesService.createService).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'My Service', slug: 'my-service' })
-    )
-    expect(servicesService.createServicePlan).toHaveBeenCalledWith(
-      expect.objectContaining({ service_id: 42, label: 'Starter', monthlyCreditConsumption: 15000 })
+      expect.objectContaining({
+        name: 'My Service',
+        slug: 'my-service',
+        plans: [
+          expect.objectContaining({ slug: 'starter', label: 'Starter', monthlyCreditConsumption: 15000 }),
+        ],
+      })
     )
     expect(pushMock).toHaveBeenCalledWith('/services/42')
+  })
+
+  it('fetches deployment templates with the configured engine URL + token', async () => {
+    fetchTemplatesMock.mockResolvedValue([
+      { id: 23, url: '/api/v2/job_templates/23/', name: 'Deploy Mautic' },
+    ])
+    makeWrapper()
+    await flushPromises()
+    expect(fetchTemplatesMock).toHaveBeenCalledWith(
+      'https://engine.example/webhook/x',
+      'tok',
+    )
+  })
+
+  it('persists the selected deployment template (id, url, name) on save', async () => {
+    fetchTemplatesMock.mockResolvedValue([
+      { id: 9, url: '/api/v2/job_templates/9/', name: 'Deploy Odoo' },
+    ])
+    ;(servicesService.createService as any).mockResolvedValue({ id: 7, name: 'X', slug: 'x' })
+    const w = makeWrapper()
+    await flushPromises()
+    await w.find('[data-test="service-name"] input').setValue('My Service')
+    ;(w.vm as any).form.deployment_template = {
+      id: 9,
+      url: '/api/v2/job_templates/9/',
+      name: 'Deploy Odoo',
+    }
+    await w.find('form').trigger('submit.prevent')
+    await flushPromises()
+    expect(servicesService.createService).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deployment_template: {
+          id: 9,
+          url: '/api/v2/job_templates/9/',
+          name: 'Deploy Odoo',
+        },
+      }),
+    )
+  })
+
+  it('saves deployment_template as null when nothing was picked', async () => {
+    ;(servicesService.createService as any).mockResolvedValue({ id: 1, name: 'X', slug: 'x' })
+    const w = makeWrapper()
+    await flushPromises()
+    await w.find('[data-test="service-name"] input').setValue('My Service')
+    await w.find('form').trigger('submit.prevent')
+    await flushPromises()
+    expect(servicesService.createService).toHaveBeenCalledWith(
+      expect.objectContaining({ deployment_template: null }),
+    )
   })
 
   it('shows error toast and stays on page when createService fails', async () => {

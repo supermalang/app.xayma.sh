@@ -25,15 +25,6 @@
 
       <Column field="name" :header="$t('services.columns.name')" />
 
-      <Column field="status" :header="$t('services.columns.status')">
-        <template #body="{ data }">
-          <Tag
-            :value="$t(`services.status.${data.status}`)"
-            :severity="getStatusSeverity(data.status)"
-          />
-        </template>
-      </Column>
-
       <Column field="isPubliclyAvailable" :header="$t('services.columns.isPubliclyAvailable')">
         <template #body="{ data }">
           <ToggleButton
@@ -68,7 +59,6 @@ import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Tag from 'primevue/tag'
 import ToggleButton from 'primevue/togglebutton'
 import { listServices, toggleServicePublicAvailability } from '@/services/services.service'
 
@@ -80,10 +70,6 @@ const services = ref<any[]>([])
 const loading = ref(false)
 const totalRecords = ref(0)
 const currentPage = ref(0)
-
-function getStatusSeverity(status: string): 'success' | 'warn' | 'secondary' {
-  return status === 'active' ? 'success' : status === 'inactive' ? 'warn' : 'secondary'
-}
 
 async function loadServices() {
   loading.value = true
