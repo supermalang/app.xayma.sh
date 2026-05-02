@@ -34,7 +34,7 @@ const CreditsBuy = () => import('@/pages/Credits/Buy.vue')
 const CreditsSuccess = () => import('@/pages/Credits/Success.vue')
 const CreditsCancel = () => import('@/pages/Credits/Cancel.vue')
 const CreditsHistory = () => import('@/pages/Credits/History.vue')
-const CreditPurchaseOptions = () => import('@/pages/CreditPurchaseOptions.vue')
+const CreditsTransactionDetail = () => import('@/pages/Credits/TransactionDetail.vue')
 const VouchersManagement = () => import('@/pages/Vouchers/Management.vue')
 const Notifications = () => import('@/pages/Notifications.vue')
 const Portfolio = () => import('@/pages/Portfolio.vue')
@@ -147,10 +147,11 @@ const routes: RouteRecordRaw[] = [
         name: 'credits-history',
       },
       {
-        path: 'credits/purchase-options',
-        component: CreditPurchaseOptions,
-        meta: { requiredRole: ['ADMIN'] },
-        name: 'credit-purchase-options',
+        path: 'credits/transactions/:id',
+        component: CreditsTransactionDetail,
+        meta: { requiredRole: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
+        name: 'credits-transaction-detail',
+        props: true,
       },
       {
         path: 'vouchers',

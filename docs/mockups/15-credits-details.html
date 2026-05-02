@@ -1,0 +1,304 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#173bab",
+                        "primary-fixed-dim": "#b8c4ff",
+                        "error-container": "#ffdad6",
+                        "surface": "#f8f9ff",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-secondary-fixed": "#341100",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-low": "#eff4ff",
+                        "outline": "#757684",
+                        "tertiary": "#003d28",
+                        "on-primary-fixed": "#001453",
+                        "inverse-primary": "#b8c4ff",
+                        "on-tertiary-fixed-variant": "#005137",
+                        "primary-fixed": "#dde1ff",
+                        "outline-variant": "#c4c5d5",
+                        "on-background": "#0b1c30",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#85f8c4",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-container": "#a8b8ff",
+                        "on-secondary-container": "#5c2400",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#1e40af",
+                        "secondary-fixed": "#ffdbca",
+                        "on-tertiary-container": "#5bcf9e",
+                        "surface-tint": "#3755c3",
+                        "on-tertiary-fixed": "#002114",
+                        "on-secondary-fixed-variant": "#783200",
+                        "tertiary-fixed-dim": "#68dba9",
+                        "tertiary-container": "#00563a",
+                        "secondary-container": "#fd761a",
+                        "on-surface-variant": "#444653",
+                        "surface-container": "#e5eeff",
+                        "surface-bright": "#f8f9ff",
+                        "inverse-surface": "#213145",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-surface": "#0b1c30",
+                        "primary": "#00288e",
+                        "secondary": "#9d4300",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["IBM Plex Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9ff;
+        }
+        .mono-data {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-8 h-16 w-full bg-white dark:bg-slate-950 border-b border-outline-variant/20">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-100 font-sans">Xayma.sh</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-3 py-2 rounded-lg text-sm font-medium" href="#">Dashboard</a>
+<a class="text-blue-700 dark:text-blue-300 font-bold px-3 py-2 rounded-lg text-sm" href="#">Deployments</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-3 py-2 rounded-lg text-sm font-medium" href="#">Billing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="mono-data text-sm font-medium text-primary">5,000 FCFA</span>
+</div>
+<button class="p-2 text-on-surface-variant hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-slate-200">
+<img alt="Bakary's Wholesale" data-alt="A professional headshot of a Senegalese business owner with a friendly expression. The lighting is soft and studio-quality, emphasizing clarity and trust. The background is a clean, minimalist off-white, aligning with the high-end technical editorial UI aesthetic. The overall mood is authoritative yet approachable." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjFJiF-sJ_ns39Okz5VO8KqylZVOhJUTWIZZ7FxdNbUmC87lOkyk9TlJcJjsmUf6a_y6J3tq9dGBhbNHn9s--q55T0_JDKFZanKKEWf8eupx3UkC2zsGcXMVHCUjcl7uzjqfU6Rv-JFsOJApTBcgjAZCXWvmzUH5AJ0I_itbgJBNSk-rpsmZ19lbI91OOKvJut7B9MbtskUpnfXBW2J4GC2aDISxWasGkgjq9EMACsezypkNv2g5bjcusiNVVOvxtAldS-AQtBWjXB" class="">
+</div>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- Side Navigation -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-8 px-4 w-64 bg-slate-50 dark:bg-slate-900 border-r border-outline-variant/20 hidden md:flex">
+<div class="px-4 mb-8">
+<h2 class="font-mono text-xs text-slate-500 uppercase tracking-widest">Dakar Distribution</h2>
+<p class="text-sm font-bold text-blue-900 dark:text-blue-100">Enterprise Tier</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-r-4 border-blue-700 rounded-l-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="rocket_launch">rocket_launch</span>
+<span class="text-sm font-medium">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="receipt_long">receipt_long</span>
+<span class="text-sm font-medium">Billing</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="settings">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-8 border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-blue-600 text-sm" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="help_outline">help_outline</span>
+<span class="">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-blue-600 text-sm" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="description">description</span>
+<span class="">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 p-8 lg:p-16 max-w-7xl mx-auto w-full">
+<!-- Breadcrumbs -->
+<div class="mb-8 flex items-center gap-2 text-xs font-medium text-on-surface-variant uppercase tracking-widest">
+<a class="hover:text-primary transition-colors" href="#">Billing</a>
+<span class="material-symbols-outlined text-[10px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary">Transaction Details</span>
+</div>
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-outline-variant/10 pb-8">
+<div>
+<h1 class="text-3xl font-extrabold tracking-tighter text-on-background mb-2">Transaction Detail</h1>
+<div class="flex items-center gap-4">
+<span class="mono-data text-sm bg-surface-container-low px-3 py-1 text-on-primary-fixed-variant">TX-8921-X99B-2024</span>
+<div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-container text-tertiary-fixed text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-xs" data-icon="check_circle" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+                            PROCESSED
+                        </div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-4 py-2 text-sm font-semibold text-primary border border-outline-variant/40 hover:bg-surface-container-low transition-colors rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+                        Export Invoice</button>
+<button class="px-6 py-2 text-sm font-semibold text-on-primary bg-primary-container hover:bg-blue-800 transition-colors rounded-lg">
+                        Raise Dispute
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Account & Balance Card -->
+<div class="lg:col-span-2 space-y-8">
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/10 transition-all">
+<div class="flex items-start justify-between mb-12">
+<div>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Account Entity</p>
+<h3 class="text-xl font-bold text-on-background">Bakary's Wholesale</h3>
+<p class="text-sm text-on-surface-variant mt-1">Dakar Enterprise Cluster (Zone A)</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Current Balance</p>
+<p class="mono-data text-2xl font-bold text-primary">45,000 FCFA</p>
+</div>
+</div>
+<!-- Financial Ledger Table -->
+<div class="space-y-6">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/20 pb-2">Financial Breakdown</h4>
+<div class="grid grid-cols-2 py-2">
+<span class="text-sm font-medium text-on-surface-variant">Previous Balance</span>
+<span class="mono-data text-sm text-right">35 Credits</span>
+</div>
+<div class="grid grid-cols-2 py-4 bg-surface-container-low/50 px-4 -mx-4">
+<div class="flex items-center gap-2">
+<span class="text-sm font-bold text-on-background">Transaction Amount</span>
+<span class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">CREDIT</span>
+</div>
+<span class="mono-data text-lg font-bold text-right text-tertiary-fixed-dim">+10 Credits</span>
+</div>
+<div class="grid grid-cols-2 pt-2 border-t border-outline-variant/20">
+<span class="text-sm font-bold text-on-background">Resulting New Balance</span>
+<span class="mono-data text-sm font-bold text-right">45 Credits<br></span>
+</div>
+</div>
+</div>
+<!-- Payment Metadata -->
+<div class="bg-surface-container-low p-8 rounded-xl border border-outline-variant/10">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-6">Payment &amp; Metadata</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Payment Method</p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-6 bg-white rounded border border-outline-variant/20 flex items-center justify-center p-1">
+<img alt="Wave" class="h-full object-contain" data-alt="A macro photography shot of a sleek, minimalist payment terminal screen displaying a secure transaction checkmark. The color palette consists of deep blues and vibrant oranges, capturing the essence of modern fintech. Soft bokeh lighting creates an atmosphere of speed, security, and digital innovation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0FVozgNHoBk3puU1fa1evbaI_O94W4-skK0N-VoY65uBWFhbyQxW7gf-E8CbSvVJc9B9p5SKSPD5H-44pINo_scMY8B2DHSxeQMK8_cUgo_7-3PCn8uWqeRsVjstN4XTuUbatqwBdvizjICFRCfImf6K-PZC_iBmI5qGI2sgFkkE_bZuZZIfQZ4ND_H7I_iacNl8-2j8voJDd39n7V7s_fKWX8mND9fhLvahCqwUBzPKU1uz_MNHpw5-CChD7dB0rJGn_RhXyyJdn">
+</div>
+<p class="text-sm font-bold">Wave Mobile Money</p>
+</div>
+</div>
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Transaction Date/Time</p>
+<p class="mono-data text-sm">2024-10-24 14:32:05</p>
+</div>
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Reference ID</p>
+<p class="mono-data text-sm text-primary underline decoration-primary/20 cursor-pointer">WAVE_REF_9921003441</p>
+</div>
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Gateway Protocol</p>
+<p class="text-sm font-medium">REST API v2.4 (Encrypted)</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Audit Log / Lifecycle -->
+<div class="lg:col-span-1">
+<div class="bg-white p-8 rounded-xl h-full border border-outline-variant/10">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-10">Audit Lifecycle</h4>
+<div class="relative space-y-10 pl-6 border-l-2 border-outline-variant/20">
+<!-- Event 1 -->
+<div class="relative">
+<div class="absolute -left-[33px] top-0 w-[14px] h-[14px] rounded-full bg-tertiary-container border-4 border-white"></div>
+<div>
+<p class="text-sm font-bold text-on-background">Credits Applied</p>
+<p class="mono-data text-[10px] text-on-surface-variant mt-1">2024-10-24 14:32:05</p>
+<p class="text-xs text-on-surface-variant mt-2 leading-relaxed">System successfully reconciled the account balance. Database state: COMMITTED.</p>
+</div>
+</div>
+<!-- Event 2 -->
+<div class="relative">
+<div class="absolute -left-[33px] top-0 w-[14px] h-[14px] rounded-full bg-tertiary-container border-4 border-white"></div>
+<div>
+<p class="text-sm font-bold text-on-background">Gateway Confirmed</p>
+<p class="mono-data text-[10px] text-on-surface-variant mt-1">2024-10-24 14:32:01</p>
+<p class="text-xs text-on-surface-variant mt-2 leading-relaxed">Wave gateway returned 200 OK. Transaction verified via asynchronous callback.</p>
+</div>
+</div>
+<!-- Event 3 -->
+<div class="relative">
+<div class="absolute -left-[33px] top-0 w-[14px] h-[14px] rounded-full bg-primary/20 border-4 border-white"></div>
+<div>
+<p class="text-sm font-bold text-on-background">Initiated</p>
+<p class="mono-data text-[10px] text-on-surface-variant mt-1">2024-10-24 14:31:50</p>
+<p class="text-xs text-on-surface-variant mt-2 leading-relaxed">Request received from IP 192.168.1.44 (Session: 4492-X). Validating payload.</p>
+</div>
+</div>
+</div>
+<!-- Technical Stats Footer -->
+<div class="mt-16 pt-8 border-t border-outline-variant/20">
+<div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+<span class="">LATENCY</span>
+<span class="">154ms</span>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono text-slate-400 mt-2">
+<span class="">RETRY COUNT</span>
+<span class="">0</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Quote Area -->
+<footer class="mt-20 pt-12 border-t border-outline-variant/20 text-center md:text-left">
+<p class="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] mb-4">Internal Administrative Ledger — Xayma.sh Enterprise Monitoring</p>
+<div class="flex flex-col md:flex-row items-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all">
+<img alt="Enterprise Security" class="h-6 w-auto" data-alt="A wide-angle interior shot of a high-tech data center with glowing blue and white server racks. The perspective is architectural and symmetrical, conveying a sense of immense scale and technical precision. The lighting is cold and professional, highlighting the industrial design and stability of the infrastructure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrVEpg2LovRmrkyEWFDdmAD-jbY5MacbJXljFFKqLiUySFPkQkHbsxaz8LiKsJeJSRPRGnq7aJYgequCKxZR7Bt-JUqcq5P02meaHGPSBDLPDM7DhG-PQS8wzSBrpXzQiLB2ZODgzIbd-wO2UrmcJr3h9kVXeg-AA-XlP69UWyRnMDWuhkvsXxBLUBnnQHYCq1VZQ_4rN4h3oRG57AXv15C63IQ4AThgW5PBGlL4PfsMaTyXGKMnyoP2BLD4MLa9muSeaWYqbnXWdr">
+<span class="text-xs font-medium text-slate-500 max-w-sm">This transaction record is cryptographically signed and immutable. All timestamps are recorded in UTC+0.</span>
+</div>
+</footer>
+</main>
+</div>
+
+
+</body></html>

@@ -83,7 +83,7 @@ const allNavItems: NavItem[] = [
   { path: '/', label: t('nav.dashboard'), icon: 'dashboard', roles: ['ADMIN', 'CUSTOMER', 'RESELLER', 'SALES'] },
   { path: '/deployments', label: t('nav.deployments'), icon: 'rocket_launch', roles: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
   { path: '/partners', label: t('nav.partners'), icon: 'group', roles: ['ADMIN', 'RESELLER', 'SALES'] },
-  { path: '/credits/buy', label: t('nav.credits'), icon: 'receipt_long', roles: ['CUSTOMER', 'RESELLER'] },
+  { path: '/credits/history', label: t('nav.credits'), icon: 'receipt_long', roles: ['ADMIN', 'CUSTOMER', 'RESELLER'] },
   { path: '/portfolio', label: t('nav.portfolio'), icon: 'briefcase', roles: ['SALES'] },
   { path: '/commissions', label: t('nav.commissions'), icon: 'trending_up', roles: ['SALES'] },
   { path: '/services', label: t('nav.services'), icon: 'settings_suggest', roles: ['ADMIN'] },

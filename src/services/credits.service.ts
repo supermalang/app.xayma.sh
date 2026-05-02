@@ -1,17 +1,48 @@
 import { supabaseFrom } from '@/services/supabase'
 
-// Frontend model for credit transactions — columns differ from DB schema
-// (DB uses transactionType/amountPaid/creditsUsed; this layer normalises for UI)
+// Frontend model for credit transactions — DB columns are in `xayma_app.credit_transactions`
+// (transactionType/creditsPurchased/creditsUsed/creditsRemaining/paymentMethod/created).
+// `normalizeTransaction` maps them onto this UI-friendly shape.
 export interface CreditTransactionRow {
   id: number
   partner_id: number
   type: 'TOPUP' | 'DEBIT' | 'REFUND' | 'EXPIRY'
   amount: number
+  balanceAfter: number | null
   payment_method?: string
   reason?: string
   reference?: string
   status: 'COMPLETED' | 'PENDING' | 'FAILED'
   created_at: string
+}
+
+interface DbCreditTransactionRow {
+  id: number
+  partner_id: number
+  transactionType: 'credit' | 'debit' | null
+  creditsPurchased: number | null
+  creditsUsed: number | null
+  creditsRemaining: number | null
+  amountPaid: number | null
+  paymentMethod: string | null
+  status: 'pending' | 'completed' | 'failed' | null
+  created: string
+}
+
+function normalizeTransaction(row: DbCreditTransactionRow): CreditTransactionRow {
+  const type: CreditTransactionRow['type'] = row.transactionType === 'credit' ? 'TOPUP' : 'DEBIT'
+  const amount = type === 'TOPUP' ? (row.creditsPurchased ?? 0) : (row.creditsUsed ?? 0)
+  const status = (row.status ?? 'completed').toUpperCase() as CreditTransactionRow['status']
+  return {
+    id: row.id,
+    partner_id: row.partner_id,
+    type,
+    amount,
+    balanceAfter: row.creditsRemaining,
+    payment_method: row.paymentMethod ?? undefined,
+    status,
+    created_at: row.created,
+  }
 }
 
 export interface ListTransactionsFilter {
@@ -57,7 +88,7 @@ export async function listTransactions(options: ListTransactionsOptions = {}) {
   }
 
   return {
-    data: (data || []) as unknown as CreditTransactionRow[],
+    data: ((data ?? []) as unknown as DbCreditTransactionRow[]).map(normalizeTransaction),
     count: count || 0,
     page,
     pageSize,
@@ -76,7 +107,7 @@ export async function getTransaction(id: number) {
     throw error
   }
 
-  return data as unknown as CreditTransactionRow
+  return normalizeTransaction(data as unknown as DbCreditTransactionRow)
 }
 
 export async function calculateBalance(partnerId: number): Promise<number> {
