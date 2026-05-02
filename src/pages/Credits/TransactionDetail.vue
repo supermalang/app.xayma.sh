@@ -255,6 +255,8 @@ import ProgressSpinner from 'primevue/progressspinner'
 import { getTransaction, type CreditTransactionRow } from '@/services/credits.service'
 import { getPartner, type Partner } from '@/services/partners.service'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
+import { formatNumber, formatDateTime } from '@/lib/formatters'
+import { downloadCsv } from '@/lib/csv'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -277,7 +279,7 @@ const formattedTxId = computed(() => {
 })
 
 function formatCredits(amount: number): string {
-  return `${amount.toLocaleString(localeKey.value)} ${t('credits.credits')}`
+  return `${formatNumber(amount, localeKey.value)} ${t('credits.credits')}`
 }
 
 const formattedCurrentBalance = computed(() =>
@@ -287,7 +289,7 @@ const formattedCurrentBalance = computed(() =>
 const formattedSignedAmount = computed(() => {
   if (!transaction.value) return ''
   const sign = isInflow(transaction.value.type) ? '+' : '-'
-  return `${sign}${transaction.value.amount.toLocaleString(localeKey.value)} ${t('credits.credits')}`
+  return `${sign}${formatCredits(transaction.value.amount)}`
 })
 
 const previousBalance = computed<number | null>(() => {
@@ -300,17 +302,7 @@ const previousBalance = computed<number | null>(() => {
 
 const formattedDateTime = computed(() => {
   if (!transaction.value) return ''
-  const d = new Date(transaction.value.created_at)
-  return `${d.toLocaleDateString(localeKey.value, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })} ${d.toLocaleTimeString(localeKey.value, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  })}`
+  return formatDateTime(transaction.value.created_at, localeKey.value, { withSeconds: true })
 })
 
 const statusBadgeClass = computed(() => {
@@ -429,7 +421,7 @@ function goBack() {
 function exportInvoice() {
   if (!transaction.value) return
   const tx = transaction.value
-  const lines = [
+  const csv = [
     'invoice,date,amount,type,status,reference,payment_method',
     [
       formattedTxId.value,
@@ -440,16 +432,8 @@ function exportInvoice() {
       tx.reference ?? '',
       tx.payment_method ?? '',
     ].join(','),
-  ]
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${formattedTxId.value}.csv`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  ].join('\n')
+  downloadCsv(csv, `${formattedTxId.value}.csv`)
 }
 
 function raiseDispute() {

@@ -221,7 +221,7 @@
       >
         <Column field="created_at" :header="t('credits.date')" style="width: 18%">
           <template #body="{ data }">
-            <span class="font-mono text-sm text-on-surface">{{ formatDate(data.created_at) }}</span>
+            <span class="font-mono text-sm text-on-surface">{{ formatDateTime(data.created_at, localeKey) }}</span>
           </template>
         </Column>
 
@@ -254,7 +254,7 @@
         <Column :header="t('credits.column_balance')" style="width: 18%" align="right">
           <template #body="{ data }">
             <span class="font-mono font-semibold tabular-nums text-on-surface">
-              {{ data.balanceAfter !== null ? formatBalance(data.balanceAfter) : '—' }}
+              {{ data.balanceAfter !== null ? formatCredits(data.balanceAfter) : '—' }}
             </span>
           </template>
         </Column>
@@ -279,6 +279,8 @@ import Message from 'primevue/message'
 import Popover from 'primevue/popover'
 import ProgressSpinner from 'primevue/progressspinner'
 import { listTransactions } from '@/services/credits.service'
+import { formatNumber, formatDateTime } from '@/lib/formatters'
+import { downloadCsv } from '@/lib/csv'
 
 interface Transaction {
   id: number
@@ -321,10 +323,9 @@ const transactionTypes = computed(() => [
 ])
 
 const currentBalance = computed(() => partnerCredits.value?.remainingCredits ?? 0)
+const localeKey = computed(() => (locale.value === 'fr' ? 'fr-SN' : 'en-US'))
 
-const formattedBalance = computed(() =>
-  currentBalance.value.toLocaleString(locale.value === 'fr' ? 'fr-SN' : 'en-US')
-)
+const formattedBalance = computed(() => formatNumber(currentBalance.value, localeKey.value))
 
 const monthlyUsage = computed(() => {
   const now = new Date()
@@ -334,9 +335,7 @@ const monthlyUsage = computed(() => {
     .reduce((sum, tx) => sum + tx.amount, 0)
 })
 
-const formattedMonthlyUsage = computed(() =>
-  monthlyUsage.value.toLocaleString(locale.value === 'fr' ? 'fr-SN' : 'en-US')
-)
+const formattedMonthlyUsage = computed(() => formatNumber(monthlyUsage.value, localeKey.value))
 
 const usagePercent = computed(() => {
   const total = monthlyUsage.value + currentBalance.value
@@ -351,7 +350,7 @@ const lastTopUpTransaction = computed(() =>
 const lastTopUpAmount = computed(() => {
   const tx = lastTopUpTransaction.value
   if (!tx) return t('credits.no_top_up_yet')
-  return `${tx.amount.toLocaleString(locale.value === 'fr' ? 'fr-SN' : 'en-US')} ${t('credits.credits')}`
+  return formatCredits(tx.amount)
 })
 
 const lastInvoiceRef = computed(() => {
@@ -360,23 +359,16 @@ const lastInvoiceRef = computed(() => {
   return tx.reference ? `#${tx.reference}` : `#INV-${tx.id}`
 })
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  const fmt = locale.value === 'fr' ? 'fr-SN' : 'en-US'
-  return `${date.toLocaleDateString(fmt, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })} ${date.toLocaleTimeString(fmt, { hour: '2-digit', minute: '2-digit' })}`
+function isInflow(type: Transaction['type']): boolean {
+  return type === 'TOPUP' || type === 'REFUND'
 }
 
-function formatAmount(type: string, amount: number): string {
-  const sign = type === 'TOPUP' || type === 'REFUND' ? '+' : '-'
-  return `${sign}${amount.toLocaleString(locale.value === 'fr' ? 'fr-SN' : 'en-US')} ${t('credits.credits')}`
+function formatCredits(amount: number): string {
+  return `${formatNumber(amount, localeKey.value)} ${t('credits.credits')}`
 }
 
-function formatBalance(balance: number): string {
-  return `${balance.toLocaleString(locale.value === 'fr' ? 'fr-SN' : 'en-US')} ${t('credits.credits')}`
+function formatAmount(type: Transaction['type'], amount: number): string {
+  return `${isInflow(type) ? '+' : '-'}${formatCredits(amount)}`
 }
 
 function formatReason(type: string, reason?: string, reference?: string): string {
@@ -421,8 +413,8 @@ function iconColorClass(type: string): string {
   }
 }
 
-function getAmountClass(type: string): string {
-  return type === 'TOPUP' || type === 'REFUND' ? 'text-tertiary' : 'text-error'
+function getAmountClass(type: Transaction['type']): string {
+  return isInflow(type) ? 'text-tertiary' : 'text-error'
 }
 
 function toggleFilter(event: Event) {
@@ -449,11 +441,11 @@ function goToTopUp() {
 function downloadLastInvoice() {
   const tx = lastTopUpTransaction.value
   if (!tx) return
-  const lines = [
+  const csv = [
     'invoice,date,amount,status,reference',
     `${lastInvoiceRef.value},${tx.created_at},${tx.amount},${tx.status},${tx.reference ?? ''}`,
-  ]
-  triggerCsvDownload(lines.join('\n'), `${lastInvoiceRef.value}.csv`)
+  ].join('\n')
+  downloadCsv(csv, `${lastInvoiceRef.value}.csv`)
 }
 
 function exportCsv() {
@@ -466,19 +458,7 @@ function exportCsv() {
     tx.status,
   ])
   const csv = [header, ...rows].map((r) => r.join(',')).join('\n')
-  triggerCsvDownload(csv, `transactions-${new Date().toISOString().slice(0, 10)}.csv`)
-}
-
-function triggerCsvDownload(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  downloadCsv(csv, `transactions-${new Date().toISOString().slice(0, 10)}.csv`)
 }
 
 async function loadTransactions() {
