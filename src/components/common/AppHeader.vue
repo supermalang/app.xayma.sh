@@ -101,8 +101,12 @@ const toggleUserMenu = (event: any) => {
 }
 
 const handleLogout = async () => {
-  await authStore.signOut()
-  router.push('/login')
+  try {
+    await authStore.signOut()
+  } catch (error) {
+    console.error('Sign out error:', error)
+  }
+  await router.push('/auth/login')
 }
 </script>
 
