@@ -210,14 +210,14 @@
               :input-props="{ id: 'password', autocomplete: 'new-password' }"
               :pt="{ pcInputText: { root: { class: 'register-input w-full' } } }"
               class="register-password w-full block"
-              :invalid="touched.password && !!errors.password"
+              :invalid="passwordLiveInvalid || (touched.password && !!errors.password)"
               @blur="touched.password = true"
             />
             <small
-              v-if="touched.password && errors.password"
+              v-if="touched.password && passwordLiveError"
               class="register-error"
             >
-              {{ errors.password }}
+              {{ passwordLiveError }}
             </small>
             <small v-else class="block text-xs text-on-surface-variant ms-1">
               {{ t('auth.password_requirements') }}
@@ -236,11 +236,14 @@
               :input-props="{ id: 'confirm_password', autocomplete: 'new-password' }"
               :pt="{ pcInputText: { root: { class: 'register-input w-full' } } }"
               class="register-password w-full block"
-              :invalid="touched.confirm_password && !!errors.confirm_password"
+              :invalid="confirmLiveMismatch || (touched.confirm_password && !!errors.confirm_password)"
               @blur="touched.confirm_password = true"
             />
-            <small v-if="touched.confirm_password && errors.confirm_password" class="register-error">
-              {{ errors.confirm_password }}
+            <small
+              v-if="touched.confirm_password && confirmLiveMismatch"
+              class="register-error"
+            >
+              {{ t('auth.password_mismatch') }}
             </small>
           </div>
 
@@ -276,6 +279,7 @@
             type="submit"
             class="register-submit w-full group"
             :loading="isLoading"
+            :disabled="!isFormValid || isLoading"
             @click.prevent="handleSubmit"
           >
             <span class="font-bold">{{ t('auth.register_cta') }}</span>
@@ -441,6 +445,13 @@ const errors = reactive({
 
 const isLoading = ref(false)
 
+const passwordSchema = z
+  .string()
+  .min(6, t('auth.password_too_short'))
+  .regex(/[A-Z]/, t('auth.password_no_uppercase'))
+  .regex(/[a-z]/, t('auth.password_no_lowercase'))
+  .regex(/[0-9]/, t('auth.password_no_digit'))
+
 const schema = z
   .object({
     firstname: z.string().min(1, t('errors.required')),
@@ -448,12 +459,7 @@ const schema = z
     country_code: z.string().min(1, t('errors.required')),
     phone: z.string().min(1, t('errors.required')),
     company_name: z.string().min(1, t('errors.required')),
-    password: z
-      .string()
-      .min(6, t('auth.password_too_short'))
-      .regex(/[A-Z]/, t('auth.password_no_uppercase'))
-      .regex(/[a-z]/, t('auth.password_no_lowercase'))
-      .regex(/[0-9]/, t('auth.password_no_digit')),
+    password: passwordSchema,
     confirm_password: z.string().min(1, t('errors.required')),
     tos_accepted: z.literal(true, { errorMap: () => ({ message: t('auth.tos_required') }) }),
   })
@@ -469,6 +475,24 @@ const schema = z
     path: ['confirm_password'],
     message: t('auth.password_mismatch'),
   })
+
+// Live (real-time) validity signals for visual feedback while typing.
+// Border turns danger as soon as input is non-empty AND invalid; the
+// inline message text is still gated on `touched.*` so it only appears
+// after blur.
+const passwordLiveError = computed(() => {
+  if (form.password.length === 0) return ''
+  const result = passwordSchema.safeParse(form.password)
+  return result.success ? '' : result.error.issues[0]?.message ?? ''
+})
+
+const passwordLiveInvalid = computed(() => !!passwordLiveError.value)
+
+const confirmLiveMismatch = computed(
+  () => form.confirm_password.length > 0 && form.confirm_password !== form.password,
+)
+
+const isFormValid = computed(() => schema.safeParse(form).success)
 
 const validate = () => {
   Object.keys(errors).forEach((key) => {
@@ -655,6 +679,12 @@ const handleSubmit = async () => {
 .register-submit:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+.register-submit:disabled,
+:deep(.register-submit:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .register-social {
