@@ -64,6 +64,7 @@ describe('Register.vue', () => {
           Password: true,
           Button: true,
           Checkbox: true,
+          Select: true,
           RouterLink: true,
         },
       },
@@ -73,10 +74,11 @@ describe('Register.vue', () => {
   const fillValid = (vm: any) => {
     vm.form.firstname = 'John'
     vm.form.email = 'john@example.com'
+    vm.form.country_code = '+221'
     vm.form.phone = '701234567'
     vm.form.company_name = 'Acme Corp'
-    vm.form.password = 'password123'
-    vm.form.confirm_password = 'password123'
+    vm.form.password = 'Password123'
+    vm.form.confirm_password = 'Password123'
     vm.form.tos_accepted = true
   }
 
@@ -85,39 +87,43 @@ describe('Register.vue', () => {
     expect(wrapper.find('form').exists()).toBe(true)
   })
 
-  it('accepts valid West Africa phone format (70)', async () => {
+  it('accepts valid Senegal phone (9 digits)', async () => {
     const wrapper = createWrapper()
     const vm = wrapper.vm as any
 
     fillValid(vm)
-    vm.form.phone = '701234567'
-
-    const isValid = vm.validate?.()
-    expect(isValid).toBe(true)
-  })
-
-  it('accepts valid West Africa phone format (78)', async () => {
-    const wrapper = createWrapper()
-    const vm = wrapper.vm as any
-
-    fillValid(vm)
+    vm.form.country_code = '+221'
     vm.form.phone = '781234567'
 
     const isValid = vm.validate?.()
     expect(isValid).toBe(true)
   })
 
-  it('rejects invalid phone format (60)', async () => {
+  it('accepts valid Nigeria phone (10 digits)', async () => {
     const wrapper = createWrapper()
     const vm = wrapper.vm as any
 
     fillValid(vm)
-    vm.form.phone = '601234567'
+    vm.form.country_code = '+234'
+    vm.form.phone = '8012345678'
+
+    const isValid = vm.validate?.()
+    expect(isValid).toBe(true)
+  })
+
+  it('rejects phone whose length does not match the selected country', async () => {
+    const wrapper = createWrapper()
+    const vm = wrapper.vm as any
+
+    fillValid(vm)
+    // Senegal expects 9 digits; 10 digits should fail.
+    vm.form.country_code = '+221'
+    vm.form.phone = '7012345678'
     vm.touched.phone = true
 
     const isValid = vm.validate?.()
     expect(isValid).toBe(false)
-    expect(vm.errors.phone).toContain('West Africa')
+    expect(vm.errors.phone).toBeTruthy()
   })
 
   it('rejects invalid phone format (too short)', async () => {
@@ -130,6 +136,34 @@ describe('Register.vue', () => {
 
     const isValid = vm.validate?.()
     expect(isValid).toBe(false)
+  })
+
+  it('rejects password without uppercase letter', async () => {
+    const wrapper = createWrapper()
+    const vm = wrapper.vm as any
+
+    fillValid(vm)
+    vm.form.password = 'password123'
+    vm.form.confirm_password = 'password123'
+    vm.touched.password = true
+
+    const isValid = vm.validate?.()
+    expect(isValid).toBe(false)
+    expect(vm.errors.password).toBeTruthy()
+  })
+
+  it('rejects password without a digit', async () => {
+    const wrapper = createWrapper()
+    const vm = wrapper.vm as any
+
+    fillValid(vm)
+    vm.form.password = 'Password'
+    vm.form.confirm_password = 'Password'
+    vm.touched.password = true
+
+    const isValid = vm.validate?.()
+    expect(isValid).toBe(false)
+    expect(vm.errors.password).toBeTruthy()
   })
 
   it('requires all fields', async () => {

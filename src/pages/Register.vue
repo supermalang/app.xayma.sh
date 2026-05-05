@@ -69,7 +69,7 @@
 
     <!-- Right: form -->
     <main class="flex-1 flex flex-col justify-center items-center px-6 md:px-12 py-12">
-      <div class="w-full max-w-md space-y-10">
+      <div class="w-full max-w-2xl space-y-10">
         <!-- Mobile brand -->
         <RouterLink to="/" class="lg:hidden flex items-center gap-3 justify-center">
           <span
@@ -157,16 +157,42 @@
               <label for="phone" class="register-label">
                 {{ t('auth.phone') }}
               </label>
-              <InputText
-                id="phone"
-                v-model="form.phone"
-                type="tel"
-                :placeholder="t('auth.phone_placeholder')"
-                autocomplete="tel"
-                class="register-input register-input-mono w-full"
-                :invalid="touched.phone && !!errors.phone"
-                @blur="touched.phone = true"
-              />
+              <div class="flex gap-2">
+                <Select
+                  v-model="form.country_code"
+                  :options="ECOWAS_COUNTRIES"
+                  option-label="dial"
+                  option-value="dial"
+                  :aria-label="t('auth.country')"
+                  class="register-input register-country shrink-0"
+                  :pt="{ root: { class: 'register-input register-country' } }"
+                >
+                  <template #value="slotProps">
+                    <span v-if="slotProps.value" class="flex items-center gap-1.5">
+                      <span aria-hidden="true">{{ selectedCountry.flag }}</span>
+                      <span class="font-mono text-xs">{{ slotProps.value }}</span>
+                    </span>
+                  </template>
+                  <template #option="slotProps">
+                    <span class="flex items-center gap-2">
+                      <span aria-hidden="true">{{ slotProps.option.flag }}</span>
+                      <span class="font-mono text-xs w-12">{{ slotProps.option.dial }}</span>
+                      <span class="text-sm">{{ countryName(slotProps.option) }}</span>
+                    </span>
+                  </template>
+                </Select>
+                <InputText
+                  id="phone"
+                  v-model="form.phone"
+                  type="tel"
+                  inputmode="numeric"
+                  :placeholder="t('auth.phone_placeholder')"
+                  autocomplete="tel-national"
+                  class="register-input register-input-mono flex-1 min-w-0"
+                  :invalid="touched.phone && !!errors.phone"
+                  @blur="touched.phone = true"
+                />
+              </div>
               <small v-if="touched.phone && errors.phone" class="register-error">
                 {{ errors.phone }}
               </small>
@@ -187,8 +213,14 @@
               :invalid="touched.password && !!errors.password"
               @blur="touched.password = true"
             />
-            <small v-if="touched.password && errors.password" class="register-error">
+            <small
+              v-if="touched.password && errors.password"
+              class="register-error"
+            >
               {{ errors.password }}
+            </small>
+            <small v-else class="block text-xs text-on-surface-variant ms-1">
+              {{ t('auth.password_requirements') }}
             </small>
           </div>
 
@@ -323,7 +355,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useI18n } from 'vue-i18n'
@@ -332,18 +364,54 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
+import Select from 'primevue/select'
 import { z } from 'zod'
 import pkg from '../../package.json'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
 const appVersion = pkg.version
+
+interface EcowasCountry {
+  code: string
+  name_en: string
+  name_fr: string
+  dial: string
+  length: number
+  flag: string
+}
+
+// ECOWAS member states (15 as of 2026). `length` is the expected national
+// number length excluding the dial code. Senegal is the default since this
+// platform's primary market is Dakar.
+const ECOWAS_COUNTRIES: EcowasCountry[] = [
+  { code: 'SN', name_en: 'Senegal',       name_fr: 'Sénégal',        dial: '+221', length: 9,  flag: '🇸🇳' },
+  { code: 'CI', name_en: "Côte d'Ivoire", name_fr: "Côte d'Ivoire",  dial: '+225', length: 10, flag: '🇨🇮' },
+  { code: 'NG', name_en: 'Nigeria',       name_fr: 'Nigéria',        dial: '+234', length: 10, flag: '🇳🇬' },
+  { code: 'GH', name_en: 'Ghana',         name_fr: 'Ghana',          dial: '+233', length: 9,  flag: '🇬🇭' },
+  { code: 'BF', name_en: 'Burkina Faso',  name_fr: 'Burkina Faso',   dial: '+226', length: 8,  flag: '🇧🇫' },
+  { code: 'BJ', name_en: 'Benin',         name_fr: 'Bénin',          dial: '+229', length: 8,  flag: '🇧🇯' },
+  { code: 'ML', name_en: 'Mali',          name_fr: 'Mali',           dial: '+223', length: 8,  flag: '🇲🇱' },
+  { code: 'NE', name_en: 'Niger',         name_fr: 'Niger',          dial: '+227', length: 8,  flag: '🇳🇪' },
+  { code: 'TG', name_en: 'Togo',          name_fr: 'Togo',           dial: '+228', length: 8,  flag: '🇹🇬' },
+  { code: 'GN', name_en: 'Guinea',        name_fr: 'Guinée',         dial: '+224', length: 9,  flag: '🇬🇳' },
+  { code: 'SL', name_en: 'Sierra Leone',  name_fr: 'Sierra Leone',   dial: '+232', length: 8,  flag: '🇸🇱' },
+  { code: 'LR', name_en: 'Liberia',       name_fr: 'Libéria',        dial: '+231', length: 8,  flag: '🇱🇷' },
+  { code: 'GW', name_en: 'Guinea-Bissau', name_fr: 'Guinée-Bissau',  dial: '+245', length: 9,  flag: '🇬🇼' },
+  { code: 'GM', name_en: 'Gambia',        name_fr: 'Gambie',         dial: '+220', length: 7,  flag: '🇬🇲' },
+  { code: 'CV', name_en: 'Cabo Verde',    name_fr: 'Cap-Vert',       dial: '+238', length: 7,  flag: '🇨🇻' },
+]
+
+const countryName = (c: EcowasCountry) => (locale.value === 'fr' ? c.name_fr : c.name_en)
+const findCountry = (dial: string) => ECOWAS_COUNTRIES.find((c) => c.dial === dial)
+const selectedCountry = computed(() => findCountry(form.country_code) ?? ECOWAS_COUNTRIES[0])
 
 const form = reactive({
   firstname: '',
   email: '',
+  country_code: '+221',
   phone: '',
   company_name: '',
   password: '',
@@ -373,17 +441,30 @@ const errors = reactive({
 
 const isLoading = ref(false)
 
-const phoneRegex = /^(70|75|76|77|78)[0-9]{7}$/
 const schema = z
   .object({
     firstname: z.string().min(1, t('errors.required')),
     email: z.string().email(t('errors.invalid_email')),
-    phone: z.string().regex(phoneRegex, t('auth.phone_invalid')),
+    country_code: z.string().min(1, t('errors.required')),
+    phone: z.string().min(1, t('errors.required')),
     company_name: z.string().min(1, t('errors.required')),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z
+      .string()
+      .min(6, t('auth.password_too_short'))
+      .regex(/[A-Z]/, t('auth.password_no_uppercase'))
+      .regex(/[a-z]/, t('auth.password_no_lowercase'))
+      .regex(/[0-9]/, t('auth.password_no_digit')),
     confirm_password: z.string().min(1, t('errors.required')),
     tos_accepted: z.literal(true, { errorMap: () => ({ message: t('auth.tos_required') }) }),
   })
+  .refine(
+    (data) => {
+      const country = findCountry(data.country_code)
+      if (!country) return false
+      return new RegExp(`^[0-9]{${country.length}}$`).test(data.phone)
+    },
+    { path: ['phone'], message: t('auth.phone_invalid_for_country') },
+  )
   .refine((data) => data.password === data.confirm_password, {
     path: ['confirm_password'],
     message: t('auth.password_mismatch'),
@@ -403,6 +484,34 @@ const validate = () => {
   return true
 }
 
+// Map a thrown error from auth.signUp() to a user-facing message.
+// Order matters: more specific patterns first, generic fallback last.
+const mapSignupError = (err: unknown): string => {
+  const raw = err instanceof Error ? err.message : String(err ?? '')
+  const msg = raw.toLowerCase()
+  if (msg.includes('phone_already_registered') || msg.includes('partners_phone_unique')) {
+    return t('auth.phone_already_registered')
+  }
+  if (msg.includes('email_already_registered') || msg.includes('user already') || msg.includes('already registered')) {
+    return t('auth.email_already_registered')
+  }
+  if (msg.includes('weak_password') || msg.includes('password should be') || msg.includes('password is too')) {
+    return t('auth.password_too_weak')
+  }
+  if (msg.includes('email_address_invalid') || msg.includes('invalid email')) {
+    return t('errors.invalid_email')
+  }
+  if (msg.includes('rate limit') || msg.includes('over_email_send_rate') || msg.includes('too many')) {
+    return t('auth.rate_limited')
+  }
+  if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('network request')) {
+    return t('auth.network_error')
+  }
+  // Surface the raw provider message so the user knows *why* it failed
+  // instead of seeing a generic catch-all.
+  return raw || t('auth.registration_failed')
+}
+
 const handleSubmit = async () => {
   Object.keys(touched).forEach((key) => {
     ;(touched as Record<string, boolean>)[key] = true
@@ -411,14 +520,25 @@ const handleSubmit = async () => {
 
   isLoading.value = true
   try {
-    await authStore.signUp(form.email, form.password)
+    const e164Phone = `${form.country_code}${form.phone}`
+    await authStore.signUp(form.email, form.password, {
+      firstname: form.firstname,
+      phone: e164Phone,
+      company_name: form.company_name,
+    })
+    toast.add({
+      severity: 'success',
+      summary: t('auth.register'),
+      detail: t('auth.check_email_to_verify'),
+      life: 6000,
+    })
     await router.push('/auth/login')
-  } catch {
+  } catch (err) {
     toast.add({
       severity: 'error',
       summary: t('errors.error'),
-      detail: t('errors.webhook_failed'),
-      life: 3000,
+      detail: mapSignupError(err),
+      life: 5000,
     })
   } finally {
     isLoading.value = false
@@ -465,6 +585,20 @@ const handleSubmit = async () => {
 
 :deep(.register-input::placeholder) {
   color: color-mix(in srgb, var(--outline) 50%, transparent);
+}
+
+:deep(.register-country) {
+  width: 6.5rem;
+  padding: 0 0.5rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+:deep(.register-country .p-select-label) {
+  padding: 0;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
 }
 
 :deep(.register-input:focus),
