@@ -129,19 +129,9 @@
       <div class="mt-6 grid grid-cols-2 gap-3">
         <button
           type="button"
-          class="auth-social flex items-center justify-center gap-3 border border-outline-variant/40 py-3 rounded-lg hover:bg-surface-container transition-colors"
-        >
-          <svg viewBox="0 0 24 24" class="w-5 h-5" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M12 .5C5.73.5.67 5.56.67 11.83c0 5.02 3.24 9.27 7.74 10.77.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.15.69-3.81-1.34-3.81-1.34-.51-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.74 2.66 1.24 3.31.95.1-.74.4-1.24.72-1.53-2.51-.29-5.16-1.26-5.16-5.6 0-1.24.44-2.25 1.16-3.04-.12-.29-.5-1.43.11-2.99 0 0 .96-.3 3.14 1.16a10.9 10.9 0 0 1 5.71 0c2.18-1.46 3.14-1.16 3.14-1.16.61 1.56.23 2.7.11 2.99.72.79 1.16 1.8 1.16 3.04 0 4.35-2.66 5.31-5.18 5.59.41.36.78 1.06.78 2.13 0 1.54-.01 2.78-.01 3.16 0 .31.21.66.79.55 4.5-1.5 7.74-5.75 7.74-10.77C23.33 5.56 18.27.5 12 .5"
-            />
-          </svg>
-          <span class="text-sm font-medium">GitHub</span>
-        </button>
-        <button
-          type="button"
-          class="auth-social flex items-center justify-center gap-3 border border-outline-variant/40 py-3 rounded-lg hover:bg-surface-container transition-colors"
+          disabled
+          :title="t('auth.social_coming_soon')"
+          class="auth-social flex items-center justify-center gap-3 border border-outline-variant/40 py-3 rounded-lg"
         >
           <svg viewBox="0 0 24 24" class="w-5 h-5" aria-hidden="true">
             <path fill="#4285F4" d="M23.06 12.25c0-.85-.08-1.67-.22-2.45H12v4.64h6.2c-.27 1.45-1.08 2.68-2.3 3.5v2.9h3.72c2.18-2 3.44-4.97 3.44-8.59" />
@@ -150,6 +140,20 @@
             <path fill="#EA4335" d="M12 4.92c1.7 0 3.22.58 4.42 1.73l3.3-3.3C17.7 1.5 15.1.5 12 .5A11.5 11.5 0 0 0 1.7 6.84l3.85 2.99C6.46 6.95 9 4.92 12 4.92" />
           </svg>
           <span class="text-sm font-medium">Google</span>
+        </button>
+        <button
+          type="button"
+          disabled
+          :title="t('auth.social_coming_soon')"
+          class="auth-social flex items-center justify-center gap-3 border border-outline-variant/40 py-3 rounded-lg"
+        >
+          <svg viewBox="0 0 24 24" class="w-5 h-5" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+            />
+          </svg>
+          <span class="text-sm font-medium">Apple</span>
         </button>
       </div>
 
@@ -311,9 +315,16 @@ const handleSubmit = async () => {
 .auth-social {
   color: var(--on-surface);
   background-color: var(--surface-container-lowest);
+  transition: background-color 150ms ease-out;
 }
 
-.auth-social:hover {
+.auth-social:hover:not(:disabled) {
   background-color: var(--surface-container);
+}
+
+.auth-social:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
 }
 </style>

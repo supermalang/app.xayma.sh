@@ -194,11 +194,11 @@ const routes: RouteRecordRaw[] = [
         path: 'login',
         component: Login,
       },
-      {
-        path: 'register',
-        component: Register,
-      },
     ],
+  },
+  {
+    path: '/auth/register',
+    component: Register,
   },
   // Alias for convenience
   {

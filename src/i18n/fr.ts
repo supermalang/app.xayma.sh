@@ -95,6 +95,31 @@ export default {
     service_terms: 'Conditions de service',
     infrastructure_log: 'Journal infrastructure',
     copyright: '© {year} Dakar Distribution',
+    register_brand_headline: 'Excellence technique pour l\'hébergement Odoo.',
+    register_benefit_deploy_title: 'Déploiement Odoo instantané',
+    register_benefit_deploy_body:
+      'Lancez en quelques secondes des environnements prêts pour la production grâce à des pipelines CI/CD optimisés.',
+    register_benefit_credits_title: 'Économie par crédits',
+    register_benefit_credits_body:
+      'Pilotez votre infrastructure via un système de crédits transparent. Aucun frais caché, vous payez uniquement ce que vous consommez.',
+    register_title: 'Créer votre compte',
+    register_subtitle: 'Rejoignez l\'offre entreprise pour la distribution automatisée.',
+    full_name: 'Nom complet',
+    full_name_placeholder: 'Bakary Sarr',
+    organization: 'Organisation',
+    organization_placeholder: 'Dakar Distro',
+    professional_email: 'E-mail professionnel',
+    phone_placeholder: '70 123 45 67',
+    confirm_password: 'Confirmer le mot de passe',
+    tos_acknowledge:
+      'Je reconnais les directives d\'architecture de la plateforme et j\'accepte les',
+    terms_of_service: 'Conditions de service',
+    and: 'et',
+    register_cta: 'Créer le compte',
+    log_in: 'Se connecter',
+    password_mismatch: 'Les mots de passe doivent correspondre',
+    tos_required: 'Vous devez accepter les conditions de service pour continuer',
+    social_coming_soon: 'Connexion sociale bientôt disponible',
   },
 
   // Vouchers
