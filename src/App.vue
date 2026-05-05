@@ -1,12 +1,14 @@
 <template>
   <div id="app">
     <RouterView />
+    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { onMounted, onUnmounted } from 'vue'
+import Toast from 'primevue/toast'
 import { useAuthStore } from '@/stores/auth.store'
 import '@/assets/styles/a11y.css'
 
