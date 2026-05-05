@@ -1062,6 +1062,7 @@ export default {
     gateway_provider_wave: 'Wave',
     gateway_provider_orange_money: 'Orange Money',
     gateway_provider_paytech: 'Paytech',
+    gateway_paytech_hint: 'PayTech utilise ces valeurs comme en-têtes HTTP API_KEY et API_SECRET. PayTech n’utilise pas de clé publique, de secret de webhook, d’identifiant marchand ni d’URL de base personnalisée — ne les renseignez pas.',
     gateway_section_auth: 'Authentification',
     gateway_section_endpoints: 'Points de terminaison',
     gateway_section_environment: 'Environnement',

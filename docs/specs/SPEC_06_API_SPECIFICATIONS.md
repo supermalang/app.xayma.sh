@@ -190,24 +190,114 @@ No versioning strategy required at launch — the database service schema is the
 2. Deploy new app version before removing old columns
 3. workflow engine webhook URLs are internal — can be changed with coordinated deploy
 
-### Payment Gateway Integration Flow
+### Payment Gateway Integration Flow (PayTech)
+
+Source of truth for every field name and behavior in this section: the official
+PayTech documentation at https://doc.intech.sn/doc_paytech.php and the Postman
+collection at https://doc.intech.sn/PayTech%20x%20DOC.postman_collection.json.
+Anything not present in those two sources is explicitly flagged below.
+
+**1. Vue → workflow engine.** The Vue app POSTs `/webhook/initiate-checkout` on
+the workflow engine with `{ bundleId, partnerId, paymentGatewayId }`. It does
+not talk to PayTech directly.
+
+**2. workflow engine → PayTech `request-payment`.** The workflow engine reads
+the gateway config from `xayma_app.settings['PAYMENT_GATEWAYS']` and calls:
+
 ```
-1. Vue app calls payment gateway checkout endpoint
-   POST https://paytech.sn/api/payment/request-payment
-   Body: { item_name, item_price, currency, ref_command, ipn_url, success_url, cancel_url }
-
-2. Payment Gateway returns payment_url → Vue redirects user
-
-3. User completes payment on Payment Gateway
-
-4. Payment Gateway POSTs IPN to workflow engine webhook:
-   POST /webhook/payment/ipn
-   Body: { ref_command, token, payment_method, ... }
-
-5. workflow engine verifies token with Payment Gateway
-6. workflow engine updates credit_transaction status → 'completed'
-7. workflow engine updates partners.remainingCredits
-8. workflow engine publishes credit.topup to Kafka
-9. Kafka → workflow engine consumer → check if suspended deployments should resume
-10. database service Realtime → Vue UI updates credit balance
+POST https://paytech.sn/api/payment/request-payment
+Headers:
+  API_KEY:    <gateway.apiKey>
+  API_SECRET: <gateway.secretKey>
+Body (JSON):
+  {
+    "item_name":     "<bundle.label>",
+    "item_price":    <bundle.priceXOF>,           // integer FCFA, no decimals
+    "ref_command":   "<orderRef>",                 // e.g. XAY-123-456 from Buy.vue
+    "command_name":  "<bundle.label> credits topup",
+    "currency":      "XOF",                        // XOF/EUR/USD/CAD/GBP/MAD
+    "env":           "prod" | "test",              // mapped from gateway.mode
+    "ipn_url":       "<gateway.ipnUrl>",
+    "success_url":   "<gateway.successUrl>",
+    "cancel_url":    "<gateway.cancelUrl>",
+    "custom_field":  base64(JSON({ transactionId })),  // belt-and-suspenders correlation
+    "target_payment": "Wave, Orange Money"         // optional CSV; omit to show all channels
+  }
 ```
+
+`gateway.mode === 'live'` → `env: "prod"`; `gateway.mode === 'sandbox'` → `env:
+"test"` (PayTech debits a random 100–150 FCFA in test mode regardless of
+`item_price`). Same base URL for both modes.
+
+**3. PayTech response.** On success PayTech returns:
+
+```
+{ "success": 1, "token": "<paytech-token>", "redirect_url": "https://paytech.sn/payment/checkout/<token>" }
+```
+
+On failure: `{ "success": 0 | -1, "message": "<reason>" }`. The workflow engine
+persists the PayTech `token` and our `ref_command` against the new
+`credit_transactions` row (status `pending`) and returns
+`{ paymentUrl: redirect_url, transactionId, reference: ref_command }` to Vue.
+
+**4. Vue redirects** the browser to `redirect_url`; the user pays.
+
+**5. PayTech → workflow engine IPN.** PayTech POSTs to `gateway.ipnUrl`
+(typically `/webhook/payment-ipn`) with at minimum:
+
+```
+type_event:        "sale_complete" | "sale_canceled" | "refund_complete"
+                   | "transfer_success" | "transfer_failed"
+ref_command:       <our merchant reference>
+token:             <PayTech payment token>
+item_name, item_price, currency, command_name, env, payment_method,
+client_phone, custom_field,
+final_item_price, final_item_price_xof,
+initial_item_price, initial_item_price_xof,
+promo_enabled, promo_value_percent,
+
+// auth fields — verify at least one of:
+hmac_compute:      HMAC_SHA256(api_secret, "${final_item_price}|${ref_command}|${api_key}")  // hex
+api_key_sha256:    SHA256(API_KEY)
+api_secret_sha256: SHA256(API_SECRET)
+```
+
+**Verification (preferred):** recompute
+`HMAC_SHA256(api_secret, "${final_item_price}|${ref_command}|${api_key}")` and
+constant-time-compare against `hmac_compute`.
+**Fallback:** equality-compare `api_key_sha256 === SHA256(API_KEY)` and
+`api_secret_sha256 === SHA256(API_SECRET)`. Mismatch → reject.
+
+**6. workflow engine update.** Idempotent UPDATE of `credit_transactions` keyed
+by `ref_command`; on `sale_complete` increment `partners.remainingCredits`
+atomically and emit the `credit.topup` event downstream (current Sprint 5
+flow: workflow-engine webhook bridge to Kafka — see
+`docs/workflow-engine/sprint4-contracts.md` for the contract). Reply HTTP 200
+with the **plain-text body `OK`** (PayTech expects literal `OK`, not JSON).
+
+**7. PayTech browser redirect.** PayTech then redirects the user to
+`success_url` or `cancel_url`. The exact query parameters PayTech appends
+**are not documented** in either source — `Success.vue` therefore relies on
+the `transactionId` it stashed in `sessionStorage` in step 4 and on the
+Supabase Realtime subscription on `credit_transactions` for status.
+
+#### Status check / refund (Postman collection)
+
+```
+GET  https://paytech.sn/api/payment/get-status?token_payment=<token>
+POST https://paytech.sn/api/payment/refund-payment   body: ref_command=<ref>
+```
+
+#### Not documented in PayTech sources
+
+The following items are **not specified** by either of the two source
+documents and must be treated as unknown until PayTech publishes more:
+
+- Exact query parameters (or POST body) PayTech appends to `success_url` and
+  `cancel_url`.
+- IPN retry policy if the workflow engine returns a non-200.
+- PayTech IP ranges (no whitelist published).
+- Comprehensive error-code registry — only `success: 0|-1` with a free-text
+  `message` is documented inline.
+- HMAC encoding (hex vs base64) — implied as hex from JS examples but never
+  stated explicitly in the docs.

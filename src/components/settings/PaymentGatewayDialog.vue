@@ -47,11 +47,6 @@
             <FormField name="apiKey" :label="t('settings.gateway_field_api_key')" required />
             <FormField name="secretKey" :label="t('settings.gateway_field_secret_key')" required type="password" />
             <FormField
-              v-if="showPublicKey"
-              name="publicKey"
-              :label="t('settings.gateway_field_public_key')"
-            />
-            <FormField
               v-if="showWebhookSecret"
               name="webhookSecret"
               :label="t('settings.gateway_field_webhook_secret')"
@@ -63,6 +58,9 @@
               :label="t('settings.gateway_field_merchant_id')"
             />
           </div>
+          <p v-if="isPaytech" class="text-[10px] text-on-surface-variant italic mt-2">
+            {{ t('settings.gateway_paytech_hint') }}
+          </p>
         </Fieldset>
 
         <Fieldset :legend="t('settings.gateway_section_endpoints')">
@@ -95,11 +93,6 @@
                 />
               </Field>
             </div>
-            <FormField
-              v-if="showBaseUrl"
-              name="baseUrl"
-              :label="t('settings.gateway_field_base_url')"
-            />
           </div>
         </Fieldset>
 
@@ -188,17 +181,10 @@ const modeOptions: Array<{ label: string; value: PaymentGatewayMode }> = [
   { label: t('settings.gateway_mode_live'), value: 'live' },
 ]
 
-const showPublicKey = computed(() => selectedProvider.value === 'paytech')
-const showWebhookSecret = computed(() =>
-  selectedProvider.value === 'wave' || selectedProvider.value === 'paytech'
-)
-const showMerchantId = computed(() =>
-  selectedProvider.value === 'orange_money' || selectedProvider.value === 'paytech'
-)
-const showErrorUrl = computed(() =>
-  selectedProvider.value === 'orange_money' || selectedProvider.value === 'paytech'
-)
-const showBaseUrl = computed(() => selectedProvider.value === 'paytech')
+const showWebhookSecret = computed(() => selectedProvider.value === 'wave')
+const showMerchantId = computed(() => selectedProvider.value === 'orange_money')
+const showErrorUrl = computed(() => selectedProvider.value === 'orange_money')
+const isPaytech = computed(() => selectedProvider.value === 'paytech')
 
 const required = z.string().min(1, t('settings.gateway_required'))
 const url = z.string().url(t('settings.gateway_url_invalid'))
@@ -210,14 +196,12 @@ const validationSchema = computed(() =>
       mode: z.enum(['sandbox', 'live']),
       apiKey: required,
       secretKey: required,
-      publicKey: z.string().optional(),
       webhookSecret: z.string().optional(),
       merchantId: z.string().optional(),
       ipnUrl: url,
       successUrl: url,
       cancelUrl: url,
       errorUrl: z.string().url(t('settings.gateway_url_invalid')).optional().or(z.literal('')),
-      baseUrl: z.string().url(t('settings.gateway_url_invalid')).optional().or(z.literal('')),
       currency: z.string(),
       displayName: z.string().optional(),
       logoUrl: z.string().url(t('settings.gateway_url_invalid')).optional().or(z.literal('')),
@@ -230,14 +214,12 @@ const initialValues = computed(() => ({
   mode: props.gateway?.mode ?? 'sandbox',
   apiKey: props.gateway?.apiKey ?? '',
   secretKey: props.gateway?.secretKey ?? '',
-  publicKey: props.gateway?.publicKey ?? '',
   webhookSecret: props.gateway?.webhookSecret ?? '',
   merchantId: props.gateway?.merchantId ?? '',
   ipnUrl: props.gateway?.ipnUrl ?? '',
   successUrl: props.gateway?.successUrl ?? '',
   cancelUrl: props.gateway?.cancelUrl ?? '',
   errorUrl: props.gateway?.errorUrl ?? '',
-  baseUrl: props.gateway?.baseUrl ?? '',
   currency: props.gateway?.currency ?? 'XOF',
   displayName: props.gateway?.displayName ?? '',
   logoUrl: props.gateway?.logoUrl ?? '',
@@ -249,14 +231,12 @@ function onSubmit(values: Record<string, unknown>): void {
     mode: PaymentGatewayMode
     apiKey: string
     secretKey: string
-    publicKey?: string
     webhookSecret?: string
     merchantId?: string
     ipnUrl: string
     successUrl: string
     cancelUrl: string
     errorUrl?: string
-    baseUrl?: string
     currency: string
     displayName?: string
     logoUrl?: string
@@ -267,14 +247,12 @@ function onSubmit(values: Record<string, unknown>): void {
     mode: v.mode,
     apiKey: v.apiKey,
     secretKey: v.secretKey,
-    publicKey: v.publicKey || undefined,
     webhookSecret: v.webhookSecret || undefined,
     merchantId: v.merchantId || undefined,
     ipnUrl: v.ipnUrl,
     successUrl: v.successUrl,
     cancelUrl: v.cancelUrl,
     errorUrl: v.errorUrl || undefined,
-    baseUrl: v.baseUrl || undefined,
     currency: v.currency,
     displayName: v.displayName || undefined,
     logoUrl: v.logoUrl || undefined,

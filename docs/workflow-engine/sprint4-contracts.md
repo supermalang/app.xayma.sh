@@ -2,113 +2,205 @@
 
 This document defines the contract specifications for all workflow engine webhooks used in Sprint 4 (Credits & Payments). These are implementation specifications for the n8n workflow engine automation tasks.
 
+The PayTech-specific contracts below derive **only** from the official PayTech
+documentation (https://doc.intech.sn/doc_paytech.php) and the PayTech Postman
+collection (https://doc.intech.sn/PayTech%20x%20DOC.postman_collection.json).
+Anything not present in those two sources is flagged explicitly as undocumented.
+
 ---
 
-## Task 4.7 & 4.8: IPN Processing (`/webhook/payment-ipn`)
+## Task 4.5: Initiate Checkout (`/webhook/initiate-checkout`)
 
-**Purpose:** Process payment gateway Instant Payment Notifications (IPNs) and atomically update transaction status + partner credit balance.
+**Purpose:** Create a `pending` `credit_transactions` row and call PayTech's
+`request-payment` endpoint, then return the hosted-checkout URL to Vue so the
+browser can redirect.
 
-**Trigger:** Payment gateway calls this webhook with IPN payload after payment settles (async, may arrive before UI redirect).
+**Trigger:** Vue POST from `src/services/workflow-engine.ts` `initiateCheckout()`.
 
 **HTTP Method:** POST
 
-**Request Body:**
+**Request Body (from Vue):**
 ```json
 {
-  "transaction_id": "string (UUID, from wave/orange money gateway)",
-  "amount": "number (in FCFA)",
-  "currency": "XOF",
-  "status": "SUCCESS" | "FAILED" | "PENDING",
-  "timestamp": "ISO 8601 datetime",
-  "signature": "HMAC-SHA256 hex string (signed with payment gateway secret key)"
+  "bundleId":          "string (CreditBundle.id)",
+  "partnerId":         "string (UUID, partners.id)",
+  "paymentGatewayId":  "string (PaymentGateway.id from xayma_app.settings['PAYMENT_GATEWAYS'])"
 }
 ```
 
-**Signature Verification:**
-- Verify `signature` matches `HMAC-SHA256(request_body, payment_gateway_secret_key)`
-- Reject on mismatch with 401 Unauthorized
+**Workflow Engine Steps:**
 
-**Success Flow (status=SUCCESS):**
-
-1. **Idempotency Check:** Query `credit_transactions` table
-   - If `transaction_id` already exists with status='COMPLETED', return 200 `{"already_processed": true}` and STOP
-   - Prevents double-crediting on duplicate IPNs
-
-2. **Atomic Update:**
-   ```sql
-   BEGIN TRANSACTION;
-   -- Fetch transaction
-   SELECT id, partner_id, amount FROM credit_transactions WHERE reference = $1 FOR UPDATE;
-   
-   -- Update transaction status
-   UPDATE credit_transactions SET status='COMPLETED', updated_at=NOW() WHERE id=$2;
-   
-   -- Increment partner balance
-   UPDATE partners SET remainingCredits = remainingCredits + $3 WHERE id=$4;
-   
-   -- Insert audit record
-   INSERT INTO general_audit (table_name, record_id, action, ...) VALUES (...);
-   
-   COMMIT;
+1. Load `CreditBundle` for `bundleId` and `PaymentGateway` for `paymentGatewayId`
+   from `xayma_app.settings`.
+2. Generate a fresh `ref_command` (the existing `XAY-XXX-XXX` format produced
+   by `Buy.vue` is already passed through; if absent, mint one server-side).
+3. Insert `credit_transactions` row: `{ partner_id, type: 'CREDIT',
+   amount: bundle.priceXOF, status: 'PENDING', reference: ref_command,
+   payment_method: gateway.provider }`. Capture the new `transactionId`.
+4. POST PayTech (auth via headers, body as JSON):
    ```
+   POST https://paytech.sn/api/payment/request-payment
+   Headers:
+     API_KEY:    <gateway.apiKey>
+     API_SECRET: <gateway.secretKey>
+   Body:
+     {
+       "item_name":    "<bundle.label>",
+       "item_price":   <bundle.priceXOF>,                 // integer FCFA
+       "ref_command":  "<ref_command>",
+       "command_name": "<bundle.label> credits topup",
+       "currency":     "XOF",
+       "env":          "prod" | "test",                    // gateway.mode → env
+       "ipn_url":      "<gateway.ipnUrl>",
+       "success_url":  "<gateway.successUrl>",
+       "cancel_url":   "<gateway.cancelUrl>",
+       "custom_field": "<base64(JSON({ transactionId }))>"  // belt-and-suspenders
+     }
+   ```
+   Mapping: `gateway.mode === 'live'` → `env: "prod"`; `gateway.mode === 'sandbox'`
+   → `env: "test"`. Same base URL `https://paytech.sn/api` for both.
 
-3. **Publish Event:** Emit Kafka event to topic `credit.topup`:
+5. On PayTech `{ success: 1, token, redirect_url }`: persist `token` against
+   the `credit_transactions` row (in a `gateway_token` column or a
+   `gateway_meta` JSONB blob — choose at the workflow-engine team's discretion;
+   not currently a hard requirement of the schema).
+
+6. Reply to Vue (HTTP 200):
    ```json
    {
-     "event_type": "CREDIT_TOPUP",
-     "partner_id": "string (UUID)",
-     "amount": 5000,
-     "payment_method": "WAVE",
-     "reference": "transaction_id from IPN",
-     "timestamp": "ISO 8601 datetime"
+     "paymentUrl":    "<redirect_url>",
+     "transactionId": "<our credit_transactions.id>",
+     "reference":     "<ref_command>"
    }
    ```
 
-**Success Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Payment processed successfully",
-  "transaction_id": "UUID",
-  "partner_id": "UUID",
-  "credits_added": 5000,
-  "new_balance": 25000
-}
+**Failure handling:**
+
+- PayTech `{ "success": 0 | -1, "message": "..." }` → mark
+  `credit_transactions` row `FAILED`, return HTTP 502 to Vue with
+  `{ "error": "GATEWAY_REJECTED", "message": "<paytech message>" }`.
+- Network/5xx to PayTech → the Vue caller already implements retry with
+  exponential backoff in `callWorkflowEngineWebhookWithResponse`; the workflow
+  engine itself should not retry the PayTech call inside one request (PayTech
+  may have already created the session — re-tries risk duplicate sessions for
+  the same `ref_command`).
+- Validation errors on the inbound Vue payload → 400.
+
+---
+
+## Task 4.7 & 4.8: PayTech IPN Processing (`/webhook/payment-ipn`)
+
+**Purpose:** Process PayTech Instant Payment Notifications and atomically
+update transaction status + partner credit balance.
+
+**Trigger:** PayTech POSTs the IPN to `gateway.ipnUrl` after payment settles.
+Async — may arrive before the browser redirect to `success_url` returns.
+
+**HTTP Method:** POST  · **Content-Type:** PayTech sends `application/x-www-form-urlencoded`
+(per the Postman collection's IPN sample); accept JSON too defensively.
+
+**Request Body (PayTech → us):**
+```
+type_event:           "sale_complete" | "sale_canceled" | "refund_complete"
+                      | "transfer_success" | "transfer_failed"
+ref_command:          string  (matches what we sent in initiate-checkout)
+token:                string  (PayTech payment token)
+item_name:            string
+item_price:           integer (FCFA)
+currency:             string  ("XOF" etc.)
+command_name:         string
+env:                  "prod" | "test"
+payment_method:       string  (e.g. "Orange Money", "Wave", "Carte Bancaire")
+client_phone:         string
+custom_field:         string  (Base64 JSON we set during initiate-checkout)
+final_item_price:     integer (price actually charged, post-promo)
+final_item_price_xof: integer
+initial_item_price:   integer (pre-promo)
+initial_item_price_xof: integer
+promo_enabled:        boolean
+promo_value_percent:  number  (when promo_enabled)
+
+# auth fields — verify at least one of:
+hmac_compute:         hex string  (HMAC-SHA256, see Verification below)
+api_key_sha256:       hex string  (SHA256(API_KEY))
+api_secret_sha256:    hex string  (SHA256(API_SECRET))
 ```
 
-**Error Responses:**
+**Verification (PayTech-documented):**
 
-- **401 Unauthorized** (invalid signature):
-  ```json
-  {
-    "error": "VERIFICATION_FAILED",
-    "message": "Invalid HMAC signature"
-  }
-  ```
+Preferred: `HMAC-SHA256` over the literal string
+`"${final_item_price}|${ref_command}|${api_key}"` signed with `api_secret`,
+then constant-time-compare to `hmac_compute` (hex digest — encoding implied by
+PayTech's JS examples but not explicitly stated in the docs).
 
-- **400 Bad Request** (malformed body):
-  ```json
-  {
-    "error": "INVALID_PAYLOAD",
-    "message": "Missing required field: transaction_id"
-  }
-  ```
+Fallback: equality-compare `api_key_sha256 === SHA256(gateway.apiKey)` AND
+`api_secret_sha256 === SHA256(gateway.secretKey)`.
 
-- **404 Not Found** (transaction not in system):
-  ```json
-  {
-    "error": "TRANSACTION_NOT_FOUND",
-    "message": "No pending transaction with this ID"
-  }
-  ```
+Mismatch on both → reject with HTTP 401.
 
-- **500 Internal Server Error** (DB failure):
-  ```json
-  {
-    "error": "DATABASE_ERROR",
-    "message": "Failed to update transaction"
-  }
-  ```
+**Branching on `type_event`:**
+
+| `type_event`       | Action |
+|---|---|
+| `sale_complete`    | Idempotent credit (see Success Flow below). |
+| `sale_canceled`    | Mark `credit_transactions` row `FAILED`. No balance change. |
+| `refund_complete`  | Reverse the credit: insert a `DEBIT` row referencing the original `ref_command`, decrement `partners.remainingCredits`. |
+| `transfer_success` / `transfer_failed` | Out of scope for the topup flow (relate to the `transferFund` API, see Postman collection); ignore for credit-topup IPNs. |
+
+**Success Flow (`type_event === "sale_complete"`):**
+
+1. **Idempotency check** — keyed by `ref_command`:
+   ```sql
+   SELECT id, status FROM xayma_app.credit_transactions
+   WHERE reference = $1 FOR UPDATE;
+   ```
+   If the row's `status` is already `COMPLETED`, reply HTTP 200 body `OK` and stop.
+
+2. **Atomic update:**
+   ```sql
+   BEGIN;
+   UPDATE xayma_app.credit_transactions
+     SET status='COMPLETED', modified=NOW()
+     WHERE reference = $1;
+   UPDATE xayma_app.partners
+     SET remainingCredits = remainingCredits + $2
+     WHERE id = $3;
+   INSERT INTO general_audit (...) VALUES (...);
+   COMMIT;
+   ```
+   The `$2` amount is `final_item_price_xof` from the IPN (post-promo charged
+   amount) — not the original `bundle.priceXOF`, in case PayTech applied a
+   promotion.
+
+3. **Downstream credit event** — publish `CREDIT_TOPUP` per the existing
+   Sprint 5 webhook-bridge pattern (Kafka is provided by the external
+   `infra-kafka-setup` project; this repo emits via the workflow-engine
+   bridge — see `kafka_external_dependency.md`). Payload:
+   ```json
+   {
+     "event_type":     "CREDIT_TOPUP",
+     "partner_id":     "<UUID>",
+     "amount":         <final_item_price_xof>,
+     "payment_method": "<IPN payment_method>",
+     "reference":      "<ref_command>",
+     "timestamp":      "<ISO 8601>"
+   }
+   ```
+
+**Response to PayTech:**
+
+PayTech expects HTTP 200 with the **plain-text body `OK`**. Returning JSON or
+any non-200 may trigger a re-delivery; PayTech's exact retry policy is **not
+documented**.
+
+**Error responses (to PayTech):**
+
+| Condition | Status | Body |
+|---|---|---|
+| Auth verification failed (both hmac_compute and the SHA256 pair fail) | 401 | `Invalid signature` |
+| Required field missing (`ref_command`, `type_event`, etc.) | 400 | `Invalid payload` |
+| `ref_command` not found in `credit_transactions` | 404 | `Transaction not found` |
+| DB transaction failed | 500 | `Database error` |
 
 ---
 
