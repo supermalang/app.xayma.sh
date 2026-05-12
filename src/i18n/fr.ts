@@ -19,7 +19,7 @@ export default {
     support: 'Assistance',
     docs: 'Documentation',
     logout: 'Déconnexion',
-    new_deployment: 'Nouveau Déploiement',
+    new_deployment: 'Nouveau déploiement',
   },
 
   // Common
@@ -60,6 +60,9 @@ export default {
     webhook_failed: 'L\'opération a échoué. Veuillez réessayer.',
     unauthorized: 'Vous n\'êtes pas autorisé à effectuer cette action',
     not_found: 'Ressource non trouvée',
+    not_found_title: '404 : Page introuvable',
+    not_found_description: 'La page que vous cherchez n\'existe pas ou a été déplacée.',
+    back_to_dashboard: 'Retour au tableau de bord',
   },
 
   // Auth
@@ -79,8 +82,8 @@ export default {
     already_have_account: 'Vous avez déjà un compte?',
     logout: 'Déconnexion',
     session_expired: 'Votre session a expiré',
-    enterprise_infrastructure: 'Infrastructure Entreprise',
-    authenticate_title: 'Authentification',
+    enterprise_infrastructure: 'Infrastructure entreprise',
+    authenticate_title: 'Se connecter',
     authenticate_subtitle: 'Accédez à votre tableau de bord d\'orchestration Odoo.',
     email_or_username: 'E-mail / Identifiant',
     email_placeholder: 'administrateur',
@@ -97,11 +100,11 @@ export default {
     service_terms: 'Conditions de service',
     infrastructure_log: 'Journal infrastructure',
     copyright: '© {year} Dakar Distribution',
-    register_brand_headline: 'Excellence technique pour l\'hébergement Odoo.',
+    register_brand_headline: 'Excellence technique pour l\'hébergement Odoo',
     register_benefit_deploy_title: 'Déploiement Odoo instantané',
     register_benefit_deploy_body:
       'Lancez en quelques secondes des environnements prêts pour la production grâce à des pipelines CI/CD optimisés.',
-    register_benefit_credits_title: 'Économie par crédits',
+    register_benefit_credits_title: 'Tarification par crédits',
     register_benefit_credits_body:
       'Pilotez votre infrastructure via un système de crédits transparent. Aucun frais caché, vous payez uniquement ce que vous consommez.',
     register_title: 'Créer votre compte',
@@ -198,7 +201,7 @@ export default {
     // Stats
     total_partners: 'Partenaires totaux',
     active_deployments: 'Déploiements actifs',
-    revenue_today: 'Revenus (Aujourd\'hui)',
+    revenue_today: 'Revenus (aujourd\'hui)',
     failed_deployments: 'Déploiements échoués',
     credit_status: 'Statut du crédit',
     total_spent: 'Total dépensé',
@@ -213,6 +216,7 @@ export default {
 
     // Sections
     client_deployments: 'Déploiements client',
+    credit_pool: 'Pool de crédits',
     at_risk_clients: 'Clients à risque',
     at_risk_customers: 'Clients à risque',
     no_at_risk_clients: 'Tous les clients ont des soldes de crédit sains!',
@@ -222,12 +226,12 @@ export default {
     deployments_trend: 'Déploiements au fil du temps',
     credit_deduction_by_plan: 'Déduction de crédit par plan',
     revenue_by_partner_type: 'Revenus par type de partenaire',
-    deployment_status_distribution: 'Distribution des Statuts de Déploiement',
-    top_partners_deployments: 'Top 5 Partenaires par Déploiements',
-    service_popularity: 'Popularité des Services',
-    monthly_revenue_trend: 'Tendance des Revenus Mensuels',
+    deployment_status_distribution: 'Répartition des statuts de déploiement',
+    top_partners_deployments: 'Top 5 partenaires par déploiements',
+    service_popularity: 'Popularité des services',
+    monthly_revenue_trend: 'Tendance des revenus mensuels',
     deployments: 'Déploiements',
-    commission_breakdown: 'Ventilation des commissions',
+    commission_breakdown: 'Répartition des commissions',
 
     // Actions
     view_all: 'Voir tout',
@@ -236,45 +240,45 @@ export default {
     view_details: 'Voir les détails',
 
     // Customer dashboard
-    partner_overview_subtitle: 'Aperçu Partenaire & Santé Infrastructure',
-    credit_balance_title: 'Solde de Crédits',
-    monthly_usage: 'Utilisation Mensuelle',
-    total_cost_this_month: 'Coût Total Ce Mois',
+    partner_overview_subtitle: 'Aperçu partenaire et santé infrastructure',
+    credit_balance_title: 'Solde de crédits',
+    monthly_usage: 'Utilisation mensuelle',
+    total_cost_this_month: 'Coût total ce mois-ci',
     infrastructure_title: 'Infrastructure',
-    active_instances: 'Instances Actives',
-    stopped_suspended: 'Arrêtées ou Suspendues',
+    active_instances: 'Instances actives',
+    stopped_suspended: 'Arrêtées ou suspendues',
     archived_instances: 'Archivées',
-    new_deployment_btn: 'Nouveau Déploiement',
-    customer_profile_title: 'Profil Client',
-    partner_name_label: 'Nom du Partenaire',
+    new_deployment_btn: 'Nouveau déploiement',
+    customer_profile_title: 'Profil client',
+    partner_name_label: 'Nom du partenaire',
     tier_label: 'Niveau',
-    account_manager_label: 'Chargé de Compte',
-    recent_activity_log: 'Journal d\'Activité Récente',
-    view_full_audit_trail: 'Voir la Piste d\'Audit Complète',
-    credit_usage_over_time: 'Utilisation de Crédits dans le Temps',
+    account_manager_label: 'Chargé de compte',
+    recent_activity_log: 'Activité récente',
+    view_full_audit_trail: 'Voir le journal d\'audit complet',
+    credit_usage_over_time: 'Utilisation des crédits au fil du temps',
     no_activity: 'Aucune activité récente',
-    top_up_credits: 'Recharger les Crédits',
+    top_up_credits: 'Recharger les crédits',
     status_label: 'Statut',
     credits_unit: 'Crédits',
 
     // Admin dashboard
-    system_health_title: 'Clusters de Santé Système',
-    financial_ledger_title: 'Grand Livre Financier',
-    global_credits_used: 'Crédits Globaux Utilisés',
-    budget_today_credits: 'Budget du Jour',
-    monthly_intake: 'Revenus Mensuels',
-    monthly_forecast: 'Prévisions Mensuelles',
-    infrastructure_capacity_title: 'Capacité Infrastructure',
-    instance_saturation: 'Saturation des Instances',
-    cluster_containers: 'Conteneurs de Cluster',
-    partner_distribution_title: 'Distribution des Partenaires',
+    system_health_title: 'État du système',
+    financial_ledger_title: 'Grand livre financier',
+    global_credits_used: 'Crédits utilisés (global)',
+    budget_today_credits: 'Budget du jour',
+    monthly_intake: 'Revenus mensuels',
+    monthly_forecast: 'Prévisions mensuelles',
+    infrastructure_capacity_title: 'Capacité infrastructure',
+    instance_saturation: 'Saturation des instances',
+    cluster_containers: 'Conteneurs du cluster',
+    partner_distribution_title: 'Répartition des partenaires',
     partner_distribution_unavailable: 'Données de pays non disponibles',
-    system_event_log_title: 'Journal des Événements Système',
-    view_partner_directory: 'Voir le Répertoire Partenaires',
+    system_event_log_title: 'Journal des événements système',
+    view_partner_directory: 'Voir l\'annuaire des partenaires',
     archived: 'Archivés',
     suspended: 'Suspendus',
     stopped: 'Arrêtés',
-    active_partners: 'Partenaires Actifs',
+    active_partners: 'Partenaires actifs',
 
     refreshing: 'Mise à jour...',
     // Relative time
@@ -291,7 +295,7 @@ export default {
     // System health service names
     health_workflow_engine: 'Workflow Engine',
     health_deploy_engine: 'Deployment Engine',
-    health_control_db: 'Base de Contrôle',
+    health_control_db: 'Base de contrôle',
   },
 
   // Notifications
@@ -359,12 +363,12 @@ export default {
     voucher_placeholder: 'Entrez le code du bon',
     redeem: 'Utiliser',
     voucher_required: 'Veuillez entrer un code de bon',
-    voucher_redeemed: 'Bon utilisé avec succès!',
+    voucher_redeemed: 'Bon utilisé avec succès',
     voucher_invalid: "Ce code bon est invalide ou n'existe pas.",
     voucher_expired: 'Ce bon a expiré et ne peut plus être utilisé.',
     voucher_already_redeemed: 'Ce bon a déjà été entièrement utilisé.',
     voucher_wrong_type: "Ce bon n'est pas valide pour votre type de compte.",
-    payment_successful: 'Paiement réussi!',
+    payment_successful: 'Paiement réussi',
     credits_added: 'Vos crédits ont été ajoutés à votre compte. Vous pouvez maintenant déployer ou mettre à niveau vos instances.',
     transaction_id: 'ID de transaction',
     timestamp: 'Date et heure',
@@ -386,7 +390,7 @@ export default {
     payment_timeout: 'Le traitement du paiement a expiré. Veuillez vérifier votre email ou contacter le support.',
     history_title: 'Historique des transactions',
     history_description: 'Consultez toutes vos transactions de crédit, notamment les achats, l\'utilisation et les ajustements.',
-    page_title: 'Crédits & Facturation',
+    page_title: 'Crédits et facturation',
     page_description: 'Gérez les crédits de votre infrastructure et suivez la consommation en temps réel pour toutes vos instances Odoo.',
     top_up_credits: 'Recharger',
     current_balance: 'Solde de crédits actuel',
@@ -1018,9 +1022,9 @@ export default {
     description: 'Suivez vos revenus provenant des acquisitions et renouvellements de clients',
     total_earnings: 'Revenus totaux',
     pending_commission: 'Commission en attente',
-    acquisition_bonus_total: 'Bonus d\'acquisition (Total)',
+    acquisition_bonus_total: 'Bonus d\'acquisition (total)',
     renewal_income_total: 'Revenu de renouvellement (YTD)',
-    trend_over_time: 'Tendance des commissions au fil du temps',
+    trend_over_time: 'Tendance des commissions',
     breakdown_by_customer: 'Répartition par client',
     acquisition_bonus: 'Bonus d\'acquisition',
     renewal_commission: 'Commission de renouvellement',
@@ -1037,20 +1041,20 @@ export default {
 
   // Settings
   settings: {
-    title: 'Configuration de la Plateforme',
+    title: 'Configuration de la plateforme',
     description: 'Gérez l\'infrastructure, l\'économie des crédits et les politiques de cycle de vie des données de l\'écosystème Xayma.sh.',
 
     // Section headlines
-    infrastructure_engines: 'Moteurs d\'Infrastructure',
-    credits_management: 'Gestion des Crédits',
-    deployment_lifecycle: 'Cycle de Vie des Déploiements',
-    recent_transactions: 'Transactions Récentes',
+    infrastructure_engines: 'Moteurs d\'infrastructure',
+    credits_management: 'Gestion des crédits',
+    deployment_lifecycle: 'Cycle de vie des déploiements',
+    recent_transactions: 'Transactions récentes',
 
     // Infrastructure
-    workflow_engine: 'Moteur de Workflow',
-    deployment_engine: 'Moteur de Déploiement',
-    container_management: 'Plateforme de Gestion des Conteneurs',
-    platform_url: 'URL de la Plateforme',
+    workflow_engine: 'Moteur de workflow',
+    deployment_engine: 'Moteur de déploiement',
+    container_management: 'Plateforme de conteneurs',
+    platform_url: 'URL de la plateforme',
     api_key: 'Jeton API',
 
     // Connection test
@@ -1062,19 +1066,19 @@ export default {
     connection_test_failed: 'Impossible de joindre la plateforme. Vérifiez l\'URL et les identifiants.',
 
     // Credits
-    credit_price: 'Prix du Crédit',
+    credit_price: 'Prix du crédit',
     credit_price_hint: 'Prix unitaire par défaut d\'un crédit de déploiement',
-    low_credit_threshold: 'Seuil de Crédit Bas',
-    max_credit_debt: 'Dette Max de Crédit',
-    revenue_target: 'Objectif de Revenu',
-    revenue_achieved: '{percent}% Atteint',
+    low_credit_threshold: 'Seuil de crédit bas',
+    max_credit_debt: 'Dette max de crédit',
+    revenue_target: 'Objectif de revenu',
+    revenue_achieved: '{percent}% atteint',
     credits_unit_short: 'Cr',
 
     // Lifecycle
-    archive_deployments: 'Archiver les Déploiements',
-    delete_deployments: 'Supprimer les Déploiements',
-    archive_organizations: 'Archiver les Organisations',
-    delete_organizations: 'Supprimer les Organisations',
+    archive_deployments: 'Archiver les déploiements',
+    delete_deployments: 'Supprimer les déploiements',
+    archive_organizations: 'Archiver les organisations',
+    delete_organizations: 'Supprimer les organisations',
     days: 'Jours',
     lifecycle_footnote: 'Les tâches d\'élagage automatique s\'exécutent quotidiennement à 00h00 UTC. Les données archivées restent en stockage froid en lecture seule.',
 
@@ -1088,16 +1092,16 @@ export default {
       amount: 'Montant',
     },
     transaction_type: {
-      credit_refill: 'Recharge de Crédit',
-      automated_debit: 'Débit Automatisé',
-      failed_payment: 'Paiement Échoué',
+      credit_refill: 'Recharge de crédit',
+      automated_debit: 'Débit automatisé',
+      failed_payment: 'Paiement échoué',
       refund: 'Remboursement',
       expiry: 'Expiration',
     },
 
     // Footer actions
-    discard_changes: 'Annuler les Modifications',
-    save_platform_settings: 'Enregistrer les Paramètres',
+    discard_changes: 'Annuler les modifications',
+    save_platform_settings: 'Enregistrer les paramètres',
 
     // Toasts
     saved: 'Paramètres de la plateforme enregistrés',
@@ -1108,7 +1112,7 @@ export default {
     error_loading_transactions: 'Échec du chargement des transactions récentes',
 
     // Payment gateways
-    payment_gateways: 'Passerelles de Paiement',
+    payment_gateways: 'Passerelles de paiement',
     add_gateway: 'Ajouter une passerelle',
     edit_gateway: 'Modifier la passerelle',
     no_gateways_yet: 'Aucune passerelle configurée.',
@@ -1145,7 +1149,7 @@ export default {
     gateway_display_hint: 'Affiché sur la page Acheter des crédits. Utilise le nom du fournisseur et l\'icône intégrée si vide.',
 
     // Forfaits d'achat de crédits
-    credit_bundles: 'Forfaits d\'achat de crédits',
+    credit_bundles: 'Forfaits de crédits',
     add_bundle: 'Ajouter un forfait',
     edit_bundle: 'Modifier le forfait',
     no_bundles_yet: 'Aucun forfait configuré pour le moment.',

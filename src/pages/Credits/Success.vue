@@ -9,7 +9,7 @@
       </div>
 
       <div>
-        <h1 class="text-3xl font-bold text-on-background mb-2">
+        <h1 class="text-page-title mb-2">
           {{ $t('credits.payment_successful') }}
         </h1>
         <p class="text-on-surface-variant max-w-md mx-auto">
@@ -52,7 +52,7 @@
     <div v-else-if="paymentStatus === 'pending'" class="text-center space-y-6">
       <ProgressSpinner />
       <div>
-        <h1 class="text-2xl font-semibold text-on-background mb-2">
+        <h1 class="text-page-title mb-2">
           {{ $t('credits.processing_payment') }}
         </h1>
         <p class="text-on-surface-variant max-w-md mx-auto">
@@ -70,7 +70,7 @@
       </div>
 
       <div>
-        <h1 class="text-3xl font-bold text-error mb-2">
+        <h1 class="text-page-title !text-error mb-2">
           {{ $t('credits.payment_failed') }}
         </h1>
         <p class="text-on-surface-variant max-w-md mx-auto">

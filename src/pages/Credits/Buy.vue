@@ -1,8 +1,8 @@
 <template>
-  <div class="p-lg w-full">
+  <div class="w-full">
     <!-- Page header -->
     <header class="mb-12">
-      <h1 class="text-4xl font-extrabold tracking-tight text-on-background mb-2">
+      <h1 class="text-page-title mb-2">
         {{ t('credits.top_up.title') }}
       </h1>
       <p class="text-on-surface-variant max-w-2xl">
@@ -58,7 +58,7 @@
 
         <!-- Step 1: amount -->
         <section>
-          <h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">
+          <h2 class="text-eyebrow mb-6">
             {{ t('credits.top_up.step_amount') }}
           </h2>
 
@@ -111,7 +111,7 @@
 
         <!-- Step 2: payment method -->
         <section>
-          <h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">
+          <h2 class="text-eyebrow mb-6">
             {{ t('credits.top_up.step_payment') }}
           </h2>
 
@@ -169,7 +169,7 @@
         <div class="lg:sticky lg:top-24 space-y-6">
           <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg overflow-hidden">
             <div class="bg-primary p-6">
-              <h3 class="text-on-primary font-bold text-lg">
+              <h3 class="text-card-title text-lg !text-on-primary">
                 {{ t('credits.top_up.summary_title') }}
               </h3>
               <p class="text-on-primary text-xs opacity-80">

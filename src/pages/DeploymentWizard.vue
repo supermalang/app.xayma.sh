@@ -2,7 +2,7 @@
   <div class="space-y-12">
     <!-- Page header -->
     <header>
-      <h1 class="text-4xl font-extrabold tracking-tight text-primary mb-2">
+      <h1 class="text-page-title mb-2">
         {{ $t('deployments.create') }}
       </h1>
       <p class="text-on-surface-variant font-medium">
@@ -61,7 +61,7 @@
     <!-- 01. Service Selection -->
     <section>
       <header class="mb-8">
-        <h2 class="text-xl font-bold tracking-tight text-on-surface uppercase mb-1">
+        <h2 class="text-section uppercase mb-1">
           {{ $t('deployments.wizard.service_section_title') }}
         </h2>
         <p class="text-on-surface-variant text-sm">
@@ -116,7 +116,7 @@
               <i v-else :class="serviceIcon(service)" class="text-4xl" aria-hidden="true" />
             </div>
           </div>
-          <h3 class="text-lg font-bold mb-2 text-center text-on-surface">
+          <h3 class="text-card-title text-lg mb-2 text-center">
             {{ service.name }}
           </h3>
           <p class="text-sm text-on-surface-variant leading-relaxed text-center">
@@ -146,7 +146,7 @@
     <!-- 02. Service Plan -->
     <section>
       <header class="mb-8">
-        <h2 class="text-xl font-bold tracking-tight text-on-surface uppercase mb-1">
+        <h2 class="text-section uppercase mb-1">
           {{ $t('deployments.wizard.plan_section_title') }}
         </h2>
         <p class="text-on-surface-variant text-sm">
@@ -195,7 +195,7 @@
               <i :class="planIcon(idx)" />
             </div>
             <div>
-              <h4 class="font-bold text-lg text-on-surface">{{ plan.label }}</h4>
+              <h4 class="text-card-title text-lg">{{ plan.label }}</h4>
               <p class="text-xs text-on-surface-variant uppercase tracking-wider">
                 {{ plan.description }}
               </p>
@@ -222,7 +222,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
       <section class="lg:col-span-4">
         <header class="mb-8">
-          <h2 class="text-xl font-bold tracking-tight text-on-surface uppercase mb-1">
+          <h2 class="text-section uppercase mb-1">
             {{ $t('deployments.wizard.version_section_title') }}
           </h2>
           <p class="text-on-surface-variant text-sm">
@@ -256,7 +256,7 @@
 
       <section class="lg:col-span-8">
         <header class="mb-8">
-          <h2 class="text-xl font-bold tracking-tight text-on-surface uppercase mb-1">
+          <h2 class="text-section uppercase mb-1">
             {{ $t('deployments.wizard.config_section_title') }}
           </h2>
           <p class="text-on-surface-variant text-sm">

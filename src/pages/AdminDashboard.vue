@@ -29,7 +29,7 @@
 
     <!-- Section 2: Financial Ledger -->
     <div>
-      <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-3">
+      <h3 class="text-eyebrow mb-3">
         {{ t('dashboard.financial_ledger_title') }}
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -122,7 +122,7 @@
       <!-- Left: Infrastructure Capacity (2/3) -->
       <Card class="lg:col-span-2">
         <template #content>
-          <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">
+          <h3 class="text-eyebrow mb-4">
             {{ t('dashboard.infrastructure_capacity_title') }}
           </h3>
 
@@ -214,7 +214,7 @@
     <!-- Section 4: System Event Log -->
     <div class="relative">
       <RefreshingBadge :visible="activityRefreshing" />
-      <h3 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-3">
+      <h3 class="text-eyebrow mb-3">
         {{ t('dashboard.system_event_log_title') }}
       </h3>
 

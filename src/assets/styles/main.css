@@ -82,6 +82,13 @@
   --radius-md:   0.375rem;
   --radius-lg:   0.5rem;
   --radius-full: 9999px;
+
+  /* Motion — expo / quart out, no bounce */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --motion-fast:    150ms;
+  --motion-base:    220ms;
+  --motion-slow:    320ms;
 }
 
 html,
@@ -92,4 +99,83 @@ body {
   background-color: var(--background);
   color: var(--on-surface);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus polish for native interactive elements.
+   PrimeVue components manage their own focus state; this catches
+   custom <button>, <a>, and form elements. */
+:where(button, [role="button"], a, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@layer components {
+  .text-page-title {
+    @apply text-3xl md:text-4xl font-extrabold tracking-tight;
+    color: #575757;
+  }
+
+  .text-section {
+    @apply text-xl font-bold tracking-tight text-on-surface;
+  }
+
+  .text-eyebrow {
+    @apply text-xs font-bold uppercase tracking-widest text-on-surface-variant;
+  }
+
+  .text-card-title {
+    @apply text-base font-semibold text-on-surface;
+  }
+
+  .text-subhead {
+    @apply text-sm font-semibold text-on-surface;
+  }
+
+  /* Page entry — gentle fade + 6px lift. Apply to top-level page container. */
+  @keyframes page-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .page-enter {
+    animation: page-enter var(--motion-base) var(--ease-out-expo) both;
+  }
+
+  /* Header reveal — slightly delayed lift, used on page <header> blocks. */
+  @keyframes header-reveal {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .header-reveal {
+    animation: header-reveal var(--motion-slow) var(--ease-out-expo) both;
+  }
+
+  /* Route transition — used by <transition name="route"> in AppLayout. */
+  .route-enter-active {
+    transition:
+      opacity   var(--motion-base) var(--ease-out-expo),
+      transform var(--motion-base) var(--ease-out-expo);
+  }
+  .route-leave-active {
+    transition: opacity var(--motion-fast) var(--ease-out-quart);
+  }
+  .route-enter-from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .route-leave-to {
+    opacity: 0;
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .header-reveal,
+  .route-enter-active,
+  .route-leave-active {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }

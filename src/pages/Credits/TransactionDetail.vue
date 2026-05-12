@@ -1,5 +1,5 @@
 <template>
-  <div class="p-lg w-full max-w-7xl mx-auto">
+  <div class="w-full max-w-7xl mx-auto">
     <!-- Breadcrumbs -->
     <nav class="mb-8 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
       <button
@@ -31,7 +31,7 @@
         class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-outline-variant/20 pb-8"
       >
         <div>
-          <h1 class="text-3xl font-extrabold tracking-tight text-on-background mb-3">
+          <h1 class="text-page-title mb-3">
             {{ t('credits.detail.title') }}
           </h1>
           <div class="flex flex-wrap items-center gap-3">
@@ -80,7 +80,7 @@
                 <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">
                   {{ t('credits.detail.account_entity') }}
                 </p>
-                <h2 class="text-xl font-bold text-on-background">
+                <h2 class="text-section">
                   {{ partner?.name ?? '—' }}
                 </h2>
                 <p v-if="partner?.address" class="text-sm text-on-surface-variant mt-1">
@@ -98,7 +98,7 @@
             </div>
 
             <div class="space-y-4">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/40 pb-2">
+              <h3 class="text-eyebrow border-b border-outline-variant/40 pb-2">
                 {{ t('credits.detail.financial_breakdown') }}
               </h3>
 
@@ -146,7 +146,7 @@
           <section
             class="bg-surface-container-low p-8 rounded-lg border border-outline-variant/40"
           >
-            <h3 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-6">
+            <h3 class="text-eyebrow mb-6">
               {{ t('credits.detail.payment_metadata') }}
             </h3>
             <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
@@ -202,7 +202,7 @@
           <section
             class="bg-surface-container-lowest p-8 rounded-lg border border-outline-variant/40 h-full"
           >
-            <h3 class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-8">
+            <h3 class="text-eyebrow mb-8">
               {{ t('credits.detail.audit_lifecycle') }}
             </h3>
 

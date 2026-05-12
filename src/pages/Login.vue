@@ -6,7 +6,7 @@
 
       <!-- Heading -->
       <div class="mb-8">
-        <h2 class="text-2xl font-bold tracking-tight text-on-surface mb-1">
+        <h2 class="text-section mb-1">
           {{ t('auth.authenticate_title') }}
         </h2>
         <p class="text-sm text-on-surface-variant">

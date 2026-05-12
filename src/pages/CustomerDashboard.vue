@@ -154,7 +154,7 @@
       <RefreshingBadge :visible="activityRefreshing" />
       <template #header>
         <div class="p-4 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-on-surface">{{ t('dashboard.recent_activity_log') }}</h3>
+          <h3 class="text-card-title">{{ t('dashboard.recent_activity_log') }}</h3>
           <router-link
             to="/audit"
             class="text-xs font-medium text-primary hover:underline"
@@ -203,7 +203,7 @@
       <template #header>
         <div class="p-4 flex items-center justify-between">
           <div>
-            <h3 class="text-base font-semibold text-on-surface">{{ t('dashboard.credit_usage_over_time') }}</h3>
+            <h3 class="text-card-title">{{ t('dashboard.credit_usage_over_time') }}</h3>
             <p class="text-xs text-on-surface-variant mt-0.5">Historical data of credit consumption across all instances.</p>
           </div>
           <div class="flex gap-2">

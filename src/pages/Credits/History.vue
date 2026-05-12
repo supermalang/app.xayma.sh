@@ -1,9 +1,9 @@
 <template>
-  <div class="p-lg w-full space-y-6">
+  <div class="w-full space-y-6">
     <!-- Page header -->
     <header class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div class="max-w-2xl">
-        <h1 class="text-3xl font-extrabold tracking-tight text-on-background mb-2">
+        <h1 class="text-page-title mb-2">
           {{ t('credits.page_title') }}
         </h1>
         <p class="text-on-surface-variant">
@@ -62,7 +62,7 @@
       <section
         class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-6 flex flex-col"
       >
-        <h2 class="text-base font-bold text-on-surface mb-1">
+        <h2 class="text-card-title mb-1">
           {{ t('credits.billing_summary') }}
         </h2>
         <p class="text-sm text-on-surface-variant mb-4">
@@ -107,7 +107,7 @@
       <header
         class="flex flex-col gap-3 p-6 pb-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <h2 class="text-lg font-bold text-on-surface">
+        <h2 class="text-section">
           {{ t('credits.transaction_history') }}
         </h2>
         <div class="flex items-center gap-2">

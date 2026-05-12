@@ -2,7 +2,7 @@
   <div class="space-y-12">
     <!-- Page header -->
     <div>
-      <h1 class="text-3xl font-bold tracking-tight text-on-background mb-2">
+      <h1 class="text-page-title mb-2">
         {{ t('settings.title') }}
       </h1>
       <p class="text-on-surface-variant text-sm max-w-2xl">{{ t('settings.description') }}</p>
@@ -21,7 +21,7 @@
           <div class="space-y-1">
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-primary">hub</span>
-              <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+              <h2 class="text-eyebrow">
                 {{ t('settings.infrastructure_engines') }}
               </h2>
             </div>
@@ -81,7 +81,7 @@
         <section class="col-span-12 lg:col-span-4 space-y-6">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary">payments</span>
-            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+            <h2 class="text-eyebrow">
               {{ t('settings.credits_management') }}
             </h2>
           </div>
@@ -137,7 +137,7 @@
               <!-- Credit Purchase Bundles -->
               <div class="border-t border-primary/10 pt-6 space-y-4">
                 <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-semibold">{{ t('settings.credit_bundles') }}</h3>
+                  <h3 class="text-subhead">{{ t('settings.credit_bundles') }}</h3>
                   <Button
                     :label="t('settings.add_bundle')"
                     icon="pi pi-plus"
@@ -157,7 +157,7 @@
               <!-- Global Cost Line Items -->
               <div class="border-t border-primary/10 pt-6 space-y-4">
                 <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-semibold">{{ t('settings.line_items') }}</h3>
+                  <h3 class="text-subhead">{{ t('settings.line_items') }}</h3>
                   <Button
                     :label="t('settings.add_line_item')"
                     icon="pi pi-plus"
@@ -180,7 +180,7 @@
               <!-- Payment Gateways -->
               <div class="border-t border-primary/10 pt-6 space-y-4">
                 <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-semibold">{{ t('settings.payment_gateways') }}</h3>
+                  <h3 class="text-subhead">{{ t('settings.payment_gateways') }}</h3>
                   <Button
                     :label="t('settings.add_gateway')"
                     icon="pi pi-plus"
@@ -220,7 +220,7 @@
         <section class="col-span-12 lg:col-span-5 space-y-6">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-on-surface-variant">history</span>
-            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+            <h2 class="text-eyebrow">
               {{ t('settings.deployment_lifecycle') }}
             </h2>
           </div>
@@ -262,7 +262,7 @@
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
-              <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+              <h2 class="text-eyebrow">
                 {{ t('settings.recent_transactions') }}
               </h2>
             </div>

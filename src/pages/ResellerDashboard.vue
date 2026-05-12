@@ -11,7 +11,7 @@
     <Card>
       <template #header>
         <div class="p-4">
-          <h3 class="text-base font-semibold text-on-surface">
+          <h3 class="text-card-title">
             {{ $t('dashboard.credit_pool') }}
           </h3>
         </div>
@@ -46,7 +46,7 @@
     <Card>
       <template #header>
         <div class="p-4">
-          <h3 class="text-base font-semibold text-on-surface">
+          <h3 class="text-card-title">
             {{ $t('dashboard.client_deployments') }}
           </h3>
         </div>
@@ -106,7 +106,7 @@
     <Card>
       <template #header>
         <div class="p-4">
-          <h3 class="text-base font-semibold text-on-surface">
+          <h3 class="text-card-title">
             {{ $t('deployments.title') }}
           </h3>
         </div>
@@ -188,7 +188,7 @@
     <Card v-if="atRiskClients.length > 0">
       <template #header>
         <div class="p-4">
-          <h3 class="text-base font-semibold text-error flex items-center gap-2">
+          <h3 class="text-card-title !text-error flex items-center gap-2">
             <i class="pi pi-alert-circle" />
             {{ $t('dashboard.at_risk_clients') }}
           </h3>

@@ -49,7 +49,7 @@
     <Card role="region" aria-label="Commission breakdown by customer">
       <template #header>
         <div class="p-4 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-on-surface" id="commission-breakdown-title">
+          <h3 class="text-card-title" id="commission-breakdown-title">
             {{ $t('commissions.breakdown_by_customer') }}
           </h3>
           <span class="text-xs font-semibold px-2 py-1 bg-primary-container text-primary rounded-full">
@@ -127,7 +127,7 @@
     <Card role="region" aria-label="Commission transaction history">
       <template #header>
         <div class="p-4 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-on-surface" id="commission-history-title">
+          <h3 class="text-card-title" id="commission-history-title">
             {{ $t('commissions.history') }}
           </h3>
         </div>

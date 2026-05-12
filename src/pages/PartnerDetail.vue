@@ -9,7 +9,7 @@
           @click="goBack"
         />
         <div>
-          <h1 class="text-3xl font-bold text-on-surface">{{ partner?.name }}</h1>
+          <h1 class="text-page-title">{{ partner?.name }}</h1>
           <p class="text-sm text-on-surface-variant">{{ partner?.email }}</p>
         </div>
       </div>

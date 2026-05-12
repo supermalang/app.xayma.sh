@@ -16,7 +16,7 @@
         </RouterLink>
 
         <div class="space-y-8">
-          <h1 class="text-4xl font-bold tracking-tight text-on-surface leading-tight">
+          <h1 class="text-page-title leading-tight">
             {{ t('auth.register_brand_headline') }}
           </h1>
 
@@ -82,7 +82,7 @@
         </RouterLink>
 
         <div class="space-y-2 text-center lg:text-left">
-          <h2 class="text-2xl font-bold tracking-tight text-on-surface">
+          <h2 class="text-section">
             {{ t('auth.register_title') }}
           </h2>
           <p class="text-on-surface-variant text-sm">

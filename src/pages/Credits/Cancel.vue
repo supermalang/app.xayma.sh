@@ -10,7 +10,7 @@
 
       <!-- Header -->
       <div>
-        <h1 class="text-3xl font-bold text-on-background mb-2">
+        <h1 class="text-page-title mb-2">
           {{ $t('credits.payment_cancelled') }}
         </h1>
         <p class="text-on-surface-variant max-w-md mx-auto">

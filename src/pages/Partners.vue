@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <!-- Page header with create button -->
     <div class="header-section flex items-center justify-between">
-      <h1 class="text-3xl font-bold text-on-surface">{{ $t('partners.title') }}</h1>
+      <h1 class="text-page-title">{{ $t('partners.title') }}</h1>
       <Button
         :label="$t('common.create')"
         icon="pi pi-plus"

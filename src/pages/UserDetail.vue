@@ -9,7 +9,7 @@
           @click="goBack"
         />
         <div>
-          <h1 class="text-3xl font-bold text-on-surface">{{ user?.firstname }} {{ user?.lastname }}</h1>
+          <h1 class="text-page-title">{{ user?.firstname }} {{ user?.lastname }}</h1>
           <p class="text-sm text-on-surface-variant">{{ user?.email }}</p>
         </div>
       </div>

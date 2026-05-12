@@ -3,7 +3,7 @@
     <!-- Editorial header: left primary border, generous gutter -->
     <div class="px-12 pt-12 pb-8 max-w-screen-2xl mx-auto w-full">
       <div class="border-l-4 border-primary ps-8">
-        <h1 class="text-4xl font-bold tracking-tight text-on-surface">
+        <h1 class="text-page-title">
           {{ isEdit ? $t('services.edit_page.title') : $t('services.create_page.title') }}
         </h1>
         <p class="text-on-surface-variant max-w-2xl font-medium mt-2">
@@ -53,7 +53,7 @@
       <!-- ============== 01. Basic Info ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2">
+          <h3 class="text-eyebrow !text-primary mb-2">
             {{ $t('services.sections.basic_info.num') }} {{ $t('services.sections.basic_info.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">
@@ -219,7 +219,7 @@
       <!-- ============== 02. Service Plans ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2">
+          <h3 class="text-eyebrow !text-primary mb-2">
             {{ $t('services.sections.plans.num') }} {{ $t('services.sections.plans.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">
@@ -306,7 +306,7 @@
       <!-- ============== 03. Versions ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2">
+          <h3 class="text-eyebrow !text-primary mb-2">
             {{ $t('services.sections.versions.num') }} {{ $t('services.sections.versions.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">
@@ -337,7 +337,7 @@
       <!-- ============== 04. Technical Tags ============== -->
       <section class="grid grid-cols-12 gap-8">
         <div class="col-span-12 md:col-span-4">
-          <h3 class="text-sm font-bold uppercase tracking-widest text-primary mb-2">
+          <h3 class="text-eyebrow !text-primary mb-2">
             {{ $t('services.sections.tags.num') }} {{ $t('services.sections.tags.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">

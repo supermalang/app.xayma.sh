@@ -31,7 +31,7 @@
             <span class="material-symbols-outlined text-[10px]">chevron_right</span>
             <span class="text-primary font-bold">{{ service.name }}</span>
           </nav>
-          <h1 class="text-4xl font-extrabold tracking-tighter text-on-surface mb-2">
+          <h1 class="text-page-title mb-2">
             {{ service.name }}
           </h1>
           <div class="flex items-center gap-3 font-mono text-xs text-on-surface-variant">
@@ -116,7 +116,7 @@
           <!-- Service Plans -->
           <section class="space-y-4">
             <div class="flex items-center justify-between">
-              <h3 class="font-bold text-sm uppercase tracking-widest text-on-surface-variant">
+              <h3 class="text-eyebrow">
                 {{ $t('services.detail.sections.plans') }}
               </h3>
               <Button
@@ -213,7 +213,7 @@
 
           <!-- Versions -->
           <section class="space-y-4">
-            <h3 class="font-bold text-sm uppercase tracking-widest text-on-surface-variant">
+            <h3 class="text-eyebrow">
               {{ $t('services.detail.sections.versions') }}
             </h3>
             <div v-if="serviceVersions.length" class="space-y-2">
@@ -244,7 +244,7 @@
             v-if="service.control_node_id || service.deploymentEngineJobTemplateId"
             class="space-y-4"
           >
-            <h3 class="font-bold text-sm uppercase tracking-widest text-on-surface-variant">
+            <h3 class="text-eyebrow">
               {{ $t('services.detail.sections.deployment_config') }}
             </h3>
             <div class="space-y-2">
@@ -276,7 +276,7 @@
         <div class="col-span-12 lg:col-span-4 space-y-6">
           <!-- Performance card -->
           <section class="bg-surface-container-high p-6 space-y-6">
-            <h3 class="font-bold text-xs uppercase tracking-widest text-on-surface-variant">
+            <h3 class="text-eyebrow">
               {{ $t('services.detail.performance.title') }}
             </h3>
             <div class="space-y-4">
@@ -309,7 +309,7 @@
           <section class="bg-on-background text-white p-6 space-y-6">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-secondary-container">terminal</span>
-              <h3 class="font-bold text-xs uppercase tracking-widest text-on-surface-variant">
+              <h3 class="text-eyebrow">
                 {{ $t('services.detail.hooks.title') }}
               </h3>
             </div>
