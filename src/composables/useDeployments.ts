@@ -18,6 +18,7 @@ export interface DeploymentFormData {
   domainNames: string[]
   serviceVersion?: string
   deploymentPlan?: string
+  slug?: string
 }
 
 export function useDeployments() {
@@ -115,7 +116,7 @@ export function useDeployments() {
 
     isLoading.value = true
     try {
-      const slug = generateSlug(formData.label)
+      const slug = formData.slug?.trim() || generateSlug(formData.label)
       const isSlugUnique = await deploymentService.isDeploymentSlugUnique(slug)
       if (!isSlugUnique) {
         notificationStore.addError(t('deployments.errors.slug_taken'))

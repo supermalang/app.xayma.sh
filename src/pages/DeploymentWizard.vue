@@ -278,6 +278,7 @@
               type="text"
               class="w-full"
               :placeholder="$t('deployments.wizard.placeholder_deployment_name')"
+              @blur="handleNameBlur"
             />
           </div>
 
@@ -295,12 +296,22 @@
                 type="text"
                 class="flex-1 rounded-e-none"
                 :placeholder="$t('deployments.wizard.placeholder_prefixed_domain')"
+                :invalid="!!prefixedDomainError"
+                @input="prefixedDomainTouched = true"
+                @blur="handlePrefixedDomainBlur"
               />
               <span class="inline-flex items-center px-4 bg-surface-container-high rounded-e text-sm font-medium text-on-surface-variant">
                 .xayma.sh
               </span>
             </div>
-            <p class="text-[10px] text-on-surface-variant italic">
+            <p v-if="isResolvingPrefixedDomain" class="text-[10px] text-on-surface-variant italic flex items-center gap-1">
+              <i class="pi pi-spin pi-spinner text-[10px]" />
+              {{ $t('deployments.wizard.field_prefixed_domain_checking') }}
+            </p>
+            <p v-else-if="prefixedDomainError" class="text-[10px] text-error italic">
+              {{ prefixedDomainError }}
+            </p>
+            <p v-else class="text-[10px] text-on-surface-variant italic">
               {{ $t('deployments.wizard.field_prefixed_domain_hint') }}
             </p>
           </div>
@@ -311,6 +322,7 @@
               class="text-xs font-bold uppercase tracking-widest text-on-surface-variant"
             >
               {{ $t('deployments.wizard.field_custom_domain') }}
+              <span class="text-on-surface-variant opacity-60 ms-1">{{ $t('deployments.wizard.field_description_optional') }}</span>
             </label>
             <InputText
               id="custom-domain"
@@ -468,16 +480,18 @@ import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import { listServices, getServicePlansByServiceId } from '@/services/services.service'
 import type { ServicePlan as ServicePlanShape } from '@/services/services.service'
-import { validateDomains as validateDomainsService } from '@/services/deployments.service'
+import {
+  validateDomains as validateDomainsService,
+  findUniqueDeploymentSlug,
+  isDeploymentSlugUnique,
+} from '@/services/deployments.service'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
-import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 
 const router = useRouter()
 const { t } = useI18n()
 const partnerStore = usePartnerStore()
-const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const { createDeployment } = useDeployments()
 
@@ -490,6 +504,9 @@ const isDeploying = ref(false)
 const isDomainValidating = ref(false)
 const domainValidationError = ref<string | null>(null)
 const selectedPlan = ref<PlanInfo | null>(null)
+const prefixedDomainTouched = ref(false)
+const prefixedDomainError = ref<string | null>(null)
+const isResolvingPrefixedDomain = ref(false)
 
 const form = ref({
   serviceId: null as number | null,
@@ -538,9 +555,11 @@ const canSubmit = computed(() => {
     !!form.value.serviceVersion &&
     form.value.label.trim().length > 0 &&
     form.value.prefixedDomain.trim().length > 0 &&
+    !prefixedDomainError.value &&
     hasSufficientCredits.value &&
     !isDeploying.value &&
-    !isDomainValidating.value
+    !isDomainValidating.value &&
+    !isResolvingPrefixedDomain.value
   )
 })
 
@@ -568,16 +587,66 @@ function planIcon(idx: number): string {
   }
 }
 
-function defaultPrefixedDomain(): string {
-  const handle = (authStore.profile?.firstname ?? '').toLowerCase().trim()
-  return handle.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 32)
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50)
+}
+
+const SUBDOMAIN_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+
+async function handleNameBlur() {
+  const base = slugify(form.value.label)
+  if (!base) return
+
+  const currentPrefix = form.value.prefixedDomain.trim()
+  if (prefixedDomainTouched.value && currentPrefix) return
+
+  isResolvingPrefixedDomain.value = true
+  prefixedDomainError.value = null
+  try {
+    const unique = await findUniqueDeploymentSlug(base)
+    form.value.prefixedDomain = unique
+    prefixedDomainTouched.value = false
+  } catch (error) {
+    console.error('Failed to resolve prefixed domain:', error)
+  } finally {
+    isResolvingPrefixedDomain.value = false
+  }
+}
+
+async function handlePrefixedDomainBlur() {
+  const value = form.value.prefixedDomain.trim()
+  if (!value) {
+    prefixedDomainError.value = null
+    prefixedDomainTouched.value = false
+    return
+  }
+  if (!SUBDOMAIN_REGEX.test(value)) {
+    prefixedDomainError.value = t('deployments.wizard.field_prefixed_domain_invalid')
+    return
+  }
+
+  isResolvingPrefixedDomain.value = true
+  try {
+    const unique = await isDeploymentSlugUnique(value)
+    prefixedDomainError.value = unique
+      ? null
+      : t('deployments.errors.slug_taken')
+  } catch (error) {
+    console.error('Failed to check prefixed domain uniqueness:', error)
+  } finally {
+    isResolvingPrefixedDomain.value = false
+  }
 }
 
 onMounted(async () => {
   await loadServices()
-  if (!form.value.prefixedDomain) {
-    form.value.prefixedDomain = defaultPrefixedDomain()
-  }
 })
 
 async function loadServices() {
@@ -685,6 +754,7 @@ async function submitDeployment() {
         label: form.value.label,
         domainNames,
         serviceVersion: form.value.serviceVersion,
+        slug: form.value.prefixedDomain.trim(),
       },
       partnerId,
       selectedPlan.value.monthlyCreditConsumption ?? 0

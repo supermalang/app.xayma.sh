@@ -226,6 +226,36 @@ export async function isDeploymentSlugUnique(slug: string, excludeId?: number) {
   return (data || []).length === 0
 }
 
+/**
+ * Given a base slug, return the base itself if unused, otherwise the first
+ * available `base-N` suffix (N >= 2). Used by the deployment wizard to
+ * auto-fill a unique prefixed-domain when the user names a deployment.
+ */
+export async function findUniqueDeploymentSlug(baseSlug: string): Promise<string> {
+  if (!baseSlug) return baseSlug
+
+  const { data, error } = await supabaseFrom('deployments')
+    .select('slug')
+    .like('slug', `${baseSlug}%`)
+
+  if (error) {
+    console.error('Error finding unique deployment slug:', error)
+    throw error
+  }
+
+  const taken = new Set(
+    ((data as unknown as { slug: string | null }[]) || [])
+      .map((d) => d.slug)
+      .filter((s): s is string => !!s),
+  )
+
+  if (!taken.has(baseSlug)) return baseSlug
+
+  let i = 2
+  while (taken.has(`${baseSlug}-${i}`)) i++
+  return `${baseSlug}-${i}`
+}
+
 export async function hasPartnerSufficientCredits(
   partnerId: number,
   monthlyCreditConsumption: number,
