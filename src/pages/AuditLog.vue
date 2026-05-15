@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <h1 class="text-3xl font-bold text-on-surface">{{ $t('nav.audit') }}</h1>
+    <h1 class="text-page-title">{{ $t('nav.audit') }}</h1>
 
     <!-- Filters -->
     <div class="flex gap-4 flex-wrap">

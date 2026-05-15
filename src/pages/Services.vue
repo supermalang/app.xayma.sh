@@ -4,14 +4,7 @@
       class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/20 pb-8"
     >
       <div class="space-y-2">
-        <nav
-          class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
-        >
-          <span>{{ $t('services.breadcrumb_root') }}</span>
-          <span class="material-symbols-outlined text-[12px]">chevron_right</span>
-          <span class="text-primary">{{ $t('services.title') }}</span>
-        </nav>
-        <h1 class="text-4xl font-extrabold tracking-tighter text-primary leading-none">
+        <h1 class="text-page-title leading-none">
           {{ $t('services.title') }}
         </h1>
         <p class="text-on-surface-variant text-sm max-w-xl font-medium leading-relaxed">
@@ -31,7 +24,7 @@
       <div
         class="px-6 py-5 border-b border-outline-variant/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
       >
-        <h2 class="font-bold text-on-surface flex items-center gap-2">
+        <h2 class="text-card-title flex items-center gap-2">
           <span
             class="material-symbols-outlined text-primary"
             style="font-variation-settings: 'FILL' 1"

@@ -172,7 +172,7 @@
     <!-- Help section -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 mt-2 border-t border-outline-variant help-section">
       <div class="p-6 bg-surface-container-low rounded-lg space-y-3">
-        <h3 class="font-semibold text-on-surface text-base">{{ $t('deployments.help.title') }}</h3>
+        <h3 class="text-card-title">{{ $t('deployments.help.title') }}</h3>
         <p class="text-sm text-on-surface-variant leading-relaxed" style="max-width: 65ch">
           {{ $t('deployments.help.description') }}
         </p>

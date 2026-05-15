@@ -156,11 +156,28 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Sign up
-  async function signUp(email: string, password: string) {
+  // Metadata lands in auth.users.raw_user_meta_data and is read by the
+  // xayma_app.handle_new_user() trigger to create the partner + user rows.
+  async function signUp(
+    email: string,
+    password: string,
+    metadata?: { firstname: string; phone: string; company_name: string },
+  ) {
     try {
       isLoading.value = true
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: metadata ? { data: metadata } : undefined,
+      })
       if (error) throw error
+      // With "Confirm email" enabled, Supabase returns success for repeat
+      // signups to prevent email enumeration, but the returned user has an
+      // empty `identities` array. Surface this as a recognizable error so
+      // the registration UI can tell the user their email is taken.
+      if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        throw new Error('email_already_registered')
+      }
     } finally {
       isLoading.value = false
     }

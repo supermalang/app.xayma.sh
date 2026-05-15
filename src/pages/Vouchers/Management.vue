@@ -1,9 +1,9 @@
 <template>
-  <div class="p-lg space-y-6">
+  <div class="space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight text-on-background mb-2">
+        <h1 class="text-page-title mb-2">
           {{ $t('vouchers.management_title') }}
         </h1>
         <p class="text-on-surface-variant">

@@ -1,13 +1,30 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import * as workflowEngineService from '@/services/workflow-engine'
 
+const WORKFLOW_URL = 'https://workflow.example.com/webhook/abc'
+const WORKFLOW_TOKEN = 'wf-token-123'
+const DEPLOYMENT_URL = 'https://deploy.example.com/webhook/xyz'
+const DEPLOYMENT_TOKEN = 'dep-token-456'
+
+// Mock the settings service so engine config lookups don't hit Supabase.
+vi.mock('@/services/settings', () => ({
+  getSetting: vi.fn((key: string) => {
+    switch (key) {
+      case 'WORKFLOW_ENGINE_URL':   return Promise.resolve(WORKFLOW_URL)
+      case 'WORKFLOW_ENGINE_API_KEY': return Promise.resolve(WORKFLOW_TOKEN)
+      case 'DEPLOYMENT_ENGINE_URL': return Promise.resolve(DEPLOYMENT_URL)
+      case 'DEPLOYMENT_ENGINE_API_KEY': return Promise.resolve(DEPLOYMENT_TOKEN)
+      default: return Promise.resolve(null)
+    }
+  }),
+}))
+
 // Mock fetch globally
 global.fetch = vi.fn()
 
 describe('Workflow Engine Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset environment
     ;(global.fetch as any).mockClear()
   })
 
@@ -17,132 +34,116 @@ describe('Workflow Engine Service', () => {
   })
 
   describe('callWorkflowEngineWebhook', () => {
-    it('should successfully call webhook on 2xx response', async () => {
-      ;(global.fetch as any).mockResolvedValue({
-        ok: true,
-        status: 200,
-      })
+    it('POSTs to the workflow URL with ?operation=<name> and Bearer auth', async () => {
+      ;(global.fetch as any).mockResolvedValue({ ok: true, status: 200 })
 
       const payload = { deploymentId: 1, partnerId: 1 }
-
-      await workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
+      await workflowEngineService.callWorkflowEngineWebhook('testOperation', payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/webhook/test'),
+        `${WORKFLOW_URL}?operation=testOperation`,
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${WORKFLOW_TOKEN}`,
+          }),
           body: JSON.stringify(payload),
         })
       )
     })
 
-    it('should throw WorkflowEngineError on 4xx client error (no retry)', async () => {
+    it('throws WorkflowEngineError on 4xx client error (no retry)', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 400,
         text: async () => 'Bad request',
       })
 
-      const payload = { invalid: 'data' }
-
-      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow(
-        workflowEngineService.WorkflowEngineError
-      )
-
-      // Fetch should only be called once (no retry for 4xx)
+      await expect(
+        workflowEngineService.callWorkflowEngineWebhook('testOperation', { invalid: 'data' })
+      ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
 
-    it('should retry on 5xx error (server error)', async () => {
+    it('retries up to 3 times on 5xx error', async () => {
       vi.useFakeTimers()
-
       ;(global.fetch as any)
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 500,
-          text: async () => 'Internal server error',
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 502,
-          text: async () => 'Bad gateway',
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 503,
-          text: async () => 'Service unavailable',
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-        })
+        .mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'Internal server error' })
+        .mockResolvedValueOnce({ ok: false, status: 502, text: async () => 'Bad gateway' })
+        .mockResolvedValueOnce({ ok: false, status: 503, text: async () => 'Service unavailable' })
+        .mockResolvedValueOnce({ ok: true, status: 200 })
 
-      const payload = { deploymentId: 1 }
-
-      const successPromise = workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
+      const successPromise = workflowEngineService.callWorkflowEngineWebhook('testOperation', { deploymentId: 1 })
       await vi.runAllTimersAsync()
       await successPromise
 
-      // Should have been called 4 times (1 initial + 3 retries)
+      // 1 initial + 3 retries
       expect(global.fetch).toHaveBeenCalledTimes(4)
     })
 
-    it('should throw WorkflowEngineError after max retries exceeded', async () => {
+    it('throws WorkflowEngineError after max retries exceeded', async () => {
       vi.useFakeTimers()
-
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 503,
         text: async () => 'Service unavailable',
       })
 
-      const payload = { deploymentId: 1 }
-
-      // Attach rejection handler immediately to prevent unhandled rejection during timer advancement
       const rejectAssertion = expect(
-        workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)
+        workflowEngineService.callWorkflowEngineWebhook('testOperation', { deploymentId: 1 })
       ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
       await vi.runAllTimersAsync()
       await rejectAssertion
 
-      // Should have been called MAX_RETRIES + 1 times
-      expect(global.fetch).toHaveBeenCalledTimes(4) // 1 initial + 3 retries
+      expect(global.fetch).toHaveBeenCalledTimes(4)
     })
 
-    it('should not retry on 404 (client error)', async () => {
+    it('does not retry on 404 (client error)', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 404,
         text: async () => 'Not found',
       })
 
-      const payload = { deploymentId: 1 }
-
-      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow(
-        workflowEngineService.WorkflowEngineError
-      )
-
+      await expect(
+        workflowEngineService.callWorkflowEngineWebhook('testOperation', { deploymentId: 1 })
+      ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
 
-    it('should handle network errors (no retry)', async () => {
+    it('does not retry on network errors', async () => {
       ;(global.fetch as any).mockRejectedValue(new Error('Network error'))
 
-      const payload = { deploymentId: 1 }
-
-      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', payload)).rejects.toThrow()
-
+      await expect(
+        workflowEngineService.callWorkflowEngineWebhook('testOperation', { deploymentId: 1 })
+      ).rejects.toThrow()
       expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('merges &operation= when the configured URL already has a query string', async () => {
+      // Override the mock for this case
+      const { getSetting } = await import('@/services/settings')
+      ;(getSetting as any).mockImplementationOnce((key: string) => {
+        return key === 'WORKFLOW_ENGINE_URL'
+          ? Promise.resolve(`${WORKFLOW_URL}?tenant=acme`)
+          : Promise.resolve(WORKFLOW_TOKEN)
+      })
+      ;(getSetting as any).mockImplementationOnce(() => Promise.resolve(WORKFLOW_TOKEN))
+      ;(global.fetch as any).mockResolvedValue({ ok: true, status: 200 })
+
+      await workflowEngineService.callWorkflowEngineWebhook('testOperation', {})
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        `${WORKFLOW_URL}?tenant=acme&operation=testOperation`,
+        expect.any(Object)
+      )
     })
   })
 
-  describe('createDeployment', () => {
-    it('should call webhook with deployment payload', async () => {
-      ;(global.fetch as any).mockResolvedValue({
-        ok: true,
-        status: 200,
-      })
+  describe('Deployment engine routing', () => {
+    it('createDeployment hits the deployment engine URL with ?operation=createDeployment', async () => {
+      ;(global.fetch as any).mockResolvedValue({ ok: true, status: 200 })
 
       const payload: any = {
         deploymentId: 1,
@@ -153,126 +154,73 @@ describe('Workflow Engine Service', () => {
         domainNames: ['odoo.example.com'],
         label: 'My Odoo Instance',
       }
-
       await workflowEngineService.createDeployment(payload)
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/webhook/create-deployment'),
+        `${DEPLOYMENT_URL}?operation=createDeployment`,
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify(payload),
-        })
-      )
-    })
-  })
-
-  describe('performDeploymentAction', () => {
-    it('should call webhook with action payload', async () => {
-      ;(global.fetch as any).mockResolvedValue({
-        ok: true,
-        status: 200,
-      })
-
-      const payload: any = {
-        deploymentId: 1,
-        action: 'stop',
-      }
-
-      await workflowEngineService.performDeploymentAction(payload)
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/webhook/deployment-action'),
-        expect.objectContaining({
-          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${DEPLOYMENT_TOKEN}`,
+          }),
           body: JSON.stringify(payload),
         })
       )
     })
 
-    it('should handle start action', async () => {
-      ;(global.fetch as any).mockResolvedValue({
-        ok: true,
-        status: 200,
-      })
+    it('performDeploymentAction hits the deployment engine', async () => {
+      ;(global.fetch as any).mockResolvedValue({ ok: true, status: 200 })
 
-      const payload: any = {
-        deploymentId: 1,
-        action: 'start',
-      }
-
-      await workflowEngineService.performDeploymentAction(payload)
-
-      expect(global.fetch).toHaveBeenCalledTimes(1)
-    })
-
-    it('should handle restart action', async () => {
-      ;(global.fetch as any).mockResolvedValue({
-        ok: true,
-        status: 200,
-      })
-
-      const payload: any = {
-        deploymentId: 1,
-        action: 'restart',
-      }
-
-      await workflowEngineService.performDeploymentAction(payload)
-
-      expect(global.fetch).toHaveBeenCalledTimes(1)
-    })
-  })
-
-  describe('terminateDeployment', () => {
-    it('should call terminate webhook', async () => {
-      ;(global.fetch as any).mockResolvedValue({
-        ok: true,
-        status: 200,
-      })
-
-      const payload: any = {
-        deploymentId: 1,
-      }
-
-      await workflowEngineService.terminateDeployment(payload)
+      await workflowEngineService.performDeploymentAction({ deploymentId: 1, action: 'stop' })
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/webhook/terminate-deployment'),
+        `${DEPLOYMENT_URL}?operation=deploymentAction`,
         expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(payload),
+          headers: expect.objectContaining({ Authorization: `Bearer ${DEPLOYMENT_TOKEN}` }),
+        })
+      )
+    })
+
+    it('terminateDeployment hits the deployment engine', async () => {
+      ;(global.fetch as any).mockResolvedValue({ ok: true, status: 200 })
+
+      await workflowEngineService.terminateDeployment({ deploymentId: 1 })
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        `${DEPLOYMENT_URL}?operation=terminateDeployment`,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${DEPLOYMENT_TOKEN}` }),
         })
       )
     })
   })
 
   describe('WorkflowEngineError', () => {
-    it('should create error with status code', () => {
+    it('exposes statusCode and originalError', () => {
       const error = new workflowEngineService.WorkflowEngineError(500, 'Internal server error')
-
       expect(error).toBeInstanceOf(Error)
       expect(error.statusCode).toBe(500)
       expect(error.originalError).toBe('Internal server error')
       expect(error.message).toContain('500')
     })
 
-    it('should create error without status code', () => {
+    it('can be constructed without a status code', () => {
       const error = new workflowEngineService.WorkflowEngineError(undefined, new Error('Network failed'))
-
       expect(error.statusCode).toBeUndefined()
       expect(error.originalError).toBeInstanceOf(Error)
     })
   })
 
   describe('Error handling', () => {
-    it('should normalize network errors to WorkflowEngineError', async () => {
+    it('normalizes network errors to WorkflowEngineError', async () => {
       ;(global.fetch as any).mockRejectedValue(new TypeError('fetch failed'))
 
-      await expect(workflowEngineService.callWorkflowEngineWebhook('/webhook/test', {})).rejects.toThrow(
-        workflowEngineService.WorkflowEngineError
-      )
+      await expect(
+        workflowEngineService.callWorkflowEngineWebhook('testOperation', {})
+      ).rejects.toThrow(workflowEngineService.WorkflowEngineError)
     })
 
-    it('should preserve error details in WorkflowEngineError', async () => {
+    it('preserves status code on 4xx', async () => {
       ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 422,
@@ -280,7 +228,7 @@ describe('Workflow Engine Service', () => {
       })
 
       try {
-        await workflowEngineService.callWorkflowEngineWebhook('/webhook/test', {})
+        await workflowEngineService.callWorkflowEngineWebhook('testOperation', {})
       } catch (error) {
         expect(error).toBeInstanceOf(workflowEngineService.WorkflowEngineError)
         expect((error as workflowEngineService.WorkflowEngineError).statusCode).toBe(422)

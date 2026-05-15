@@ -3,7 +3,11 @@
     <AppSidebar />
     <AppHeader />
     <main class="ml-0 md:ml-64 pt-16 p-8 min-h-screen bg-surface">
-      <RouterView />
+      <RouterView v-slot="{ Component, route }">
+        <transition name="route" mode="out-in" appear>
+          <component :is="Component" :key="route.fullPath" />
+        </transition>
+      </RouterView>
     </main>
   </div>
 </template>

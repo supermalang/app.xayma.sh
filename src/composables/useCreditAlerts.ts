@@ -24,7 +24,7 @@ export function useCreditAlerts(partnerId: string, userId: string) {
    */
   async function sendAlert(type: 'LOW_BALANCE' | 'CRITICAL_BALANCE') {
     try {
-      await callWorkflowEngineWebhook('/webhook/send-notification', {
+      await callWorkflowEngineWebhook('sendNotification', {
         userId,
         type,
         title:

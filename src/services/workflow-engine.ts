@@ -1,20 +1,36 @@
 /**
- * Workflow engine webhook wrappers
- * ALL async operations (deployments, payments, notifications) go through the workflow engine
- * Never call workflow engine URLs directly from components — always use these wrappers
+ * Engine webhook wrappers
+ * ALL async operations (deployments, payments, notifications, containers) go through one of
+ * the engines configured in Admin → Settings. Never call engine URLs directly from components.
+ *
+ * Three engines are supported, each backed by its own admin-saved URL + API key pair:
+ *   - workflow   → WORKFLOW_ENGINE_URL   / WORKFLOW_ENGINE_API_KEY
+ *   - deployment → DEPLOYMENT_ENGINE_URL / DEPLOYMENT_ENGINE_API_KEY
+ *   - container  → K8S_CLUSTER_ENDPOINT  / K8S_MANAGEMENT_SECRET
+ *
+ * Each call appends `?operation=<name>` and authenticates via Bearer token.
  *
  * Features:
- * - Typed payloads for each webhook
+ * - Typed payloads for each operation
  * - Automatic retry on 5xx errors (up to 3 attempts)
  * - Normalized error handling
  */
 
-const baseUrl = import.meta.env.VITE_WORKFLOW_ENGINE_BASE_URL
+import { getSetting } from './settings'
+
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 1000
 
 interface WebhookPayload {
   [key: string]: unknown
+}
+
+export type Engine = 'workflow' | 'deployment' | 'container'
+
+const ENGINE_CONFIG: Record<Engine, { urlKey: string; tokenKey: string; label: string }> = {
+  workflow:   { urlKey: 'WORKFLOW_ENGINE_URL',   tokenKey: 'WORKFLOW_ENGINE_API_KEY',   label: 'Workflow' },
+  deployment: { urlKey: 'DEPLOYMENT_ENGINE_URL', tokenKey: 'DEPLOYMENT_ENGINE_API_KEY', label: 'Deployment' },
+  container:  { urlKey: 'K8S_CLUSTER_ENDPOINT',  tokenKey: 'K8S_MANAGEMENT_SECRET',     label: 'Container' },
 }
 
 export class WorkflowEngineError extends Error {
@@ -26,21 +42,48 @@ export class WorkflowEngineError extends Error {
   }
 }
 
+async function getEngineConfig(engine: Engine): Promise<{ url: string; token: string }> {
+  const cfg = ENGINE_CONFIG[engine]
+  const [rawUrl, rawToken] = await Promise.all([
+    getSetting(cfg.urlKey),
+    getSetting(cfg.tokenKey),
+  ])
+  const url = typeof rawUrl === 'string' ? rawUrl.trim() : ''
+  const token = typeof rawToken === 'string' ? rawToken.trim() : ''
+  if (!url) {
+    throw new WorkflowEngineError(undefined, `${cfg.label} engine URL (${cfg.urlKey}) not configured`)
+  }
+  if (!token) {
+    throw new WorkflowEngineError(undefined, `${cfg.label} engine token (${cfg.tokenKey}) not configured`)
+  }
+  return { url, token }
+}
+
+function buildOperationUrl(base: string, operation: string): string {
+  const sep = base.includes('?') ? '&' : '?'
+  return `${base}${sep}operation=${encodeURIComponent(operation)}`
+}
+
 /**
- * Internal implementation of webhook call with optional JSON response parsing
- * Handles retry logic for 5xx errors, throws on 4xx errors
+ * Internal engine call with optional JSON response parsing.
+ * Retries on 5xx, throws on 4xx.
  */
-async function callWorkflowEngineWebhookInternal<T = void>(
-  path: string,
+async function callEngineInternal<T = void>(
+  engine: Engine,
+  operation: string,
   payload: WebhookPayload,
   parseResponse = false,
   retryCount = 0
 ): Promise<T> {
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
+    const { url, token } = await getEngineConfig(engine)
+    const target = buildOperationUrl(url, operation)
+
+    const response = await fetch(target, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     })
@@ -53,7 +96,7 @@ async function callWorkflowEngineWebhookInternal<T = void>(
     // 4xx client errors — do not retry
     if (response.status >= 400 && response.status < 500) {
       const errorText = await response.text()
-      console.error(`workflow engine client error (${response.status}):`, errorText)
+      console.error(`${engine} engine client error (${response.status}):`, errorText)
       throw new WorkflowEngineError(response.status, errorText)
     }
 
@@ -61,14 +104,14 @@ async function callWorkflowEngineWebhookInternal<T = void>(
     if (response.status >= 500) {
       if (retryCount < MAX_RETRIES) {
         console.warn(
-          `workflow engine server error (${response.status}), retrying (${retryCount + 1}/${MAX_RETRIES})...`
+          `${engine} engine server error (${response.status}), retrying (${retryCount + 1}/${MAX_RETRIES})...`
         )
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
-        return callWorkflowEngineWebhookInternal<T>(path, payload, parseResponse, retryCount + 1)
+        return callEngineInternal<T>(engine, operation, payload, parseResponse, retryCount + 1)
       }
 
       const errorText = await response.text()
-      console.error(`workflow engine server error (${response.status}) after ${MAX_RETRIES} retries:`, errorText)
+      console.error(`${engine} engine server error (${response.status}) after ${MAX_RETRIES} retries:`, errorText)
       throw new WorkflowEngineError(response.status, errorText)
     }
 
@@ -82,32 +125,43 @@ async function callWorkflowEngineWebhookInternal<T = void>(
     }
 
     // Network errors, JSON errors, etc.
-    console.error('workflow engine webhook error:', error)
+    console.error(`${engine} engine webhook error:`, error)
     throw new WorkflowEngineError(undefined, error)
   }
 }
 
 /**
- * Fire-and-forget webhook call with retry logic
- * Retries automatically on 5xx errors (server errors)
- * Does NOT retry on 4xx errors (client errors)
+ * Fire-and-forget webhook call against the workflow engine.
+ * Retries automatically on 5xx errors. Does NOT retry on 4xx errors.
  */
 export async function callWorkflowEngineWebhook(
-  path: string,
+  operation: string,
   payload: WebhookPayload
 ): Promise<void> {
-  return callWorkflowEngineWebhookInternal<void>(path, payload, false)
+  return callEngineInternal<void>('workflow', operation, payload, false)
 }
 
-/**
- * Webhook call that returns JSON response
- * Same retry logic as callWorkflowEngineWebhook, but parses and returns JSON on success
- */
 async function callWorkflowEngineWebhookWithResponse<T>(
-  path: string,
+  operation: string,
   payload: WebhookPayload
 ): Promise<T> {
-  return callWorkflowEngineWebhookInternal<T>(path, payload, true)
+  return callEngineInternal<T>('workflow', operation, payload, true)
+}
+
+/** Fire-and-forget webhook call against the deployment engine. */
+export async function callDeploymentEngineWebhook(
+  operation: string,
+  payload: WebhookPayload
+): Promise<void> {
+  return callEngineInternal<void>('deployment', operation, payload, false)
+}
+
+/** Fire-and-forget webhook call against the container engine. */
+export async function callContainerEngineWebhook(
+  operation: string,
+  payload: WebhookPayload
+): Promise<void> {
+  return callEngineInternal<void>('container', operation, payload, false)
 }
 
 /**
@@ -139,28 +193,28 @@ interface TerminateDeploymentPayload extends WebhookPayload {
  * Payload sent to workflow engine webhook for deployment engine integration
  */
 export async function createDeployment(payload: CreateDeploymentPayload): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/create-deployment', payload)
+  await callDeploymentEngineWebhook('createDeployment', payload)
 }
 
 /**
  * Perform an action on a deployment (stop, start, restart)
  */
 export async function performDeploymentAction(payload: DeploymentActionPayload): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/deployment-action', payload)
+  await callDeploymentEngineWebhook('deploymentAction', payload)
 }
 
 /**
  * Terminate a deployment completely
  */
 export async function terminateDeployment(payload: TerminateDeploymentPayload): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/terminate-deployment', payload)
+  await callDeploymentEngineWebhook('terminateDeployment', payload)
 }
 
 /**
  * Legacy deployment webhook (backward compatibility)
  */
 export async function deployOdoo(deploymentId: string, config: Record<string, unknown>): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/deploy-odoo', {
+  await callDeploymentEngineWebhook('deployOdoo', {
     deploymentId,
     ...config,
   })
@@ -170,7 +224,7 @@ export async function deployOdoo(deploymentId: string, config: Record<string, un
  * Credit webhooks
  */
 export async function processTopup(partnerId: string, bundleId: string): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/process-topup', {
+  await callWorkflowEngineWebhook('processTopup', {
     partnerId,
     bundleId,
   })
@@ -188,20 +242,50 @@ interface InitiateCheckoutResponse {
   reference: string
 }
 
+interface InitiateCheckoutEnvelope {
+  status: string
+  platform: string
+  operation: string
+  success: boolean
+  results: {
+    SUCCESS: boolean
+    PAYMENT_URL: string
+    TRANSACTION_ID: number | string
+    REFERENCE: string
+    TOKEN?: string
+    CREDITS?: number
+    AMOUNT?: number
+    LABEL?: string
+  }
+}
+
 /**
  * Initiate payment gateway checkout
  * Returns payment URL and transaction ID
  * Includes retry logic for transient 5xx errors
+ *
+ * The workflow engine returns a standard envelope ({ status, platform, operation, results, success }).
+ * We unwrap it here so callers consume a clean { paymentUrl, transactionId, reference }.
  */
 export async function initiateCheckout(payload: InitiateCheckoutPayload): Promise<InitiateCheckoutResponse> {
-  return callWorkflowEngineWebhookWithResponse<InitiateCheckoutResponse>(
-    '/webhook/initiate-checkout',
+  const envelope = await callWorkflowEngineWebhookWithResponse<InitiateCheckoutEnvelope>(
+    'initiateCheckout',
     payload
   )
+
+  if (!envelope.success || !envelope.results?.SUCCESS || !envelope.results.PAYMENT_URL) {
+    throw new WorkflowEngineError(undefined, envelope)
+  }
+
+  return {
+    paymentUrl: envelope.results.PAYMENT_URL,
+    transactionId: String(envelope.results.TRANSACTION_ID),
+    reference: envelope.results.REFERENCE,
+  }
 }
 
 export async function handlePaymentCallback(reference: string, status: string): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/payment-callback', {
+  await callWorkflowEngineWebhook('paymentCallback', {
     reference,
     status,
   })
@@ -216,7 +300,7 @@ interface RedeemVoucherPayload extends WebhookPayload {
 }
 
 export async function redeemVoucher(payload: RedeemVoucherPayload): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/redeem-voucher', payload)
+  await callWorkflowEngineWebhook('redeemVoucher', payload)
 }
 
 /**
@@ -326,7 +410,7 @@ export async function sendNotification(
   title: string,
   message: string
 ): Promise<void> {
-  await callWorkflowEngineWebhook('/webhook/send-notification', {
+  await callWorkflowEngineWebhook('sendNotification', {
     userId,
     type,
     title,

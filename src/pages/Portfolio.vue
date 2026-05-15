@@ -59,7 +59,7 @@
     <Card role="region" aria-label="Customer portfolio">
       <template #header>
         <div class="p-4 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-on-surface" id="portfolio-table-title">
+          <h3 class="text-card-title" id="portfolio-table-title">
             {{ $t('portfolio.customers') }}
           </h3>
           <span class="text-xs font-semibold px-2 py-1 bg-primary-container text-primary rounded-full">

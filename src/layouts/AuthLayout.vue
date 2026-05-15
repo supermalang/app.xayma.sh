@@ -26,7 +26,11 @@
 
     <!-- Main content -->
     <main class="flex-grow flex items-center justify-center px-6 pb-24 relative z-10">
-      <RouterView />
+      <RouterView v-slot="{ Component, route }">
+        <transition name="route" mode="out-in" appear>
+          <component :is="Component" :key="route.fullPath" />
+        </transition>
+      </RouterView>
     </main>
 
     <!-- Footer -->

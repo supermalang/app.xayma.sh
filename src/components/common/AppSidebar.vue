@@ -87,7 +87,7 @@ const allNavItems: NavItem[] = [
   { path: '/portfolio', label: t('nav.portfolio'), icon: 'briefcase', roles: ['SALES'] },
   { path: '/commissions', label: t('nav.commissions'), icon: 'trending_up', roles: ['SALES'] },
   { path: '/services', label: t('nav.services'), icon: 'settings_suggest', roles: ['ADMIN'] },
-  { path: '/control-nodes', label: t('nav.control_nodes'), icon: 'dns', roles: ['ADMIN'] },
+  // { path: '/control-nodes', label: t('nav.control_nodes'), icon: 'dns', roles: ['ADMIN'] },
   { path: '/audit', label: t('nav.audit'), icon: 'history', roles: ['ADMIN'] },
   { path: '/settings', label: t('nav.settings'), icon: 'settings', roles: ['ADMIN'] },
 ]

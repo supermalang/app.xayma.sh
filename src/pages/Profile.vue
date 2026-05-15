@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-2xl mx-auto space-y-6">
-    <h1 class="text-3xl font-bold text-on-surface">{{ $t('profile.title') }}</h1>
+    <h1 class="text-page-title">{{ $t('profile.title') }}</h1>
 
     <div v-if="user" class="bg-surface-container-low p-6 rounded-lg">
       <Form @submit="onSubmit" :validation-schema="validationSchema" :initial-values="initialValues">

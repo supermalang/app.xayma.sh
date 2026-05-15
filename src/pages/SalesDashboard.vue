@@ -65,7 +65,7 @@
     <Card>
       <template #header>
         <div class="p-4 flex items-center justify-between">
-          <h3 class="text-base font-semibold text-on-surface flex items-center gap-2">
+          <h3 class="text-card-title flex items-center gap-2">
             <i class="pi pi-alert-circle text-error" />
             {{ $t('dashboard.at_risk_customers') }}
           </h3>

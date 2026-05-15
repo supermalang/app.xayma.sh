@@ -54,7 +54,7 @@
       <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div>
           <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-3xl font-extrabold tracking-tighter text-on-surface">
+            <h1 class="text-page-title">
               {{ deployment.label }}
             </h1>
             <DeploymentStatusBadge :status="deployment.status ?? ''" />
@@ -117,7 +117,7 @@
         <div class="lg:col-span-4 space-y-8">
           <!-- Specs -->
           <section class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md">
-            <h2 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-6">
+            <h2 class="text-eyebrow mb-6">
               {{ $t('deployments.detail.specs.title') }}
             </h2>
             <div class="space-y-6">
@@ -195,7 +195,7 @@
           <!-- Uptime -->
           <section class="bg-surface-container-lowest border border-outline-variant/40 p-6 rounded-md">
             <div class="flex items-center justify-between mb-6">
-              <h2 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+              <h2 class="text-eyebrow">
                 {{ $t('deployments.detail.uptime.title') }}
               </h2>
               <span class="font-mono text-sm font-bold text-tertiary-container">99.9%</span>
@@ -251,9 +251,9 @@
                   :class="{ 'animate-pulse': index === consoleLines.length - 1 }"
                 >
                   <span :class="levelClass(line.level)">[{{ line.level }}]</span>
-                  <span class="ml-1">{{ line.text }}</span>
+                  <span class="ms-1">{{ line.text }}</span>
                 </p>
-                <span class="inline-block w-2 h-4 bg-slate-500 ml-1 align-middle" />
+                <span class="inline-block w-2 h-4 bg-slate-500 ms-1 align-middle" />
               </div>
             </div>
             <div class="p-4 bg-slate-950 border-t border-slate-800 text-[10px] font-mono text-slate-500 flex justify-between uppercase">
@@ -271,7 +271,7 @@
             <i class="pi pi-database text-primary text-3xl" />
             <i class="pi pi-arrow-right text-outline-variant group-hover:text-primary transition-colors" />
           </div>
-          <h3 class="font-bold text-on-surface mb-1">
+          <h3 class="text-card-title mb-1">
             {{ $t('deployments.detail.infra.db.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">
@@ -288,7 +288,7 @@
             <i class="pi pi-th-large text-primary text-3xl" />
             <i class="pi pi-arrow-right text-outline-variant group-hover:text-primary transition-colors" />
           </div>
-          <h3 class="font-bold text-on-surface mb-1">
+          <h3 class="text-card-title mb-1">
             {{ $t('deployments.detail.infra.modules.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">
@@ -301,7 +301,7 @@
             <i class="pi pi-shield text-primary text-3xl" />
             <i class="pi pi-arrow-right text-outline-variant group-hover:text-primary transition-colors" />
           </div>
-          <h3 class="font-bold text-on-surface mb-1">
+          <h3 class="text-card-title mb-1">
             {{ $t('deployments.detail.infra.firewall.title') }}
           </h3>
           <p class="text-xs text-on-surface-variant leading-relaxed">
