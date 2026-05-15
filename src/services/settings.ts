@@ -103,7 +103,11 @@ export async function getPaymentGateways(): Promise<PaymentGateway[]> {
   if (!raw) return []
   try {
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as PaymentGateway[]) : []
+    if (!Array.isArray(parsed)) return []
+    return (parsed as PaymentGateway[]).map((g) => ({
+      ...g,
+      id: g.id ?? crypto.randomUUID(),
+    }))
   } catch (err) {
     console.error('Failed to parse PAYMENT_GATEWAYS:', err)
     return []
@@ -125,7 +129,11 @@ export async function getCreditBundles(): Promise<CreditBundle[]> {
   if (!raw) return []
   try {
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as CreditBundle[]) : []
+    if (!Array.isArray(parsed)) return []
+    return (parsed as CreditBundle[]).map((b) => ({
+      ...b,
+      id: b.id ?? crypto.randomUUID(),
+    }))
   } catch (err) {
     console.error('Failed to parse CREDIT_BUNDLES:', err)
     return []
@@ -143,7 +151,11 @@ export async function getBundleLineItems(): Promise<BundleLineItem[]> {
   if (!raw) return []
   try {
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as BundleLineItem[]) : []
+    if (!Array.isArray(parsed)) return []
+    return (parsed as BundleLineItem[]).map((i) => ({
+      ...i,
+      id: i.id ?? crypto.randomUUID(),
+    }))
   } catch (err) {
     console.error('Failed to parse BUNDLE_LINE_ITEMS:', err)
     return []
