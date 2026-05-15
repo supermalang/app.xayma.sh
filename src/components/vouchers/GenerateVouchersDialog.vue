@@ -228,7 +228,7 @@ async function handleGenerate() {
     error.value = null
 
     // Call workflow engine webhook to generate vouchers
-    await callWorkflowEngineWebhook('/webhook/generate-vouchers', {
+    await callWorkflowEngineWebhook('generateVouchers', {
       creditsAmount: form.value.creditsAmount,
       quantity: form.value.quantity,
       expiryDate: form.value.expiryDate.toISOString(),
