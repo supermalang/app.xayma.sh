@@ -320,7 +320,7 @@ export async function testEngineConnection(
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TEST_CONNECTION_TIMEOUT_MS)
   try {
-    const response = await fetch(u, {
+    const response = await fetch(buildOperationUrl(u, 'test'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
