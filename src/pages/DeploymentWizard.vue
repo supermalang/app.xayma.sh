@@ -297,21 +297,46 @@
                 class="flex-1 rounded-e-none"
                 :placeholder="$t('deployments.wizard.placeholder_prefixed_domain')"
                 :invalid="!!prefixedDomainError"
-                @input="prefixedDomainTouched = true"
+                aria-describedby="prefixed-domain-status"
+                @input="onPrefixedDomainInput"
                 @blur="handlePrefixedDomainBlur"
               />
               <span class="inline-flex items-center px-4 bg-surface-container-high rounded-e text-sm font-medium text-on-surface-variant">
                 .xayma.sh
               </span>
             </div>
-            <p v-if="isResolvingPrefixedDomain" class="text-[10px] text-on-surface-variant italic flex items-center gap-1">
-              <i class="pi pi-spin pi-spinner text-[10px]" />
+            <p
+              v-if="isResolvingPrefixedDomain"
+              id="prefixed-domain-status"
+              aria-live="polite"
+              class="text-[10px] text-on-surface-variant italic flex items-center gap-1.5"
+            >
+              <i class="pi pi-spin pi-spinner text-[10px]" aria-hidden="true" />
               {{ $t('deployments.wizard.field_prefixed_domain_checking') }}
             </p>
-            <p v-else-if="prefixedDomainError" class="text-[10px] text-error italic">
+            <p
+              v-else-if="prefixedDomainError"
+              id="prefixed-domain-status"
+              role="alert"
+              class="text-[10px] text-error font-medium flex items-center gap-1.5"
+            >
+              <i class="pi pi-exclamation-circle text-[10px]" aria-hidden="true" />
               {{ prefixedDomainError }}
             </p>
-            <p v-else class="text-[10px] text-on-surface-variant italic">
+            <p
+              v-else-if="prefixedDomainAvailable"
+              id="prefixed-domain-status"
+              aria-live="polite"
+              class="text-[10px] text-tertiary font-medium flex items-center gap-1.5"
+            >
+              <i class="pi pi-check-circle text-[10px]" aria-hidden="true" />
+              {{ $t('deployments.wizard.field_prefixed_domain_available') }}
+            </p>
+            <p
+              v-else
+              id="prefixed-domain-status"
+              class="text-[10px] text-on-surface-variant italic"
+            >
               {{ $t('deployments.wizard.field_prefixed_domain_hint') }}
             </p>
           </div>
@@ -506,6 +531,7 @@ const domainValidationError = ref<string | null>(null)
 const selectedPlan = ref<PlanInfo | null>(null)
 const prefixedDomainTouched = ref(false)
 const prefixedDomainError = ref<string | null>(null)
+const prefixedDomainAvailable = ref(false)
 const isResolvingPrefixedDomain = ref(false)
 
 const form = ref({
@@ -600,6 +626,11 @@ function slugify(value: string): string {
 
 const SUBDOMAIN_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 
+function resetPrefixedDomainStatus() {
+  prefixedDomainError.value = null
+  prefixedDomainAvailable.value = false
+}
+
 async function handleNameBlur() {
   const base = slugify(form.value.label)
   if (!base) return
@@ -608,7 +639,7 @@ async function handleNameBlur() {
   if (prefixedDomainTouched.value && currentPrefix) return
 
   isResolvingPrefixedDomain.value = true
-  prefixedDomainError.value = null
+  resetPrefixedDomainStatus()
   try {
     const unique = await findUniqueDeploymentSlug(base)
     form.value.prefixedDomain = unique
@@ -620,24 +651,34 @@ async function handleNameBlur() {
   }
 }
 
+function onPrefixedDomainInput() {
+  prefixedDomainTouched.value = true
+  resetPrefixedDomainStatus()
+}
+
 async function handlePrefixedDomainBlur() {
   const value = form.value.prefixedDomain.trim()
   if (!value) {
-    prefixedDomainError.value = null
+    resetPrefixedDomainStatus()
     prefixedDomainTouched.value = false
     return
   }
   if (!SUBDOMAIN_REGEX.test(value)) {
     prefixedDomainError.value = t('deployments.wizard.field_prefixed_domain_invalid')
+    prefixedDomainAvailable.value = false
     return
   }
 
   isResolvingPrefixedDomain.value = true
   try {
     const unique = await isDeploymentSlugUnique(value)
-    prefixedDomainError.value = unique
-      ? null
-      : t('deployments.errors.slug_taken')
+    if (unique) {
+      prefixedDomainError.value = null
+      prefixedDomainAvailable.value = true
+    } else {
+      prefixedDomainError.value = t('deployments.errors.slug_taken')
+      prefixedDomainAvailable.value = false
+    }
   } catch (error) {
     console.error('Failed to check prefixed domain uniqueness:', error)
   } finally {
