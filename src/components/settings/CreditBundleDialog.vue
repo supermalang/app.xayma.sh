@@ -3,7 +3,8 @@
     :visible="visible"
     modal
     :header="bundle ? t('settings.edit_bundle') : t('settings.add_bundle')"
-    :style="{ width: '32rem' }"
+    :style="{ width: '90vw', maxWidth: '32rem' }"
+    :breakpoints="{ '640px': '95vw' }"
     :draggable="false"
     @update:visible="(v: boolean) => emit('update:visible', v)"
   >

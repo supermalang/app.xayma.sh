@@ -175,7 +175,7 @@
           v-for="(plan, idx) in plans"
           :key="plan.slug"
           type="button"
-          class="w-full flex items-center justify-between p-6 rounded-lg cursor-pointer text-start transition-colors border-s-4"
+          class="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 rounded-lg cursor-pointer text-start transition-colors border-s-4"
           :class="
             form.planSlug === plan.slug
               ? 'bg-surface-container-lowest border-primary'
@@ -183,9 +183,9 @@
           "
           @click="selectPlan(plan)"
         >
-          <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4 sm:gap-6 min-w-0">
             <div
-              class="w-12 h-12 flex items-center justify-center rounded-full transition-colors"
+              class="w-12 h-12 shrink-0 flex items-center justify-center rounded-full transition-colors"
               :class="
                 form.planSlug === plan.slug
                   ? 'bg-primary text-on-primary'
@@ -194,14 +194,14 @@
             >
               <i :class="planIcon(idx)" />
             </div>
-            <div>
+            <div class="min-w-0">
               <h4 class="text-card-title text-lg">{{ plan.label }}</h4>
               <p class="text-xs text-on-surface-variant uppercase tracking-wider">
                 {{ plan.description }}
               </p>
             </div>
           </div>
-          <div class="text-end">
+          <div class="text-start sm:text-end shrink-0">
             <div class="font-mono font-medium text-xl text-primary">
               {{ plan.monthlyCreditConsumption.toLocaleString() }}
               <span class="text-xs text-on-surface-variant font-normal ms-1">/{{ $t('services.plans.credits_per_month') }}</span>
@@ -396,15 +396,15 @@
     </Message>
 
     <!-- Footer actions -->
-    <div class="pt-12 border-t border-outline-variant/40 flex items-center justify-between flex-wrap gap-4">
+    <div class="pt-12 border-t border-outline-variant/40 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
       <Button
         :label="$t('deployments.wizard.save_as_template')"
         text
         disabled
         :title="$t('deployments.wizard.save_as_template_coming_soon')"
-        class="font-bold uppercase tracking-widest text-sm"
+        class="font-bold uppercase tracking-widest text-sm self-start sm:self-auto"
       />
-      <div class="flex gap-4">
+      <div class="flex flex-wrap gap-3 sm:gap-4 justify-end">
         <Button
           :label="$t('deployments.wizard.cancel')"
           text
@@ -424,7 +424,7 @@
     </div>
 
     <!-- Technical footer -->
-    <div class="mt-8 p-8 bg-surface-container-low rounded-lg grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="mt-8 p-6 sm:p-8 bg-surface-container-low rounded-lg grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
       <div class="flex items-start gap-4">
         <div class="w-9 h-9 shrink-0 rounded-full flex items-center justify-center bg-primary/10 text-primary">
           <i class="pi pi-globe text-sm" />

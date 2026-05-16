@@ -3,7 +3,8 @@
     :visible="visible"
     modal
     :header="lineItem ? t('settings.edit_line_item') : t('settings.add_line_item')"
-    :style="{ width: '32rem' }"
+    :style="{ width: '90vw', maxWidth: '32rem' }"
+    :breakpoints="{ '640px': '95vw' }"
     :draggable="false"
     @update:visible="(v: boolean) => emit('update:visible', v)"
   >

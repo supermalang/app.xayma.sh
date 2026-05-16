@@ -8,21 +8,21 @@
 
   <div class="grid grid-cols-1 gap-6 page-enter">
     <!-- Action Bar -->
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <!-- Filters -->
-      <div class="flex items-center gap-4 flex-1">
+      <div class="flex items-center gap-4 flex-1 min-w-0">
         <Dropdown
           v-model="selectedStatus"
           :options="statusOptions"
           option-label="label"
           option-value="value"
-          class="w-48"
+          class="w-full sm:w-48"
           @change="applyFilters"
         />
       </div>
 
       <!-- Actions -->
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button
           v-if="unreadCount > 0"
           text

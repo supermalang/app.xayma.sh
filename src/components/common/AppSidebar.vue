@@ -1,5 +1,19 @@
 <template>
-  <aside class="hidden md:block w-64 h-[calc(100vh-64px)] fixed left-0 top-16 bg-slate-50 border-r border-outline-variant/20 flex flex-col z-40">
+  <!-- Backdrop (mobile only) -->
+  <Transition name="backdrop">
+    <div
+      v-if="open"
+      class="fixed inset-0 z-40 bg-scrim/40 md:hidden"
+      aria-hidden="true"
+      @click="$emit('close')"
+    />
+  </Transition>
+
+  <aside
+    class="nav-aside fixed left-0 top-16 z-50 w-64 h-[calc(100vh-64px)] bg-slate-50 border-r border-outline-variant/20 flex flex-col transition-transform duration-200 ease-out md:translate-x-0"
+    :class="open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+    :aria-hidden="!open && isMobile ? 'true' : 'false'"
+  >
     <!-- Org Identity -->
     <div class="px-4 py-8 border-b border-outline-variant/10">
       <div class="flex items-center gap-3">
@@ -24,6 +38,7 @@
           'bg-blue-50 text-blue-700 border-r-4 border-blue-700': isActive(item.path),
           'text-slate-600 hover:bg-slate-200/50 hover:text-blue-600': !isActive(item.path)
         }"
+        @click="$emit('close')"
       >
         <span class="material-symbols-outlined text-lg">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
@@ -37,6 +52,7 @@
         v-if="canCreateDeployment"
         to="/deployments/new"
         class="flex items-center justify-center gap-2 w-full bg-primary text-white py-2.5 rounded text-sm font-bold mb-4 hover:bg-primary-container transition-colors"
+        @click="$emit('close')"
       >
         <span class="material-symbols-outlined text-lg">add</span>
         {{ $t('nav.new_deployment') }}
@@ -57,16 +73,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from 'vue-i18n'
+
+defineProps<{ open: boolean }>()
+defineEmits<{ close: [] }>()
 
 const route = useRoute()
 const { t } = useI18n()
 const { isAdmin, isCustomer, isReseller, isSales } = useAuth()
 
 const canCreateDeployment = computed(() => isCustomer.value || isReseller.value)
+
+const isMobile = ref(false)
+const mq = typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)') : null
+const handleMq = (e: MediaQueryListEvent | MediaQueryList) => { isMobile.value = e.matches }
+onMounted(() => {
+  if (mq) {
+    handleMq(mq)
+    mq.addEventListener('change', handleMq)
+  }
+})
+onUnmounted(() => {
+  if (mq) mq.removeEventListener('change', handleMq)
+})
 
 // Mock org name/tier (would come from store in real app)
 const orgName = 'Acme Corp'
@@ -116,5 +148,14 @@ const isActive = (path: string) => {
 a.active .material-symbols-outlined,
 .bg-blue-50 .material-symbols-outlined {
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.backdrop-enter-active,
+.backdrop-leave-active {
+  transition: opacity 200ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.backdrop-enter-from,
+.backdrop-leave-to {
+  opacity: 0;
 }
 </style>

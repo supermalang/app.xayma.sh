@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-start justify-between gap-4 header-section">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between header-section">
       <AppPageHeader
         :title="$t('deployments.title')"
         :description="$t('deployments.subtitle')"
       />
-      <div class="flex items-center gap-3 shrink-0 pt-1">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0 sm:pt-1">
         <Button
           :label="$t('deployments.export_csv')"
           icon="pi pi-download"

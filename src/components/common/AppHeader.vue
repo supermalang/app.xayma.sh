@@ -1,14 +1,24 @@
 <template>
-  <header class="sticky top-0 z-50 h-16 w-full bg-white border-b border-outline-variant/20 shadow-none flex items-center justify-between px-8">
-    <!-- Left: Logo -->
-    <div class="text-xl font-bold tracking-tighter text-primary">Xayma.sh</div>
+  <header class="sticky top-0 z-50 h-16 w-full bg-white border-b border-outline-variant/20 shadow-none flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+    <!-- Left: hamburger (mobile) + logo -->
+    <div class="flex items-center gap-2 min-w-0">
+      <button
+        type="button"
+        class="md:hidden h-10 w-10 inline-flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container-low transition-colors"
+        :aria-label="$t('nav.toggle')"
+        @click="$emit('toggle-nav')"
+      >
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="text-lg sm:text-xl font-bold tracking-tighter text-primary truncate">Xayma.sh</div>
+    </div>
 
     <!-- Right: Controls -->
-    <div class="flex items-center gap-4">
-      <!-- Credit Balance Pill -->
-      <div class="flex items-center bg-surface-container-low px-3 py-1.5 rounded text-sm font-medium text-primary">
+    <div class="flex items-center gap-2 sm:gap-3 lg:gap-4">
+      <!-- Credit Balance Pill (hidden on smallest screens) -->
+      <div class="hidden sm:flex items-center bg-surface-container-low px-3 py-1.5 rounded text-sm font-medium text-primary">
         <span class="material-symbols-outlined mr-2 text-lg">account_balance_wallet</span>
-        <span class="font-mono text-sm">{{ creditDisplay }}</span>
+        <span class="font-mono text-sm whitespace-nowrap">{{ creditDisplay }}</span>
       </div>
 
       <!-- Language Toggle -->
@@ -26,7 +36,7 @@
 
       <!-- User Avatar with initials -->
       <button
-        class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold cursor-pointer"
+        class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold cursor-pointer shrink-0"
         :title="user?.email"
         :aria-label="$t('aria.open_user_menu', { email: user?.email || 'User' })"
         @click="toggleUserMenu"
@@ -47,6 +57,8 @@ import { useAuth } from '@/composables/useAuth'
 import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import NotificationBell from '@/components/notifications/NotificationBell.vue'
+
+defineEmits<{ 'toggle-nav': [] }>()
 
 const { locale, t } = useI18n()
 const router = useRouter()

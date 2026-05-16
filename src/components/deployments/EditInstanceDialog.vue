@@ -3,7 +3,8 @@
     :visible="visible"
     modal
     :header="$t('deployments.detail.edit.title')"
-    :style="{ width: '32rem' }"
+    :style="{ width: '90vw', maxWidth: '32rem' }"
+    :breakpoints="{ '640px': '95vw' }"
     :draggable="false"
     @update:visible="onVisibleChange"
   >

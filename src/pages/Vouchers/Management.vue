@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
       <div>
         <h1 class="text-page-title mb-2">
           {{ $t('vouchers.management_title') }}
@@ -13,7 +13,7 @@
       <Button
         :label="$t('vouchers.generate_vouchers')"
         icon="pi pi-plus"
-        class="p-button-primary"
+        class="p-button-primary self-start sm:self-auto"
         @click="showGenerateDialog = true"
       />
     </div>

@@ -20,6 +20,7 @@ export default {
     docs: 'Documentation',
     logout: 'Déconnexion',
     new_deployment: 'Nouveau déploiement',
+    toggle: 'Basculer la navigation',
   },
 
   // Common

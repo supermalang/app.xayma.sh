@@ -4,8 +4,9 @@
     :header="$t('vouchers.generate_title')"
     :modal="true"
     :closable="!loading"
+    :style="{ width: '90vw', maxWidth: '36rem' }"
+    :breakpoints="{ '640px': '95vw' }"
     @update:visible="$emit('update:visible', $event)"
-    class="max-w-2xl"
   >
     <form @submit.prevent="handleGenerate" class="space-y-6">
       <!-- Credits amount -->

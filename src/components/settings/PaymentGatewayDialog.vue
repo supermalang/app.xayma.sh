@@ -3,7 +3,8 @@
     :visible="visible"
     modal
     :header="gateway ? t('settings.edit_gateway') : t('settings.add_gateway')"
-    :style="{ width: '40rem' }"
+    :style="{ width: '90vw', maxWidth: '40rem' }"
+    :breakpoints="{ '960px': '92vw', '640px': '95vw' }"
     :draggable="false"
     @update:visible="(v: boolean) => emit('update:visible', v)"
   >

@@ -20,6 +20,7 @@ export default {
     docs: 'Documentation',
     logout: 'Logout',
     new_deployment: 'New deployment',
+    toggle: 'Toggle navigation',
   },
 
   // Common
