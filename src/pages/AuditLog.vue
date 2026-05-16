@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 page-enter">
     <h1 class="text-page-title">{{ $t('nav.audit') }}</h1>
 
     <!-- Filters -->

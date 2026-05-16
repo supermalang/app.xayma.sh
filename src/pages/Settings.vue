@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-12">
+  <div class="space-y-12 page-enter">
     <!-- Page header -->
     <div>
       <h1 class="text-page-title mb-2">

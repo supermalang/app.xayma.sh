@@ -1,5 +1,5 @@
 <template>
-  <div class="relative space-y-6">
+  <div class="relative space-y-6 page-enter">
     <RefreshingBadge :visible="isRefreshing" />
     <!-- Page Header -->
     <AppPageHeader
@@ -8,7 +8,7 @@
     />
 
     <!-- Row 1: 3-column summary cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 page-stagger-row">
       <!-- Credit Balance Card -->
       <Card>
         <template #content>

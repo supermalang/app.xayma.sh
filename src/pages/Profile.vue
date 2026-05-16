@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-2xl mx-auto space-y-6">
+  <div class="max-w-2xl mx-auto space-y-6 page-enter">
     <h1 class="text-page-title">{{ $t('profile.title') }}</h1>
 
     <div v-if="user" class="bg-surface-container-low p-6 rounded-lg">

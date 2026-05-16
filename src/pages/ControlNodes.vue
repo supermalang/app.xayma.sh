@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 page-enter">
     <!-- Page header with create button -->
     <div class="flex items-center justify-between">
       <h1 class="text-page-title">{{ $t('control_nodes.title') }}</h1>

@@ -3,9 +3,10 @@
     :title="$t('notifications.page_title')"
     :description="$t('notifications.page_description')"
     icon="pi-bell"
+    class="page-enter"
   />
 
-  <div class="grid grid-cols-1 gap-6">
+  <div class="grid grid-cols-1 gap-6 page-enter">
     <!-- Action Bar -->
     <div class="flex items-center justify-between gap-4">
       <!-- Filters -->

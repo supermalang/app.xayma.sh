@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 page-enter">
     <!-- Header with back button and actions -->
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">

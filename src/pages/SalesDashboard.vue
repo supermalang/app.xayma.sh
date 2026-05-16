@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 page-enter">
     <!-- Header -->
     <AppPageHeader
       :title="$t('dashboard.sales_title')"
@@ -8,7 +8,7 @@
     />
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 page-stagger-row">
       <StatCard
         :label="$t('dashboard.portfolio_size')"
         :value="portfolioStats.portfolioSize"

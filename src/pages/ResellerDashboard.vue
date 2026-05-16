@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 page-enter">
     <!-- Header -->
     <AppPageHeader
       :title="$t('dashboard.reseller_title')"
@@ -24,7 +24,7 @@
     </Card>
 
     <!-- This Month's Spend -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 page-stagger-row">
       <StatCard
         :label="$t('dashboard.this_month_spend')"
         :value="monthlySpend"

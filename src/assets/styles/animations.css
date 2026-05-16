@@ -143,3 +143,36 @@
 .transition-micro {
   transition: var(--transition-micro);
 }
+
+/* Shared page-enter: applied at the root of every routed page so navigation
+   feels consistent. Fade + subtle lift, expo-out, 250ms. */
+.page-enter {
+  animation: fade-slide var(--duration-standard) var(--easing-standard) backwards;
+}
+
+/* Stagger entry for grouped child elements (stat rows, chart grids).
+   Sibling delays via inline `--stagger-delay` keep the cascade ordered. */
+.page-stagger {
+  animation: stat-card-fade var(--duration-standard) var(--easing-standard) backwards;
+  animation-delay: var(--stagger-delay, 0ms);
+}
+
+/* Drop-in stagger for a row/grid of children — no per-child wrapping needed.
+   First five children fan in at 60ms steps; anything beyond inherits the last
+   delay so very long rows don't drag. */
+.page-stagger-row > * {
+  animation: stat-card-fade var(--duration-standard) var(--easing-standard) backwards;
+}
+.page-stagger-row > *:nth-child(1) { animation-delay: 0ms; }
+.page-stagger-row > *:nth-child(2) { animation-delay: 60ms; }
+.page-stagger-row > *:nth-child(3) { animation-delay: 120ms; }
+.page-stagger-row > *:nth-child(4) { animation-delay: 180ms; }
+.page-stagger-row > *:nth-child(n + 5) { animation-delay: 240ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .page-stagger,
+  .page-stagger-row > * {
+    animation: none;
+  }
+}

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative space-y-6">
+  <div class="relative space-y-6 page-enter">
     <RefreshingBadge :visible="isRefreshing" />
     <!-- Header -->
     <AppPageHeader
@@ -32,7 +32,7 @@
       <h3 class="text-eyebrow mb-3">
         {{ t('dashboard.financial_ledger_title') }}
       </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 page-stagger-row">
         <!-- Global Credits Used -->
         <Card class="stat-card">
           <template #content>
