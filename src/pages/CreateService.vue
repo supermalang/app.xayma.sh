@@ -1,12 +1,18 @@
 <template>
   <div class="-mt-8 -mx-8">
-    <!-- Editorial header: left primary border, generous gutter -->
+    <!-- Editorial header -->
     <div class="px-12 pt-12 pb-8 max-w-screen-2xl mx-auto w-full">
-      <div class="border-l-4 border-primary ps-8">
+      <div class="space-y-3">
+        <span
+          class="inline-block text-xs font-semibold uppercase tracking-wider text-primary"
+          aria-hidden="true"
+        >
+          {{ isEdit ? $t('services.edit_page.eyebrow') : $t('services.create_page.eyebrow') }}
+        </span>
         <h1 class="text-page-title">
           {{ isEdit ? $t('services.edit_page.title') : $t('services.create_page.title') }}
         </h1>
-        <p class="text-on-surface-variant max-w-2xl font-medium mt-2">
+        <p class="text-on-surface-variant max-w-2xl font-medium">
           {{ isEdit ? $t('services.edit_page.subtitle') : $t('services.create_page.subtitle') }}
         </p>
       </div>

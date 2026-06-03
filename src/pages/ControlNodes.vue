@@ -37,12 +37,14 @@
             icon="pi pi-pencil"
             class="p-button-rounded p-button-text p-button-sm"
             :title="$t('common.edit')"
+            :aria-label="$t('common.edit')"
             @click="editNode(data)"
           />
           <Button
             icon="pi pi-trash"
             class="p-button-rounded p-button-text p-button-sm p-button-danger"
             :title="$t('common.delete')"
+            :aria-label="$t('common.delete')"
             @click="deleteNode(data.id)"
           />
         </div>

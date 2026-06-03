@@ -24,6 +24,17 @@ export default {
   },
 
   // Common
+  a11y: {
+    skip_to_main: 'Skip to main content',
+    open_menu: 'Open menu',
+    close_menu: 'Close menu',
+    user_menu: 'User menu',
+    notifications: 'Notifications',
+    view_item: 'View',
+    edit_item: 'Edit',
+    delete_item: 'Delete',
+  },
+
   common: {
     save: 'Save',
     cancel: 'Cancel',
@@ -669,10 +680,12 @@ export default {
       actions: 'Actions',
     },
     create_page: {
+      eyebrow: 'New service',
       title: 'Create new service',
       subtitle: 'Define a new core service or third-party integration for the deployment registry. All technical parameters must strictly follow the system schema.',
     },
     edit_page: {
+      eyebrow: 'Edit service',
       title: 'Edit service',
       subtitle: 'Update configuration, plans, versions and lifecycle commands. The slug is permanent and cannot be changed.',
     },
@@ -1007,6 +1020,7 @@ export default {
     page_description: 'Stay updated with all your alerts and messages',
     empty: 'No notifications yet',
     mark_as_read: 'Mark as read',
+    unread: 'Unread',
     mark_all_read: 'Mark all as read',
     view_all: 'View all notifications',
     delete: 'Delete',

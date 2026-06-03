@@ -54,18 +54,21 @@
             icon="pi pi-eye"
             class="p-button-rounded p-button-text p-button-sm"
             :title="$t('common.view')"
+            :aria-label="$t('common.view')"
             @click="goToUserDetail(data.id)"
           />
           <Button
             icon="pi pi-pencil"
             class="p-button-rounded p-button-text p-button-sm"
             :title="$t('common.edit')"
+            :aria-label="$t('common.edit')"
             @click="editUser(data)"
           />
           <Button
             icon="pi pi-trash"
             class="p-button-rounded p-button-text p-button-sm p-button-danger"
             :title="$t('common.delete')"
+            :aria-label="$t('common.delete')"
             @click="deleteUser(data.id)"
           />
         </div>

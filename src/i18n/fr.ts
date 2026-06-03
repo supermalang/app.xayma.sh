@@ -24,6 +24,17 @@ export default {
   },
 
   // Common
+  a11y: {
+    skip_to_main: 'Aller au contenu principal',
+    open_menu: 'Ouvrir le menu',
+    close_menu: 'Fermer le menu',
+    user_menu: 'Menu utilisateur',
+    notifications: 'Notifications',
+    view_item: 'Voir',
+    edit_item: 'Modifier',
+    delete_item: 'Supprimer',
+  },
+
   common: {
     save: 'Enregistrer',
     cancel: 'Annuler',
@@ -670,10 +681,12 @@ export default {
       actions: 'Actions',
     },
     create_page: {
+      eyebrow: 'Nouveau service',
       title: 'Créer un nouveau service',
       subtitle: 'Définissez un nouveau service ou une intégration tierce pour le registre de déploiement. Tous les paramètres techniques doivent suivre strictement le schéma du système.',
     },
     edit_page: {
+      eyebrow: 'Modifier le service',
       title: 'Modifier le service',
       subtitle: 'Mettez à jour la configuration, les forfaits, les versions et les commandes de cycle de vie. Le slug est permanent et ne peut pas être modifié.',
     },
@@ -1008,6 +1021,7 @@ export default {
     page_description: 'Restez informé de toutes vos alertes et messages',
     empty: 'Aucune notification pour le moment',
     mark_as_read: 'Marquer comme lu',
+    unread: 'Non lu',
     mark_all_read: 'Marquer tout comme lu',
     view_all: 'Voir toutes les notifications',
     delete: 'Supprimer',
