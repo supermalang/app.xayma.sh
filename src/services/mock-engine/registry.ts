@@ -10,5 +10,6 @@ import './operations/sendNotification.mock'
 import './operations/initiateCheckout.mock'
 import './operations/handlePaymentCallback.mock'
 import './operations/redeemVoucher.mock'
+import './operations/generateVouchers.mock'
 
 export {}
