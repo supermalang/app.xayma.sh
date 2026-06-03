@@ -6,6 +6,6 @@
  * Add new operations by importing them here.
  */
 
-// (operations will be added in Phase 2)
+import './operations/sendNotification.mock'
 
 export {}
