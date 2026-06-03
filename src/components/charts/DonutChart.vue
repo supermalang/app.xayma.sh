@@ -47,6 +47,7 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
+import { CHART_PALETTE_EXTENDED } from './palette'
 
 use([CanvasRenderer, PieChart, TooltipComponent])
 
@@ -65,7 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
 })
 
-const colors = ['#00288e', '#fd761a', '#003d28', '#ba1a1a', '#1e40af', '#9d4300', '#fbb340']
+const colors = CHART_PALETTE_EXTENDED
 
 const option = computed<EChartsOption>(() => ({
   color: colors,

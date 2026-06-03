@@ -34,6 +34,7 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart as ELineChart } from 'echarts/charts'
 import { TooltipComponent, GridComponent } from 'echarts/components'
+import { CHART_PRIMARY } from './palette'
 
 use([CanvasRenderer, ELineChart, TooltipComponent, GridComponent])
 
@@ -54,7 +55,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   xAxisLabel: 'Time',
   yAxisLabel: 'Value',
-  color: '#00288e',
+  color: CHART_PRIMARY,
   isLoading: false,
 })
 

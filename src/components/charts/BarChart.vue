@@ -34,6 +34,7 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart as EBarChart } from 'echarts/charts'
 import { TooltipComponent, GridComponent, LegendComponent } from 'echarts/components'
+import { CHART_PALETTE } from './palette'
 
 use([CanvasRenderer, EBarChart, TooltipComponent, GridComponent, LegendComponent])
 
@@ -58,7 +59,7 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
 })
 
-const defaultColors = ['#00288e', '#fd761a', '#003d28', '#ba1a1a']
+const defaultColors = CHART_PALETTE
 
 /**
  * Computed: ECharts configuration
