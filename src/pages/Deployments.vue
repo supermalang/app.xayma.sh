@@ -1,25 +1,26 @@
 <template>
-  <div class="space-y-6">
+  <AppPage>
     <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between header-section">
+    <div class="header-section">
       <AppPageHeader
         :title="$t('deployments.title')"
         :description="$t('deployments.subtitle')"
-      />
-      <div class="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0 sm:pt-1">
-        <Button
-          :label="$t('deployments.export_csv')"
-          icon="pi pi-download"
-          text
-          severity="secondary"
-          @click="exportDeployments"
-        />
-        <Button
-          :label="$t('deployments.create')"
-          icon="pi pi-plus"
-          @click="navigateToWizard"
-        />
-      </div>
+      >
+        <template #actions>
+          <Button
+            :label="$t('deployments.export_csv')"
+            icon="pi pi-download"
+            text
+            severity="secondary"
+            @click="exportDeployments"
+          />
+          <Button
+            :label="$t('deployments.create')"
+            icon="pi pi-plus"
+            @click="navigateToWizard"
+          />
+        </template>
+      </AppPageHeader>
     </div>
 
     <!-- Stats row — 3 cards, always visible -->
@@ -188,7 +189,7 @@
         <i class="pi pi-file text-5xl text-outline" />
       </div>
     </div>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -199,6 +200,7 @@ import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Select from 'primevue/select'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import StatCard from '@/components/common/StatCard.vue'

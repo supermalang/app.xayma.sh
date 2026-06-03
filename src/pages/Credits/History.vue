@@ -1,21 +1,18 @@
 <template>
-  <div class="w-full space-y-6">
+  <AppPage>
     <!-- Page header -->
-    <header class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <div class="max-w-2xl">
-        <h1 class="text-page-title mb-2">
-          {{ t('credits.page_title') }}
-        </h1>
-        <p class="text-on-surface-variant">
-          {{ t('credits.page_description') }}
-        </p>
-      </div>
-      <Button
-        icon="pi pi-credit-card"
-        :label="t('credits.top_up_credits')"
-        @click="goToTopUp"
-      />
-    </header>
+    <AppPageHeader
+      :title="t('credits.page_title')"
+      :description="t('credits.page_description')"
+    >
+      <template #actions>
+        <Button
+          icon="pi pi-credit-card"
+          :label="t('credits.top_up_credits')"
+          @click="goToTopUp"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- Summary cards -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -260,7 +257,7 @@
         </Column>
       </DataTable>
     </section>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -278,6 +275,8 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Popover from 'primevue/popover'
 import ProgressSpinner from 'primevue/progressspinner'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import { listTransactions } from '@/services/credits.service'
 import { formatNumber, formatDateTime } from '@/lib/formatters'
 import { downloadCsv } from '@/lib/csv'

@@ -1,14 +1,15 @@
 <template>
-  <div class="space-y-6 page-enter">
+  <AppPage>
     <!-- Page header with create button -->
-    <div class="flex items-center justify-between">
-      <h1 class="text-page-title">{{ $t('control_nodes.title') }}</h1>
-      <Button
-        :label="$t('common.create')"
-        icon="pi pi-plus"
-        @click="showCreateDialog"
-      />
-    </div>
+    <AppPageHeader :title="$t('control_nodes.title')">
+      <template #actions>
+        <Button
+          :label="$t('common.create')"
+          icon="pi pi-plus"
+          @click="showCreateDialog"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- DataTable -->
     <AppDataTable
@@ -113,7 +114,7 @@
         />
       </template>
     </Dialog>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -125,6 +126,8 @@ import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import Tag from 'primevue/tag'
 import AppDataTable from '@/components/common/AppDataTable.vue'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 
 const { t } = useI18n()
 

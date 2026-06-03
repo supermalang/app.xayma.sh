@@ -1,15 +1,15 @@
 <template>
-  <div class="space-y-6 page-enter">
+  <AppPage>
     <!-- Page header -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="text-page-title">{{ $t('users.title') }}</h1>
-      <Button
-        :label="$t('common.create')"
-        icon="pi pi-plus"
-        class="self-start sm:self-auto"
-        @click="showCreateDialog"
-      />
-    </div>
+    <AppPageHeader :title="$t('users.title')">
+      <template #actions>
+        <Button
+          :label="$t('common.create')"
+          icon="pi pi-plus"
+          @click="showCreateDialog"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- Filter by role -->
     <div class="flex gap-4 flex-wrap">
@@ -90,7 +90,7 @@
         @cancel="closeDialog"
       />
     </Dialog>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -102,6 +102,8 @@ import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
 import Tag from 'primevue/tag'
 import AppDataTable from '@/components/common/AppDataTable.vue'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import UserForm from '@/components/users/UserForm.vue'
 import * as userService from '@/services/users.service'
 import * as partnerService from '@/services/partners.service'

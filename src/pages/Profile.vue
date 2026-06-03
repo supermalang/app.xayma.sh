@@ -1,6 +1,6 @@
 <template>
-  <div class="max-w-2xl mx-auto space-y-6 page-enter">
-    <h1 class="text-page-title">{{ $t('profile.title') }}</h1>
+  <AppPage width="narrow">
+    <AppPageHeader :title="$t('profile.title')" />
 
     <div v-if="user" class="bg-surface-container-low p-6 rounded-lg">
       <Form @submit="onSubmit" :validation-schema="validationSchema" :initial-values="initialValues">
@@ -130,7 +130,7 @@
         </div>
       </Form>
     </div>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -143,6 +143,8 @@ import { z } from 'zod'
 import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import * as userService from '@/services/users.service'
 
 const { t, locale } = useI18n()

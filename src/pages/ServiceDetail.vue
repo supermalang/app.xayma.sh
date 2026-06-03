@@ -1,10 +1,10 @@
 <template>
-  <div class="space-y-8">
+  <AppPage>
     <Button
       icon="pi pi-arrow-left"
       text
       :label="$t('common.back')"
-      class="-ms-2"
+      class="-ms-2 self-start"
       @click="router.back()"
     />
 
@@ -346,7 +346,7 @@
     </template>
 
     <ConfirmDialog />
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -363,6 +363,7 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import ConfirmDialog from 'primevue/confirmdialog'
+import AppPage from '@/components/common/AppPage.vue'
 import {
   getService,
   readServicePlans,

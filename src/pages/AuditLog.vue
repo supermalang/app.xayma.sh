@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-6 page-enter">
-    <h1 class="text-page-title">{{ $t('nav.audit') }}</h1>
+  <AppPage>
+    <AppPageHeader :title="$t('nav.audit')" />
 
     <!-- Filters -->
     <div class="flex gap-4 flex-wrap">
@@ -57,7 +57,7 @@
         </div>
       </template>
     </DataTable>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -69,6 +69,8 @@ import Calendar from 'primevue/calendar'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
 

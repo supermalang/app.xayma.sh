@@ -1,24 +1,19 @@
 <template>
-  <div class="space-y-12">
-    <header
-      class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/20 pb-8"
+  <AppPage>
+    <AppPageHeader
+      :title="$t('services.title')"
+      :description="$t('services.subtitle')"
     >
-      <div class="space-y-2">
-        <h1 class="text-page-title leading-none">
-          {{ $t('services.title') }}
-        </h1>
-        <p class="text-on-surface-variant text-sm max-w-xl font-medium leading-relaxed">
-          {{ $t('services.subtitle') }}
-        </p>
-      </div>
-      <Button
-        :label="$t('services.create')"
-        icon="pi pi-plus-circle"
-        size="large"
-        data-test="create-service"
-        @click="router.push('/services/new')"
-      />
-    </header>
+      <template #actions>
+        <Button
+          :label="$t('services.create')"
+          icon="pi pi-plus-circle"
+          size="large"
+          data-test="create-service"
+          @click="router.push('/services/new')"
+        />
+      </template>
+    </AppPageHeader>
 
     <section class="bg-surface-container-lowest overflow-hidden">
       <div
@@ -196,7 +191,7 @@
         </div>
       </div>
     </section>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -207,6 +202,8 @@ import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import { listServices, readServicePlans } from '@/services/services.service'
 
 const PAGE_SIZE = 10

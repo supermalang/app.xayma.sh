@@ -1,12 +1,11 @@
 <template>
-  <AppPageHeader
-    :title="$t('notifications.page_title')"
-    :description="$t('notifications.page_description')"
-    icon="pi-bell"
-    class="page-enter"
-  />
+  <AppPage>
+    <AppPageHeader
+      :title="$t('notifications.page_title')"
+      :description="$t('notifications.page_description')"
+      icon="pi-bell"
+    />
 
-  <div class="grid grid-cols-1 gap-6 page-enter">
     <!-- Action Bar -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <!-- Filters -->
@@ -82,7 +81,7 @@
         @page="onPageChange"
       />
     </div>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -92,6 +91,7 @@ import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import NotificationItem from '@/components/notifications/NotificationItem.vue'
 import { useNotifications } from '@/composables/useNotifications'

@@ -1,14 +1,16 @@
 <template>
-  <div class="space-y-6">
+  <AppPage>
     <!-- Page header with create button -->
-    <div class="header-section flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="text-page-title">{{ $t('partners.title') }}</h1>
-      <Button
-        :label="$t('common.create')"
-        icon="pi pi-plus"
-        class="self-start sm:self-auto"
-        @click="showCreateDialog"
-      />
+    <div class="header-section">
+      <AppPageHeader :title="$t('partners.title')">
+        <template #actions>
+          <Button
+            :label="$t('common.create')"
+            icon="pi pi-plus"
+            @click="showCreateDialog"
+          />
+        </template>
+      </AppPageHeader>
     </div>
 
     <!-- Filters -->
@@ -116,7 +118,7 @@
         </Dialog>
       </div>
     </transition>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -128,6 +130,8 @@ import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
 import AppDataTable from '@/components/common/AppDataTable.vue'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import PartnerForm from '@/components/partners/PartnerForm.vue'
 import PartnerStatusBadge from '@/components/partners/PartnerStatusBadge.vue'
 import PartnerTypeBadge from '@/components/partners/PartnerTypeBadge.vue'

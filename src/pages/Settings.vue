@@ -1,12 +1,10 @@
 <template>
-  <div class="space-y-12 page-enter">
+  <AppPage>
     <!-- Page header -->
-    <div>
-      <h1 class="text-page-title mb-2">
-        {{ t('settings.title') }}
-      </h1>
-      <p class="text-on-surface-variant text-sm max-w-2xl">{{ t('settings.description') }}</p>
-    </div>
+    <AppPageHeader
+      :title="t('settings.title')"
+      :description="t('settings.description')"
+    />
 
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center py-24">
@@ -385,7 +383,7 @@
         />
       </div>
     </template>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -419,6 +417,8 @@ import { xaymaSupabase } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { formatNumber } from '@/lib/formatters'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import LifecycleDayInput from '@/components/settings/LifecycleDayInput.vue'
 import EngineConnectionCard from '@/components/settings/EngineConnectionCard.vue'
 import PaymentGatewayList from '@/components/settings/PaymentGatewayList.vue'

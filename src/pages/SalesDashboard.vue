@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 page-enter">
+  <AppPage>
     <!-- Header -->
     <AppPageHeader
       :title="$t('dashboard.sales_title')"
@@ -119,7 +119,7 @@
       :title="$t('dashboard.commission_breakdown')"
       :data="commissionBreakdown"
     />
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -127,6 +127,7 @@ import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import StatCard from '@/components/charts/StatCard.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'

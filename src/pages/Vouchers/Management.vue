@@ -1,22 +1,19 @@
 <template>
-  <div class="space-y-6">
+  <AppPage>
     <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-      <div>
-        <h1 class="text-page-title mb-2">
-          {{ $t('vouchers.management_title') }}
-        </h1>
-        <p class="text-on-surface-variant">
-          {{ $t('vouchers.management_description') }}
-        </p>
-      </div>
-      <Button
-        :label="$t('vouchers.generate_vouchers')"
-        icon="pi pi-plus"
-        class="p-button-primary self-start sm:self-auto"
-        @click="showGenerateDialog = true"
-      />
-    </div>
+    <AppPageHeader
+      :title="$t('vouchers.management_title')"
+      :description="$t('vouchers.management_description')"
+    >
+      <template #actions>
+        <Button
+          :label="$t('vouchers.generate_vouchers')"
+          icon="pi pi-plus"
+          class="p-button-primary"
+          @click="showGenerateDialog = true"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- Stats cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -193,7 +190,7 @@
 
     <!-- Generate vouchers dialog -->
     <GenerateVouchersDialog v-model:visible="showGenerateDialog" @created="onVouchersCreated" />
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -210,6 +207,8 @@ import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import vTooltip from 'primevue/tooltip'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import GenerateVouchersDialog from '@/components/vouchers/GenerateVouchersDialog.vue'
 import { listVouchers, getVoucherStats, deactivateVoucher as callDeactivate } from '@/services/vouchers.service'
 

@@ -1,14 +1,10 @@
 <template>
-  <div class="space-y-12">
+  <AppPage>
     <!-- Page header -->
-    <header>
-      <h1 class="text-page-title mb-2">
-        {{ $t('deployments.create') }}
-      </h1>
-      <p class="text-on-surface-variant font-medium">
-        {{ $t('deployments.wizard.page_subtitle') }}
-      </p>
-    </header>
+    <AppPageHeader
+      :title="$t('deployments.create')"
+      :description="$t('deployments.wizard.page_subtitle')"
+    />
 
     <!-- Stepper (visual progress only) -->
     <nav
@@ -465,7 +461,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </AppPage>
 </template>
 
 <script lang="ts">
@@ -503,6 +499,8 @@ import Textarea from 'primevue/textarea'
 import RadioButton from 'primevue/radiobutton'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import { listServices, getServicePlansByServiceId } from '@/services/services.service'
 import type { ServicePlan as ServicePlanShape } from '@/services/services.service'
 import {

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 page-enter">
+  <AppPage>
     <!-- Header -->
     <AppPageHeader
       :title="$t('portfolio.title')"
@@ -124,7 +124,7 @@
         <p class="text-sm">{{ $t('portfolio.no_customers') }}</p>
       </div>
     </Card>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -136,6 +136,7 @@ import Tag from 'primevue/tag'
 import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 
 /**
