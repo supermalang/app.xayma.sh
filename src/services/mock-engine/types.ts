@@ -9,7 +9,6 @@ export type Engine = 'workflow' | 'deployment' | 'container'
 // Loose, chainable type so mocks can call .select().eq().single() etc.
 // without committing to the project's generated Database types or to
 // vitest's mock shape.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MockSupabaseClient = { from: (table: string) => any }
 
 export interface MockContext {
