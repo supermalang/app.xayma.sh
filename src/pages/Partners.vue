@@ -327,38 +327,18 @@ onMounted(() => {
 }
 
 :deep(.type-reseller-highlight .p-tag) {
-  background-color: #e8f0ff !important;
-  color: #00288e !important;
-  border: 1px solid #1e40af;
-}
-
-:deep(.p-dropdown:focus) {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 0.2rem rgba(0, 40, 142, 0.1) !important;
+  background-color: var(--surface-container-low);
+  color: var(--primary);
+  border: 1px solid var(--primary-container);
 }
 
 :deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: #eff4ff !important;
+  background-color: var(--surface-container-low);
   transition: background-color var(--duration-standard) var(--easing-standard);
 }
 
 :deep(.p-datatable .p-datatable-thead > tr) {
-  background-color: #eaeef7 !important;
-}
-
-:deep(.p-tag-success) {
-  background: #00b341 !important;
-  color: #ffffff !important;
-}
-
-:deep(.p-tag-warning) {
-  background: #fd761a !important;
-  color: #ffffff !important;
-}
-
-:deep(.p-tag-info) {
-  background: #1e40af !important;
-  color: #ffffff !important;
+  background-color: var(--surface-container);
 }
 
 /* Lazy-load row animations for DataTable

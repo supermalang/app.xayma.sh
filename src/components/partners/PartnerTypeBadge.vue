@@ -1,5 +1,5 @@
 <template>
-  <Tag :value="label" :severity="severity" class="type-badge" />
+  <Tag :value="label" :severity="severity" rounded class="partner-type-badge" />
 </template>
 
 <script setup lang="ts">
@@ -7,49 +7,34 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Tag from 'primevue/tag'
 
-interface Props {
-  type: 'customer' | 'reseller'
-}
+type PartnerTypeKind = 'customer' | 'reseller'
+type TagSeverity = 'info' | 'success' | 'secondary'
 
-const props = defineProps<Props>()
+const props = defineProps<{ type: PartnerTypeKind }>()
 const { t } = useI18n()
 
-const label = computed(() => {
-  const typeMap: Record<string, string> = {
-    customer: t('partners.type.customer'),
-    reseller: t('partners.type.reseller'),
-  }
-  return typeMap[props.type] || props.type
-})
+const LABEL_KEY: Record<PartnerTypeKind, string> = {
+  customer: 'partners.type.customer',
+  reseller: 'partners.type.reseller',
+}
 
-const severity = computed(() => {
-  const severityMap: Record<string, string> = {
-    customer: 'info',
-    reseller: 'success',
-  }
-  return severityMap[props.type] || 'secondary'
+const SEVERITY: Record<PartnerTypeKind, TagSeverity> = {
+  customer: 'info',
+  reseller: 'success',
+}
+
+const label = computed(() => {
+  const key = LABEL_KEY[props.type]
+  return key ? t(key) : props.type
 })
+const severity = computed<TagSeverity>(() => SEVERITY[props.type] ?? 'secondary')
 </script>
 
 <style scoped>
-.type-badge {
-  transition: var(--transition-smooth);
+.partner-type-badge {
   font-weight: 600;
-}
-
-/* Partner type color coding
- * Reseller: success green (revenue-driving accounts)
- * Customer: info blue (end-user accounts)
- */
-:deep(.type-badge.p-tag-success) {
-  background: #00b341 !important;
-  border-color: #00b341 !important;
-  color: #ffffff !important;
-}
-
-:deep(.type-badge.p-tag-info) {
-  background: #1e40af !important;
-  border-color: #1e40af !important;
-  color: #ffffff !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
 }
 </style>

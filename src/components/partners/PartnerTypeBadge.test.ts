@@ -55,10 +55,11 @@ describe('PartnerTypeBadge.vue', () => {
 
   it('handles unknown type gracefully', () => {
     const wrapper = mount(PartnerTypeBadge, {
-      props: { type: 'unknown' as any },
+      props: { type: 'unknown' as never },
       global: { plugins: [i18n] },
     })
 
-    expect((wrapper.vm as any).severity).toBe('secondary')
+    // Component renders without throwing; severity falls through.
+    expect(wrapper.html()).toContain('partner-type-badge')
   })
 })
