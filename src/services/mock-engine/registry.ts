@@ -7,5 +7,6 @@
  */
 
 import './operations/sendNotification.mock'
+import './operations/initiateCheckout.mock'
 
 export {}
