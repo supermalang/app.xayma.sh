@@ -39,7 +39,7 @@ interface PartnerRow {
  */
 export async function runCreditDeductionMock(ctx: MockContext): Promise<DeductionSummary> {
   const { data: deployments, error: dErr } = await ctx.supabase
-    .from('xayma_app.deployments')
+    .from('deployments')
     .select('id, partner_id, plan_slug, status, service:services(plans)')
     .eq('status', 'active')
   if (dErr || !deployments || deployments.length === 0) {
@@ -56,7 +56,7 @@ export async function runCreditDeductionMock(ctx: MockContext): Promise<Deductio
     const list = deploymentsByPartner.get(raw.partner_id) ?? []
     list.push(raw.id)
     deploymentsByPartner.set(raw.partner_id, list)
-    await ctx.supabase.from('xayma_app.credit_transactions').insert([
+    await ctx.supabase.from('credit_transactions').insert([
       {
         partner_id: raw.partner_id,
         transactionType: 'debit',
@@ -70,7 +70,7 @@ export async function runCreditDeductionMock(ctx: MockContext): Promise<Deductio
 
   const partnerIds = Array.from(debitPerPartner.keys())
   const { data: partnersData } = await ctx.supabase
-    .from('xayma_app.partners')
+    .from('partners')
     .select('id, remainingCredits, allowCreditDebt, creditDebtThreshold')
     .in('id', partnerIds)
   const partners = (partnersData ?? []) as PartnerRow[]
@@ -80,7 +80,7 @@ export async function runCreditDeductionMock(ctx: MockContext): Promise<Deductio
     const debit = debitPerPartner.get(partner.id) ?? 0
     const nextBalance = (partner.remainingCredits ?? 0) - debit
     await ctx.supabase
-      .from('xayma_app.partners')
+      .from('partners')
       .update({ remainingCredits: nextBalance })
       .eq('id', partner.id)
 
@@ -89,7 +89,7 @@ export async function runCreditDeductionMock(ctx: MockContext): Promise<Deductio
       const affected = deploymentsByPartner.get(partner.id) ?? []
       for (const depId of affected) {
         await ctx.supabase
-          .from('xayma_app.deployments')
+          .from('deployments')
           .update({ status: 'suspended' })
           .eq('id', depId)
         await recordNotification(ctx, {

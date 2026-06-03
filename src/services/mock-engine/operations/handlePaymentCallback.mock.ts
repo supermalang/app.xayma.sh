@@ -25,7 +25,7 @@ export const handlePaymentCallbackMock: MockHandler<Payload, void> = async (p, c
   }
 
   let txnQuery = ctx.supabase
-    .from('xayma_app.credit_transactions')
+    .from('credit_transactions')
     .select('id, partner_id, creditsPurchased, status')
   if (p.transactionId !== undefined) {
     txnQuery = txnQuery.eq('id', Number(p.transactionId))
@@ -47,12 +47,12 @@ export const handlePaymentCallbackMock: MockHandler<Payload, void> = async (p, c
 
   if (p.status === 'sale_complete') {
     await ctx.supabase
-      .from('xayma_app.credit_transactions')
+      .from('credit_transactions')
       .update({ status: 'completed' })
       .eq('id', t.id)
 
     const { data: partner } = await ctx.supabase
-      .from('xayma_app.partners')
+      .from('partners')
       .select('id, remainingCredits')
       .eq('id', t.partner_id)
       .single()
@@ -60,7 +60,7 @@ export const handlePaymentCallbackMock: MockHandler<Payload, void> = async (p, c
       const credits = t.creditsPurchased ?? 0
       const nextBalance = ((partner as { remainingCredits: number | null }).remainingCredits ?? 0) + credits
       await ctx.supabase
-        .from('xayma_app.partners')
+        .from('partners')
         .update({ remainingCredits: nextBalance })
         .eq('id', t.partner_id)
     }
@@ -74,7 +74,7 @@ export const handlePaymentCallbackMock: MockHandler<Payload, void> = async (p, c
     await resumeAfterTopup({ ...ctx, partnerId: t.partner_id })
   } else {
     await ctx.supabase
-      .from('xayma_app.credit_transactions')
+      .from('credit_transactions')
       .update({ status: 'failed' })
       .eq('id', t.id)
   }

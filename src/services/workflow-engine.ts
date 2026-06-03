@@ -18,7 +18,7 @@
 
 import { getSetting } from './settings'
 import { isMockEnabled, lookupMockHandler } from './mock-engine'
-import { supabase } from './supabase'
+import { xaymaSupabase } from './supabase'
 
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 1000
@@ -74,7 +74,7 @@ async function buildMockContext() {
   const { useAuthStore } = await import('@/stores/auth.store')
   const authStore = useAuthStore()
   return {
-    supabase,
+    supabase: xaymaSupabase,
     authUserId: authStore.user?.id ?? null,
     partnerId: (authStore.profile?.company_id as number | null | undefined) ?? null,
   }

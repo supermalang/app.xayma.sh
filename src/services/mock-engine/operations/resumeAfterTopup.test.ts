@@ -9,7 +9,7 @@ describe('resumeAfterTopup', () => {
     const update = vi.fn().mockReturnValue({ in: updateIn })
 
     const from = vi.fn().mockImplementation((table: string) => {
-      if (table === 'xayma_app.deployments') {
+      if (table === 'deployments') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({

@@ -20,7 +20,7 @@ function buildFrom(
 ) {
   const calls: FromCall[] = []
   const from = vi.fn((table: string) => {
-    if (table === 'xayma_app.credit_transactions') {
+    if (table === 'credit_transactions') {
       const update = spies.txUpdate ?? vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
       return {
         select: vi.fn().mockReturnValue({
@@ -31,7 +31,7 @@ function buildFrom(
         update,
       }
     }
-    if (table === 'xayma_app.partners') {
+    if (table === 'partners') {
       const update = spies.partnerUpdate ?? vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
       return {
         select: vi.fn().mockReturnValue({
@@ -42,11 +42,11 @@ function buildFrom(
         update,
       }
     }
-    if (table === 'xayma_app.notifications') {
+    if (table === 'notifications') {
       const insert = spies.notifInsert ?? vi.fn().mockResolvedValue({ error: null })
       return { insert }
     }
-    if (table === 'xayma_app.deployments') {
+    if (table === 'deployments') {
       const sel = spies.deploymentsSelect ?? vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ data: [], error: null }),

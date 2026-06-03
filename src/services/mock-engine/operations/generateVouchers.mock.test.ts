@@ -19,15 +19,26 @@ describe('generateVouchers mock', () => {
       { supabase: { from } as never, authUserId: 'admin', partnerId: 1 },
     )
 
-    expect(from).toHaveBeenCalledWith('xayma_app.vouchers')
+    expect(from).toHaveBeenCalledWith('vouchers')
     const rows = insert.mock.calls[0][0] as Array<{ code: string; credits: number; status: string; partner_type: string[] | null }>
     expect(rows).toHaveLength(5)
     for (const row of rows) {
       expect(row.code).toMatch(/^XAYMA-[A-Z0-9]{4}-[A-Z0-9]{4}$/)
       expect(row.credits).toBe(5000)
       expect(row.status).toBe('active')
-      expect(row.partner_type).toEqual(['CUSTOMER'])
+      // DB enum is lowercase; mock normalises caller input
+      expect(row.partner_type).toEqual(['customer'])
     }
+  })
+
+  it('rejects unknown partner_type values', async () => {
+    const from = vi.fn()
+    await expect(
+      generateVouchersMock(
+        { quantity: 1, credits: 1000, partnerType: ['SUPER_USER'] },
+        { supabase: { from } as never, authUserId: 'admin', partnerId: 1 },
+      ),
+    ).rejects.toMatchObject({ statusCode: 400 })
   })
 
   it('rejects quantity > 100', async () => {

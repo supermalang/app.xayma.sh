@@ -8,7 +8,7 @@ import type { MockContext } from '../types'
 export async function resumeAfterTopup(ctx: MockContext): Promise<void> {
   if (!ctx.partnerId) return
   const { data, error } = await ctx.supabase
-    .from('xayma_app.deployments')
+    .from('deployments')
     .select('id')
     .eq('partner_id', ctx.partnerId)
     .eq('status', 'suspended')
@@ -17,7 +17,7 @@ export async function resumeAfterTopup(ctx: MockContext): Promise<void> {
 
   const ids = (data as Array<{ id: number }>).map((d) => d.id)
   await ctx.supabase
-    .from('xayma_app.deployments')
+    .from('deployments')
     .update({ status: 'active' })
     .in('id', ids)
 }

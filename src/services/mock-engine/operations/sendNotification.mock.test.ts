@@ -16,7 +16,7 @@ describe('sendNotification mock', () => {
       { userId: 'user-1', type: 'CREDIT_TOPUP', title: 'Credits added', message: '5000 credits added' },
       { supabase: { from } as never, authUserId: null, partnerId: 42 },
     )
-    expect(from).toHaveBeenCalledWith('xayma_app.notifications')
+    expect(from).toHaveBeenCalledWith('notifications')
     const row = insert.mock.calls[0][0][0]
     expect(row).toMatchObject({
       user_id: 'user-1',

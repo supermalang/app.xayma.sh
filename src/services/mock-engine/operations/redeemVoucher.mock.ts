@@ -1,8 +1,12 @@
 import { WorkflowEngineError } from '../../workflow-engine'
 import { registerMock } from '../index'
 import type { MockHandler } from '../types'
+import type { Database } from '@/types/supabase'
 import { resumeAfterTopup } from './resumeAfterTopup'
 import { recordNotification } from './sendNotification.mock'
+
+type PartnerType = Database['xayma_app']['Enums']['partner_type']
+type VoucherStatus = Database['xayma_app']['Enums']['voucher_status']
 
 interface Payload {
   voucherCode: string
@@ -26,18 +30,18 @@ const REASON = {
 interface VoucherRow {
   id: number
   code: string
-  status: 'active' | 'inactive' | 'fully_redeemed' | null
+  status: VoucherStatus | null
   credits: number
   uses_count: number
   max_uses: number
-  partner_type: string[] | null
+  partner_type: PartnerType[] | null
   expires_at: string | null
 }
 
 interface PartnerRow {
   id: number
   remainingCredits: number | null
-  partner_type: string | null
+  partner_type: PartnerType | null
 }
 
 export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
@@ -45,7 +49,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
 
   // 1. Fetch voucher by code
   const { data: voucher, error: vErr } = await ctx.supabase
-    .from('xayma_app.vouchers')
+    .from('vouchers')
     .select('id, code, status, credits, uses_count, max_uses, partner_type, expires_at')
     .eq('code', p.voucherCode)
     .single()
@@ -64,7 +68,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
 
   // 3. Partner + type compatibility
   const { data: partner } = await ctx.supabase
-    .from('xayma_app.partners')
+    .from('partners')
     .select('id, remainingCredits, partner_type')
     .eq("id", partnerId)
     .single()
@@ -78,7 +82,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
 
   // 4. Already-redeemed by same partner?
   const { data: existing } = await ctx.supabase
-    .from('xayma_app.voucher_redemptions')
+    .from('voucher_redemptions')
     .select('id')
     .eq('voucher_id', v.id)
     .eq('partner_id', partnerId)
@@ -87,7 +91,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
 
   // 5. Insert credit transaction (must come first — voucher_redemptions needs the FK)
   const { data: txn, error: txnErr } = await ctx.supabase
-    .from('xayma_app.credit_transactions')
+    .from('credit_transactions')
     .insert([
       {
         partner_id: partnerId,
@@ -104,7 +108,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
   const txnId = (txn as { id: number }).id
 
   // 6. Record voucher redemption
-  await ctx.supabase.from('xayma_app.voucher_redemptions').insert([
+  await ctx.supabase.from('voucher_redemptions').insert([
     {
       voucher_id: v.id,
       partner_id: partnerId,
@@ -117,7 +121,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
   // 7. Increment usage count + flip status if fully redeemed
   const nextUses = v.uses_count + 1
   await ctx.supabase
-    .from('xayma_app.vouchers')
+    .from('vouchers')
     .update({
       uses_count: nextUses,
       status: nextUses >= v.max_uses ? 'fully_redeemed' : v.status,
@@ -126,7 +130,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
 
   // 8. Bump partner balance
   await ctx.supabase
-    .from('xayma_app.partners')
+    .from('partners')
     .update({ remainingCredits: (partnerRow.remainingCredits ?? 0) + v.credits })
     .eq("id", partnerId)
 

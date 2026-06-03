@@ -11,7 +11,7 @@ const insertSelectSingle = vi.fn()
 const insertSelect = vi.fn().mockReturnValue({ single: insertSelectSingle })
 const insert = vi.fn().mockReturnValue({ select: insertSelect })
 const from = vi.fn().mockImplementation((table: string) => {
-  if (table === 'xayma_app.credit_transactions') {
+  if (table === 'credit_transactions') {
     return { insert }
   }
   return {}

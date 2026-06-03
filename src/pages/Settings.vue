@@ -415,7 +415,7 @@ import { supabaseFrom } from '@/services/supabase'
 import { testEngineConnection } from '@/services/workflow-engine'
 import { isMockEnabled, setMockEnabledOverride } from '@/services/mock-engine'
 import { runCreditDeductionMock } from '@/services/mock-engine/operations/runCreditDeduction.mock'
-import { supabase } from '@/services/supabase'
+import { xaymaSupabase } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { formatNumber } from '@/lib/formatters'
@@ -502,7 +502,7 @@ async function onRunDeduction() {
   runningDeduction.value = true
   try {
     const summary = await runCreditDeductionMock({
-      supabase,
+      supabase: xaymaSupabase,
       authUserId: authStore.user?.id ?? null,
       partnerId: null,
     })

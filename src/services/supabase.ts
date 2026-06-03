@@ -23,7 +23,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 })
 
-const xayma = supabase.schema('xayma_app')
+export const xaymaSupabase = supabase.schema('xayma_app')
+export type XaymaSupabase = typeof xaymaSupabase
+
+const xayma = xaymaSupabase
 
 /**
  * Helper to ensure all queries use the xayma_app schema

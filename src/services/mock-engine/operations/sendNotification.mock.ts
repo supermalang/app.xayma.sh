@@ -23,7 +23,7 @@ export const sendNotificationMock: MockHandler<Payload, void> = async (p, ctx) =
   if (!userId) {
     throw new WorkflowEngineError(400, 'sendNotification: userId or authenticated user required')
   }
-  const { error } = await ctx.supabase.from('xayma_app.notifications').insert([
+  const { error } = await ctx.supabase.from('notifications').insert([
     {
       user_id: userId,
       type: p.type,
@@ -45,7 +45,7 @@ export async function recordNotification(
   const userId = args.userId ?? ctx.authUserId
   if (!userId) return
   try {
-    await ctx.supabase.from('xayma_app.notifications').insert([
+    await ctx.supabase.from('notifications').insert([
       { user_id: userId, type: args.type, title: args.title, message: args.message },
     ])
   } catch (err) {

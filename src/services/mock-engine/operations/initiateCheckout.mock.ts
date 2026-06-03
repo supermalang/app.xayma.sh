@@ -40,7 +40,7 @@ export const initiateCheckoutMock: MockHandler<Payload, Envelope> = async (p, ct
   }
 
   const { data: txn, error: txnErr } = await ctx.supabase
-    .from('xayma_app.credit_transactions')
+    .from('credit_transactions')
     .insert([
       {
         partner_id: Number(p.partnerId),
