@@ -33,6 +33,7 @@ const DeploymentWizard = () => import('@/pages/DeploymentWizard.vue')
 const CreditsBuy = () => import('@/pages/Credits/Buy.vue')
 const CreditsSuccess = () => import('@/pages/Credits/Success.vue')
 const CreditsCancel = () => import('@/pages/Credits/Cancel.vue')
+const CreditsMockGateway = () => import('@/pages/Credits/MockGateway.vue')
 const CreditsHistory = () => import('@/pages/Credits/History.vue')
 const CreditsTransactionDetail = () => import('@/pages/Credits/TransactionDetail.vue')
 const VouchersManagement = () => import('@/pages/Vouchers/Management.vue')
@@ -139,6 +140,12 @@ const routes: RouteRecordRaw[] = [
         component: CreditsCancel,
         meta: { requiredRole: ['CUSTOMER', 'RESELLER'] },
         name: 'credits-cancel',
+      },
+      {
+        path: 'credits/_mock-gateway',
+        component: CreditsMockGateway,
+        meta: { requiredRole: ['CUSTOMER', 'RESELLER'] },
+        name: 'credits-mock-gateway',
       },
       {
         path: 'credits/history',
