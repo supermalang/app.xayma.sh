@@ -6,7 +6,7 @@ import { recordNotification } from './sendNotification.mock'
 
 interface Payload {
   voucherCode: string
-  partnerId: number
+  partnerId: number | string
 }
 
 /**
@@ -41,6 +41,8 @@ interface PartnerRow {
 }
 
 export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
+  const partnerId = typeof p.partnerId === 'string' ? Number(p.partnerId) : p.partnerId
+
   // 1. Fetch voucher by code
   const { data: voucher, error: vErr } = await ctx.supabase
     .from('xayma_app.vouchers')
@@ -64,7 +66,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
   const { data: partner } = await ctx.supabase
     .from('xayma_app.partners')
     .select('id, remainingCredits, partner_type')
-    .eq('id', p.partnerId)
+    .eq("id", partnerId)
     .single()
   if (!partner) throw new WorkflowEngineError(404, REASON.PARTNER_NOT_FOUND)
   const partnerRow = partner as PartnerRow
@@ -79,7 +81,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
     .from('xayma_app.voucher_redemptions')
     .select('id')
     .eq('voucher_id', v.id)
-    .eq('partner_id', p.partnerId)
+    .eq('partner_id', partnerId)
     .maybeSingle()
   if (existing) throw new WorkflowEngineError(400, REASON.ALREADY_REDEEMED)
 
@@ -88,7 +90,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
     .from('xayma_app.credit_transactions')
     .insert([
       {
-        partner_id: p.partnerId,
+        partner_id: partnerId,
         transactionType: 'credit',
         status: 'completed',
         creditsPurchased: v.credits,
@@ -105,7 +107,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
   await ctx.supabase.from('xayma_app.voucher_redemptions').insert([
     {
       voucher_id: v.id,
-      partner_id: p.partnerId,
+      partner_id: partnerId,
       credit_transaction_id: txnId,
       redeemed_at: new Date().toISOString(),
       redeemed_by: ctx.authUserId,
@@ -126,7 +128,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
   await ctx.supabase
     .from('xayma_app.partners')
     .update({ remainingCredits: (partnerRow.remainingCredits ?? 0) + v.credits })
-    .eq('id', p.partnerId)
+    .eq("id", partnerId)
 
   // 9. Notification + suspended deployment resumption
   await recordNotification(ctx, {
@@ -134,7 +136,7 @@ export const redeemVoucherMock: MockHandler<Payload, void> = async (p, ctx) => {
     title: 'Voucher redeemed',
     message: `${v.credits} credits have been added to your account from voucher ${v.code}.`,
   })
-  await resumeAfterTopup({ ...ctx, partnerId: p.partnerId })
+  await resumeAfterTopup({ ...ctx, partnerId: partnerId })
 }
 
 registerMock('workflow', 'redeemVoucher', redeemVoucherMock)

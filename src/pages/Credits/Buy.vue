@@ -1,13 +1,21 @@
 <template>
   <div class="w-full">
     <!-- Page header -->
-    <header class="mb-12">
-      <h1 class="text-page-title mb-2">
-        {{ t('credits.top_up.title') }}
-      </h1>
-      <p class="text-on-surface-variant max-w-2xl">
-        {{ t('credits.top_up.description') }}
-      </p>
+    <header class="mb-12 flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-page-title mb-2">
+          {{ t('credits.top_up.title') }}
+        </h1>
+        <p class="text-on-surface-variant max-w-2xl">
+          {{ t('credits.top_up.description') }}
+        </p>
+      </div>
+      <Button
+        :label="t('vouchers.redeem.have_code_link')"
+        text
+        icon="pi pi-ticket"
+        @click="showRedeemDialog = true"
+      />
     </header>
 
     <!-- Reseller discount banner -->
@@ -266,6 +274,13 @@
         </div>
       </aside>
     </div>
+
+    <RedeemVoucherDialog
+      v-if="authStore.profile?.company_id"
+      v-model:visible="showRedeemDialog"
+      :partner-id="Number(authStore.profile.company_id)"
+      @redeemed="onVoucherRedeemed"
+    />
   </div>
 </template>
 
@@ -287,6 +302,7 @@ import {
   getPaymentGateways,
 } from '@/services/settings'
 import { initiateCheckout } from '@/services/workflow-engine'
+import RedeemVoucherDialog from '@/components/credits/RedeemVoucherDialog.vue'
 import type {
   BundleLineItem,
   CreditBundle,
@@ -312,6 +328,13 @@ const checkoutLoading = ref(false)
 
 const selectedBundleId = ref<string | null>(null)
 const selectedGatewayId = ref<string | null>(null)
+
+const showRedeemDialog = ref(false)
+function onVoucherRedeemed() {
+  // partner.store realtime sub picks up the balance update automatically;
+  // also refresh the local credits computation for an immediate UI tick.
+  void refreshCredits()
+}
 
 const applicableDiscount = ref<{ discountPercent: number } | null>(null)
 const isReseller = computed(() => userRole.value === 'RESELLER')
