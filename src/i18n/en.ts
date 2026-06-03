@@ -185,6 +185,35 @@ export default {
       error_quantity: 'Quantity must be between 1 and 100',
       error_expiry: 'Please select an expiry date',
     },
+    redeem: {
+      title: 'Redeem voucher',
+      description: 'Enter your voucher code to add credits to your account.',
+      code_label: 'Voucher code',
+      submit: 'Redeem',
+      success: 'Voucher redeemed',
+      have_code_link: 'Have a voucher code?',
+    },
+    errors: {
+      not_found: 'Voucher code not found.',
+      inactive: 'This voucher is no longer active.',
+      expired: 'This voucher has expired.',
+      fully_redeemed: 'This voucher has reached its usage limit.',
+      wrong_type: 'This voucher cannot be used by your account type.',
+      already_redeemed: 'You have already redeemed this voucher.',
+      partner_not_found: 'Partner not found.',
+      generic: 'Could not redeem voucher.',
+    },
+  },
+
+  mock_gateway: {
+    dev_banner: 'Mock gateway — development only',
+    title: 'Payment confirmation',
+    bundle: 'Bundle',
+    amount: 'Amount',
+    transaction_id: 'Transaction ID',
+    approve: 'Approve',
+    reject: 'Reject',
+    auto_approve: 'Auto-approving in {seconds}s…',
   },
 
   // Dashboard
@@ -1113,6 +1142,18 @@ export default {
     error_loading: 'Failed to load settings',
     error_saving: 'Failed to save settings',
     error_loading_transactions: 'Failed to load recent transactions',
+
+    // Dev tools
+    dev_tools: {
+      title: 'Dev tools',
+      description: 'Visible only in development or when mock mode is on. Do not enable in production.',
+      mock_workflow_engine: 'Mock workflow engine',
+      mock_source: 'Source: {source}',
+      run_deduction: 'Run credit deduction now',
+      run_deduction_hint: 'Simulates the 15-minute n8n cron once.',
+      deduction_done: 'Credit deduction complete',
+      deduction_summary: '{n} deployment(s), {total} credits debited, {suspended} suspended',
+    },
 
     // Payment gateways
     payment_gateways: 'Payment gateways',

@@ -186,6 +186,35 @@ export default {
       error_quantity: 'La quantité doit être entre 1 et 100',
       error_expiry: 'Veuillez sélectionner une date d\'expiration',
     },
+    redeem: {
+      title: 'Utiliser un bon',
+      description: 'Saisissez votre code de bon pour ajouter des crédits à votre compte.',
+      code_label: 'Code du bon',
+      submit: 'Utiliser',
+      success: 'Bon utilisé',
+      have_code_link: 'Vous avez un code ?',
+    },
+    errors: {
+      not_found: 'Code de bon introuvable.',
+      inactive: 'Ce bon n\'est plus actif.',
+      expired: 'Ce bon a expiré.',
+      fully_redeemed: 'Ce bon a atteint sa limite d\'utilisation.',
+      wrong_type: 'Ce bon ne peut pas être utilisé par ce type de compte.',
+      already_redeemed: 'Vous avez déjà utilisé ce bon.',
+      partner_not_found: 'Partenaire introuvable.',
+      generic: 'Impossible d\'utiliser le bon.',
+    },
+  },
+
+  mock_gateway: {
+    dev_banner: 'Passerelle simulée — développement uniquement',
+    title: 'Confirmation de paiement',
+    bundle: 'Pack',
+    amount: 'Montant',
+    transaction_id: 'ID de transaction',
+    approve: 'Approuver',
+    reject: 'Refuser',
+    auto_approve: 'Approbation automatique dans {seconds}s…',
   },
 
   // Dashboard
@@ -1114,6 +1143,18 @@ export default {
     error_loading: 'Échec du chargement des paramètres',
     error_saving: 'Échec de l\'enregistrement des paramètres',
     error_loading_transactions: 'Échec du chargement des transactions récentes',
+
+    // Dev tools
+    dev_tools: {
+      title: 'Outils de développement',
+      description: 'Visible uniquement en développement ou lorsque le mode simulé est actif. Ne pas activer en production.',
+      mock_workflow_engine: 'Moteur de workflow simulé',
+      mock_source: 'Source : {source}',
+      run_deduction: 'Exécuter le débit de crédits maintenant',
+      run_deduction_hint: 'Simule le cron n8n des 15 minutes une fois.',
+      deduction_done: 'Débit de crédits terminé',
+      deduction_summary: '{n} déploiement(s), {total} crédits débités, {suspended} suspendu(s)',
+    },
 
     // Payment gateways
     payment_gateways: 'Passerelles de paiement',
