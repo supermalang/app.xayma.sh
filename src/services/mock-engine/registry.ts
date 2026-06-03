@@ -8,5 +8,6 @@
 
 import './operations/sendNotification.mock'
 import './operations/initiateCheckout.mock'
+import './operations/handlePaymentCallback.mock'
 
 export {}
