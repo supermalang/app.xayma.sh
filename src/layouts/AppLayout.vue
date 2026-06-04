@@ -17,30 +17,6 @@
   </div>
 </template>
 
-<style scoped>
-.skip-link {
-  position: absolute;
-  inset-inline-start: 0.5rem;
-  top: 0.5rem;
-  z-index: 1000;
-  padding: 0.5rem 0.875rem;
-  background: var(--primary);
-  color: var(--on-primary);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-  transform: translateY(-200%);
-  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.skip-link:focus {
-  transform: translateY(0);
-  outline: 2px solid var(--on-primary);
-  outline-offset: 2px;
-}
-</style>
-
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { computed, ref, watch } from 'vue'
@@ -68,3 +44,27 @@ if (userRole.value === 'CUSTOMER' || userRole.value === 'RESELLER') {
   useCreditAlerts(partnerId.value, userId.value)
 }
 </script>
+
+<style scoped>
+.skip-link {
+  position: absolute;
+  inset-inline-start: 0.5rem;
+  top: 0.5rem;
+  z-index: 1000;
+  padding: 0.5rem 0.875rem;
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--on-primary);
+  outline-offset: 2px;
+}
+</style>
