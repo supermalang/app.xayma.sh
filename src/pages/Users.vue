@@ -11,20 +11,6 @@
       </template>
     </AppPageHeader>
 
-    <!-- Filter by role -->
-    <div class="flex gap-4 flex-wrap">
-      <Dropdown
-        v-model="filters.user_role"
-        :options="roleOptions"
-        option-label="label"
-        option-value="value"
-        :placeholder="$t('users.form.role')"
-        class="w-40"
-        show-clear
-        @change="applyFilters"
-      />
-    </div>
-
     <!-- DataTable -->
     <AppDataTable
       :rows="users"
@@ -34,28 +20,75 @@
       :page-size="pageSize"
       paginator
       lazy
+      export-filename="users"
+      :empty-title="$t('users.empty.title')"
+      :empty-description="$t('users.empty.description')"
+      empty-icon="pi-user"
       @page-change="handlePageChange"
-      @search="handleSearch"
     >
+      <!-- Filter popover -->
+      <template #filter>
+        <div class="space-y-2">
+          <label for="users-filter-search" class="block text-sm font-medium">
+            {{ $t('common.search') }}
+          </label>
+          <InputText
+            id="users-filter-search"
+            v-model="filters.search"
+            class="w-full"
+            @keydown.enter="applyFilters"
+          />
+        </div>
+        <div class="space-y-2">
+          <label for="users-filter-role" class="block text-sm font-medium">
+            {{ $t('users.form.role') }}
+          </label>
+          <Dropdown
+            id="users-filter-role"
+            v-model="filters.user_role"
+            :options="roleOptions"
+            option-label="label"
+            option-value="value"
+            :placeholder="$t('users.form.role')"
+            class="w-full"
+            show-clear
+          />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <Button
+            :label="$t('common.reset')"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="resetFilters"
+          />
+          <Button
+            :label="$t('common.apply')"
+            size="small"
+            @click="applyFilters"
+          />
+        </div>
+      </template>
+
       <!-- Role column -->
       <template #body-user_role="{ data }">
-        <Tag :value="getRoleLabel(data.user_role)" :severity="getRoleSeverity(data.user_role)" />
+        <Tag :value="getRoleLabel((data as any).user_role)" :severity="getRoleSeverity((data as any).user_role)" />
       </template>
 
       <!-- Partner column -->
       <template #body-partner="{ data }">
-        {{ getPartnerName(data.company_id) }}
+        {{ getPartnerName((data as any).company_id) }}
       </template>
 
-      <!-- Actions column -->
-      <template #actions="{ data }">
+      <!-- Row actions -->
+      <template #rowActions="{ data }">
         <div class="flex gap-2">
           <Button
             icon="pi pi-eye"
             class="p-button-rounded p-button-text p-button-sm"
             :title="$t('common.view')"
             :aria-label="$t('common.view')"
-            @click="goToUserDetail(data.id)"
+            @click="goToUserDetail((data as any).id)"
           />
           <Button
             icon="pi pi-pencil"
@@ -69,25 +102,17 @@
             class="p-button-rounded p-button-text p-button-sm p-button-danger"
             :title="$t('common.delete')"
             :aria-label="$t('common.delete')"
-            @click="deleteUser(data.id)"
+            @click="deleteUser((data as any).id)"
           />
         </div>
       </template>
 
-      <template #empty>
-        <AppEmptyState
-          :title="$t('users.empty.title')"
-          :description="$t('users.empty.description')"
-          icon="pi-user"
-        >
-          <template #action>
-            <Button
-              :label="$t('common.create')"
-              icon="pi pi-plus"
-              @click="showCreateDialog"
-            />
-          </template>
-        </AppEmptyState>
+      <template #emptyAction>
+        <Button
+          :label="$t('common.create')"
+          icon="pi pi-plus"
+          @click="showCreateDialog"
+        />
       </template>
     </AppDataTable>
 
@@ -117,10 +142,10 @@ import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
 import Tag from 'primevue/tag'
+import InputText from 'primevue/inputtext'
 import AppDataTable from '@/components/common/AppDataTable.vue'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
-import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import UserForm from '@/components/users/UserForm.vue'
 import * as userService from '@/services/users.service'
 import * as partnerService from '@/services/partners.service'
@@ -225,14 +250,14 @@ const handlePageChange = (event: any) => {
   loadUsers(page)
 }
 
-// Handle search
-const handleSearch = (search: string) => {
-  filters.value.search = search
+// Apply filters
+const applyFilters = () => {
   loadUsers(1)
 }
 
-// Apply filters
-const applyFilters = () => {
+// Reset filters
+const resetFilters = () => {
+  filters.value = { user_role: '', search: '' }
   loadUsers(1)
 }
 

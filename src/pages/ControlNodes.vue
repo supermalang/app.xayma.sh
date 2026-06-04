@@ -20,19 +20,22 @@
       :page-size="pageSize"
       paginator
       lazy
+      export-filename="control-nodes"
+      :empty-title="$t('control_nodes.empty.title')"
+      :empty-description="$t('control_nodes.empty.description')"
+      empty-icon="pi-server"
       @page-change="handlePageChange"
-      @search="handleSearch"
     >
       <!-- Status column -->
       <template #body-status="{ data }">
         <Tag
-          :value="data.status"
-          :severity="getStatusSeverity(data.status)"
+          :value="(data as any).status"
+          :severity="getStatusSeverity((data as any).status)"
         />
       </template>
 
-      <!-- Actions column -->
-      <template #actions="{ data }">
+      <!-- Row actions -->
+      <template #rowActions="{ data }">
         <div class="flex gap-2">
           <Button
             icon="pi pi-pencil"
@@ -46,25 +49,17 @@
             class="p-button-rounded p-button-text p-button-sm p-button-danger"
             :title="$t('common.delete')"
             :aria-label="$t('common.delete')"
-            @click="deleteNode(data.id)"
+            @click="deleteNode((data as any).id)"
           />
         </div>
       </template>
 
-      <template #empty>
-        <AppEmptyState
-          :title="$t('control_nodes.empty.title')"
-          :description="$t('control_nodes.empty.description')"
-          icon="pi-server"
-        >
-          <template #action>
-            <Button
-              :label="$t('common.create')"
-              icon="pi pi-plus"
-              @click="showCreateDialog"
-            />
-          </template>
-        </AppEmptyState>
+      <template #emptyAction>
+        <Button
+          :label="$t('common.create')"
+          icon="pi pi-plus"
+          @click="showCreateDialog"
+        />
       </template>
     </AppDataTable>
 
@@ -144,7 +139,6 @@ import Tag from 'primevue/tag'
 import AppDataTable from '@/components/common/AppDataTable.vue'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
-import AppEmptyState from '@/components/common/AppEmptyState.vue'
 
 const { t } = useI18n()
 
@@ -167,7 +161,6 @@ const tableColumns = computed(() => [
   { field: 'name', header: t('control_nodes.form.name') },
   { field: 'hostname', header: t('control_nodes.form.hostname') },
   { field: 'status', header: t('common.status') },
-  { field: 'actions', header: t('common.actions') },
 ])
 
 const statusOptions = [
@@ -214,11 +207,6 @@ function handlePageChange(event: any) {
   currentPage.value = event.page + 1
   pageSize.value = event.rows
   // TODO: Fetch nodes with pagination
-}
-
-function handleSearch(query: string) {
-  // TODO: Implement search
-  console.log('Search:', query)
 }
 
 onMounted(() => {

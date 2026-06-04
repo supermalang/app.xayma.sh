@@ -7,22 +7,38 @@
       icon="pi-briefcase"
     />
 
-    <!-- Filters -->
-    <Card role="region" aria-label="Portfolio filters">
-      <template #content>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" role="group" aria-label="Search and filter controls">
-          <!-- Search -->
-          <span class="p-input-icon-left w-full">
-            <i class="pi pi-search" />
-            <InputText
-              v-model="searchQuery"
-              type="text"
-              :placeholder="$t('common.search')"
-              class="w-full"
-            />
-          </span>
-
-          <!-- Plan Filter -->
+    <!-- Portfolio Table -->
+    <AppDataTable
+      :title="$t('portfolio.customers')"
+      :rows="filteredPortfolio"
+      :columns="columns"
+      :total-records="filteredPortfolio.length"
+      :page-size="20"
+      :first="first"
+      row-clickable
+      export-filename="portfolio"
+      :empty-title="$t('portfolio.empty.title')"
+      :empty-description="$t('portfolio.empty.description')"
+      empty-icon="pi-briefcase"
+      @page-change="onPage"
+      @row-click="onRowClick"
+    >
+      <template #filter>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('common.search') }}
+          </label>
+          <InputText
+            v-model="searchQuery"
+            type="text"
+            :placeholder="$t('common.search')"
+            class="w-full"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('portfolio.filter_plan') }}
+          </label>
           <Dropdown
             v-model="selectedPlan"
             :options="planOptions"
@@ -31,8 +47,11 @@
             :placeholder="$t('portfolio.filter_plan')"
             class="w-full"
           />
-
-          <!-- Status Filter -->
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('portfolio.filter_status') }}
+          </label>
           <Dropdown
             v-model="selectedStatus"
             :options="statusOptions"
@@ -41,106 +60,62 @@
             :placeholder="$t('portfolio.filter_status')"
             class="w-full"
           />
-
-          <!-- Reset Button -->
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
           <Button
             :label="$t('portfolio.reset_filters')"
             icon="pi pi-refresh"
             severity="secondary"
+            text
+            size="small"
             @click="resetFilters"
-            class="w-full"
-            aria-label="Reset all filters to default values"
           />
         </div>
       </template>
-    </Card>
 
-    <!-- Portfolio Table -->
-    <Card role="region" aria-label="Customer portfolio">
-      <template #header>
-        <div class="p-4 flex items-center justify-between">
-          <h3 class="text-card-title" id="portfolio-table-title">
-            {{ $t('portfolio.customers') }}
-          </h3>
-          <span class="text-xs font-semibold px-2 py-1 bg-primary-container text-primary rounded-full">
-            {{ filteredPortfolio.length }}
-          </span>
-        </div>
+      <template #body-plan="{ data }">
+        <Tag :value="(data as PortfolioCustomer).plan" class="text-xs" />
       </template>
 
-      <DataTable
-        :value="paginatedPortfolio"
-        striped-rows
-        responsive-layout="stack"
-        :paginator="filteredPortfolio.length > 20"
-        :rows="20"
-        :totalRecords="filteredPortfolio.length"
-        :first="first"
-        @page="onPage"
-        class="text-sm"
-        aria-labelledby="portfolio-table-title"
-        role="grid"
-      >
-        <Column field="partnerName" :header="$t('portfolio.customer_name')" />
-        <Column field="plan" :header="$t('portfolio.plan')">
-          <template #body="slotProps">
-            <Tag :value="slotProps.data.plan" class="text-xs" />
-          </template>
-        </Column>
-        <Column field="creditStatus" :header="$t('portfolio.credit_status')">
-          <template #body="slotProps">
-            <Tag
-              :value="slotProps.data.creditStatus"
-              :severity="getCreditStatusSeverity(slotProps.data.creditStatus)"
-              class="text-xs"
-            />
-          </template>
-        </Column>
-        <Column field="lastPaymentDate" :header="$t('portfolio.last_payment')">
-          <template #body="slotProps">
-            <span class="font-mono text-xs">{{ formatDate(slotProps.data.lastPaymentDate) }}</span>
-          </template>
-        </Column>
-        <Column field="renewalDate" :header="$t('portfolio.renewal_date')">
-          <template #body="slotProps">
-            <span class="font-mono text-xs">{{ formatDate(slotProps.data.renewalDate) }}</span>
-          </template>
-        </Column>
-        <Column :header="$t('common.actions')" style="width: 100px">
-          <template #body="slotProps">
-            <router-link
-              :to="`/partners/${slotProps.data.partnerId}`"
-              class="text-xs font-medium text-primary hover:text-primary-container"
-            >
-              {{ $t('common.view') }}
-            </router-link>
-          </template>
-        </Column>
+      <template #body-creditStatus="{ data }">
+        <Tag
+          :value="(data as PortfolioCustomer).creditStatus"
+          :severity="getCreditStatusSeverity((data as PortfolioCustomer).creditStatus)"
+          class="text-xs"
+        />
+      </template>
 
-        <template #empty>
-          <AppEmptyState
-            :title="$t('portfolio.empty.title')"
-            :description="$t('portfolio.empty.description')"
-            icon="pi-briefcase"
-          />
-        </template>
-      </DataTable>
-    </Card>
+      <template #body-lastPaymentDate="{ data }">
+        <span class="font-mono text-xs">{{ formatDate((data as PortfolioCustomer).lastPaymentDate) }}</span>
+      </template>
+
+      <template #body-renewalDate="{ data }">
+        <span class="font-mono text-xs">{{ formatDate((data as PortfolioCustomer).renewalDate) }}</span>
+      </template>
+
+      <template #rowActions="{ data }">
+        <router-link
+          :to="`/partners/${(data as PortfolioCustomer).partnerId}`"
+          class="text-xs font-medium text-primary hover:text-primary-container"
+          @click.stop
+        >
+          {{ $t('common.view') }}
+        </router-link>
+      </template>
+    </AppDataTable>
   </AppPage>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
+import { useRouter } from 'vue-router'
 import Tag from 'primevue/tag'
 import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
-import AppEmptyState from '@/components/common/AppEmptyState.vue'
+import AppDataTable, { type AppTableColumn } from '@/components/common/AppDataTable.vue'
 
 /**
  * Portfolio customer record
@@ -153,6 +128,8 @@ interface PortfolioCustomer {
   lastPaymentDate: string
   renewalDate: string
 }
+
+const router = useRouter()
 
 /**
  * Sales person's portfolio (mock data - in production, fetch from API)
@@ -200,6 +177,14 @@ const portfolio = ref<PortfolioCustomer[]>([
   },
 ])
 
+const columns: AppTableColumn[] = [
+  { field: 'partnerName', header: 'portfolio.customer_name' },
+  { field: 'plan', header: 'portfolio.plan' },
+  { field: 'creditStatus', header: 'portfolio.credit_status' },
+  { field: 'lastPaymentDate', header: 'portfolio.last_payment' },
+  { field: 'renewalDate', header: 'portfolio.renewal_date' },
+]
+
 /**
  * Filter options
  */
@@ -243,15 +228,6 @@ const filteredPortfolio = computed(() => {
 })
 
 /**
- * Paginated results
- */
-const paginatedPortfolio = computed(() => {
-  const start = first.value
-  const end = start + 20
-  return filteredPortfolio.value.slice(start, end)
-})
-
-/**
  * Format date
  */
 function formatDate(dateString: string): string {
@@ -287,49 +263,12 @@ function resetFilters(): void {
 /**
  * Handle pagination
  */
-function onPage(event: any): void {
+function onPage(event: { first: number }): void {
   first.value = event.first
 }
+
+function onRowClick(row: unknown): void {
+  const c = row as PortfolioCustomer
+  if (c?.partnerId) router.push(`/partners/${c.partnerId}`)
+}
 </script>
-
-<style scoped>
-:deep(.p-card) {
-  border: 1px solid var(--outline-variant);
-  background: var(--surface-container-low);
-}
-
-:deep(.p-datatable) {
-  border: none;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background: var(--surface-container-high);
-  border-color: var(--outline-variant);
-  color: var(--on-surface);
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr > td) {
-  border-color: var(--outline-variant);
-  color: var(--on-surface);
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background: var(--surface-container-highest);
-}
-
-/* Accessibility: Focus rings for keyboard navigation */
-:deep(.p-inputtext:focus),
-:deep(.p-dropdown:focus),
-:deep(.p-button:focus) {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-:deep(a:focus) {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-</style>

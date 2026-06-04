@@ -15,194 +15,144 @@
       </template>
     </AppPageHeader>
 
-    <section class="bg-surface-container-lowest overflow-hidden">
-      <div
-        class="px-6 py-5 border-b border-outline-variant/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-      >
-        <h2 class="text-card-title flex items-center gap-2">
-          <span
-            class="material-symbols-outlined text-primary"
-            style="font-variation-settings: 'FILL' 1"
-          >
-            list_alt
-          </span>
-          {{ $t('services.section_title') }}
-        </h2>
-        <div class="flex items-center gap-2">
-          <Button
-            :label="$t('services.export_csv')"
-            icon="pi pi-download"
-            text
-            severity="secondary"
-            size="small"
-            class="!text-xs !font-bold !uppercase !tracking-widest"
-            @click="exportCsv"
-          />
-          <Button
-            :label="$t('services.filter')"
-            icon="pi pi-filter"
-            text
-            :severity="onlyPublic === undefined ? 'secondary' : 'info'"
-            size="small"
-            class="!text-xs !font-bold !uppercase !tracking-widest"
-            @click="cycleFilter"
+    <AppDataTable
+      :title="$t('services.section_title')"
+      :rows="services"
+      :columns="columns"
+      :loading="loading"
+      :total-records="totalRecords"
+      :page-size="PAGE_SIZE"
+      :first="currentPage * PAGE_SIZE"
+      lazy
+      row-clickable
+      export-filename="services"
+      :empty-title="$t('services.empty.title')"
+      :empty-description="$t('services.empty.description')"
+      empty-icon="pi-box"
+      @page-change="onPageChange"
+      @row-click="onRowClick"
+    >
+      <template #filter>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('common.search') }}
+          </label>
+          <InputText
+            v-model="searchInput"
+            :placeholder="$t('services.section_title')"
+            class="w-full"
           />
         </div>
-      </div>
-
-      <DataTable
-        :value="services"
-        :loading="loading"
-        data-key="id"
-        striped-rows
-        class="services-registry-table"
-      >
-        <template #empty>
-          <AppEmptyState
-            :title="$t('services.empty.title')"
-            :description="$t('services.empty.description')"
-            icon="pi-box"
-          >
-            <template #action>
-              <Button
-                :label="$t('services.create')"
-                icon="pi pi-plus"
-                @click="router.push('/services/new')"
-              />
-            </template>
-          </AppEmptyState>
-        </template>
-
-        <Column field="name" :header="$t('services.columns.name')" header-class="!ps-8">
-          <template #body="{ data }">
-            <button
-              type="button"
-              class="ps-2 flex items-center gap-4 text-start hover:opacity-80 transition-opacity"
-              @click="navigateToDetail(data.id)"
-            >
-              <div
-                class="w-10 h-10 bg-surface-container-low rounded flex items-center justify-center border border-outline-variant/10 shrink-0"
-              >
-                <img
-                  v-if="data.logo_url"
-                  :src="data.logo_url"
-                  :alt="data.name"
-                  class="w-7 h-7 object-contain"
-                />
-                <span v-else class="material-symbols-outlined text-primary">database</span>
-              </div>
-              <div>
-                <p
-                  class="font-bold text-primary leading-tight underline-offset-4 hover:underline"
-                >
-                  {{ data.name }}
-                </p>
-                <p class="text-[10px] font-mono text-on-surface-variant uppercase mt-0.5">
-                  {{ formatServiceCode(data) }}
-                </p>
-              </div>
-            </button>
-          </template>
-        </Column>
-
-        <Column :header="$t('services.columns.linked_template')">
-          <template #body="{ data }">
-            <span
-              v-if="getTemplateName(data)"
-              class="inline-block bg-surface-container text-on-surface-variant px-3 py-1 rounded text-[11px] font-bold"
-            >
-              {{ getTemplateName(data) }}
-            </span>
-            <span v-else class="text-on-surface-variant/60 text-xs font-mono">—</span>
-          </template>
-        </Column>
-
-        <Column :header="$t('services.columns.active_plans')">
-          <template #body="{ data }">
-            <span class="font-mono font-medium text-on-surface">
-              {{ formatCount(planCount(data)) }}
-            </span>
-          </template>
-        </Column>
-
-        <Column :header="$t('services.columns.version_count')">
-          <template #body="{ data }">
-            <span class="font-mono font-medium text-on-surface">{{ latestVersion(data) }}</span>
-          </template>
-        </Column>
-
-        <Column :header="$t('services.columns.status')">
-          <template #body="{ data }">
-            <span
-              v-if="data.isPubliclyAvailable"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-tertiary-container text-tertiary-container text-[10px] font-black uppercase tracking-tighter"
-            >
-              <span class="material-symbols-outlined text-[14px]">check_circle</span>
-              {{ $t('services.status.active') }}
-            </span>
-            <span
-              v-else
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-outline text-on-surface-variant text-[10px] font-black uppercase tracking-tighter"
-            >
-              <span class="material-symbols-outlined text-[14px]">edit_note</span>
-              {{ $t('services.status.draft') }}
-            </span>
-          </template>
-        </Column>
-
-        <Column
-          :header="$t('services.columns.actions')"
-          header-style="text-align: end"
-          body-style="text-align: end"
-          header-class="!pe-8"
-        >
-          <template #body="{ data }">
-            <div class="flex items-center justify-end gap-3 pe-2">
-              <Button
-                :label="$t('common.edit')"
-                text
-                severity="info"
-                size="small"
-                class="!font-bold"
-                :data-test="`edit-${data.id}`"
-                @click="navigateToEdit(data.id)"
-              />
-            </div>
-          </template>
-        </Column>
-      </DataTable>
-
-      <div
-        class="px-6 py-5 border-t border-outline-variant/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-container-lowest"
-      >
-        <div class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-          {{ $t('services.showing_count', { shown: shownCount, total: totalRecords }) }}
-        </div>
-        <div class="flex items-center gap-1">
-          <Button
-            :label="$t('services.previous')"
-            text
-            severity="secondary"
-            size="small"
-            :disabled="currentPage === 0 || loading"
-            class="!text-xs !font-black !uppercase !tracking-widest"
-            @click="prevPage"
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('services.columns.status') }}
+          </label>
+          <Dropdown
+            v-model="onlyPublicInput"
+            :options="statusOptions"
+            option-label="label"
+            option-value="value"
+            :placeholder="$t('common.select')"
+            class="w-full"
           />
-          <div class="font-mono text-xs font-bold px-4 text-on-surface tabular-nums">
-            {{ pageDisplay }}
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
+          <Button
+            :label="$t('common.reset')"
+            severity="secondary"
+            text
+            size="small"
+            @click="resetFilters"
+          />
+          <Button
+            :label="$t('common.apply')"
+            size="small"
+            @click="applyFilters"
+          />
+        </div>
+      </template>
+
+      <template #emptyAction>
+        <Button
+          :label="$t('services.create')"
+          icon="pi pi-plus"
+          @click="router.push('/services/new')"
+        />
+      </template>
+
+      <template #body-name="{ data }">
+        <div class="flex items-center gap-4">
+          <div
+            class="w-10 h-10 bg-surface-container-low rounded flex items-center justify-center border border-outline-variant/10 shrink-0"
+          >
+            <img
+              v-if="(data as ServiceRow).logo_url"
+              :src="(data as ServiceRow).logo_url!"
+              :alt="(data as ServiceRow).name"
+              class="w-7 h-7 object-contain"
+            />
+            <span v-else class="material-symbols-outlined text-primary">database</span>
           </div>
-          <Button
-            :label="$t('services.next')"
-            text
-            severity="secondary"
-            size="small"
-            :disabled="currentPage + 1 >= totalPages || loading"
-            class="!text-xs !font-black !uppercase !tracking-widest"
-            @click="nextPage"
-          />
+          <div>
+            <p class="font-bold text-primary leading-tight">
+              {{ (data as ServiceRow).name }}
+            </p>
+            <p class="text-[10px] font-mono text-on-surface-variant uppercase mt-0.5">
+              {{ formatServiceCode(data as ServiceRow) }}
+            </p>
+          </div>
         </div>
-      </div>
-    </section>
+      </template>
+
+      <template #body-template="{ data }">
+        <span
+          v-if="getTemplateName(data as ServiceRow)"
+          class="inline-block bg-surface-container text-on-surface-variant px-3 py-1 rounded text-[11px] font-bold"
+        >
+          {{ getTemplateName(data as ServiceRow) }}
+        </span>
+        <span v-else class="text-on-surface-variant/60 text-xs font-mono">—</span>
+      </template>
+
+      <template #body-plans="{ data }">
+        <span class="font-mono font-medium text-on-surface">
+          {{ formatCount(planCount(data as ServiceRow)) }}
+        </span>
+      </template>
+
+      <template #body-version="{ data }">
+        <span class="font-mono font-medium text-on-surface">{{ latestVersion(data as ServiceRow) }}</span>
+      </template>
+
+      <template #body-status="{ data }">
+        <span
+          v-if="(data as ServiceRow).isPubliclyAvailable"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-tertiary-container text-tertiary-container text-[10px] font-black uppercase tracking-tighter"
+        >
+          <span class="material-symbols-outlined text-[14px]">check_circle</span>
+          {{ $t('services.status.active') }}
+        </span>
+        <span
+          v-else
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-outline text-on-surface-variant text-[10px] font-black uppercase tracking-tighter"
+        >
+          <span class="material-symbols-outlined text-[14px]">edit_note</span>
+          {{ $t('services.status.draft') }}
+        </span>
+      </template>
+
+      <template #rowActions="{ data }">
+        <Button
+          :label="$t('common.edit')"
+          text
+          severity="info"
+          size="small"
+          class="!font-bold"
+          :data-test="`edit-${(data as ServiceRow).id}`"
+          @click.stop="navigateToEdit((data as ServiceRow).id)"
+        />
+      </template>
+    </AppDataTable>
   </AppPage>
 </template>
 
@@ -211,12 +161,12 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
 import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
+import InputText from 'primevue/inputtext'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
-import AppEmptyState from '@/components/common/AppEmptyState.vue'
+import AppDataTable, { type AppTableColumn } from '@/components/common/AppDataTable.vue'
 import { listServices, readServicePlans } from '@/services/services.service'
 
 const PAGE_SIZE = 10
@@ -241,14 +191,25 @@ const loading = ref(false)
 const totalRecords = ref(0)
 const currentPage = ref(0)
 const onlyPublic = ref<boolean | undefined>(undefined)
+const searchQuery = ref('')
 
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(totalRecords.value / PAGE_SIZE)),
-)
-const shownCount = computed(() => services.value.length)
-const pageDisplay = computed(
-  () => `${pad(currentPage.value + 1)} / ${pad(totalPages.value)}`,
-)
+// Draft filter state (only applied on Apply click)
+const onlyPublicInput = ref<boolean | null>(null)
+const searchInput = ref('')
+
+const columns: AppTableColumn[] = [
+  { field: 'name', header: 'services.columns.name' },
+  { field: 'template', header: 'services.columns.linked_template' },
+  { field: 'plans', header: 'services.columns.active_plans' },
+  { field: 'version', header: 'services.columns.version_count' },
+  { field: 'status', header: 'services.columns.status' },
+]
+
+const statusOptions = computed(() => [
+  { label: t('services.status.active'), value: true },
+  { label: t('services.status.draft'), value: false },
+  { label: t('vouchers.all'), value: null },
+])
 
 function pad(n: number) {
   return n.toString().padStart(2, '0')
@@ -262,7 +223,12 @@ async function loadServices() {
       pageSize: PAGE_SIZE,
       isPubliclyAvailable: onlyPublic.value,
     })
-    services.value = result.data as ServiceRow[]
+    let rows = result.data as ServiceRow[]
+    if (searchQuery.value) {
+      const q = searchQuery.value.toLowerCase()
+      rows = rows.filter((s) => s.name.toLowerCase().includes(q) || s.slug?.toLowerCase().includes(q))
+    }
+    services.value = rows
     totalRecords.value = result.count
   } catch {
     toast.add({
@@ -300,90 +266,41 @@ function formatCount(n: number): string {
   return n.toLocaleString(locale.value === 'fr' ? 'fr-SN' : 'en-US')
 }
 
-function navigateToDetail(id: number) {
-  router.push(`/services/${id}`)
-}
-
 function navigateToEdit(id: number) {
   router.push(`/services/${id}/edit`)
 }
 
-function prevPage() {
-  if (currentPage.value === 0) return
-  currentPage.value -= 1
+function onRowClick(row: unknown) {
+  const svc = row as ServiceRow
+  if (svc?.id) router.push(`/services/${svc.id}`)
+}
+
+function onPageChange(event: { page: number }) {
+  currentPage.value = event.page
   loadServices()
 }
 
-function nextPage() {
-  if (currentPage.value + 1 >= totalPages.value) return
-  currentPage.value += 1
+function applyFilters() {
+  onlyPublic.value = onlyPublicInput.value === null ? undefined : onlyPublicInput.value
+  searchQuery.value = searchInput.value
+  currentPage.value = 0
   loadServices()
 }
 
-function cycleFilter() {
-  // undefined → true (public only) → false (drafts only) → undefined
-  if (onlyPublic.value === undefined) onlyPublic.value = true
-  else if (onlyPublic.value === true) onlyPublic.value = false
-  else onlyPublic.value = undefined
+function resetFilters() {
+  onlyPublicInput.value = null
+  searchInput.value = ''
+  onlyPublic.value = undefined
+  searchQuery.value = ''
+  currentPage.value = 0
+  loadServices()
 }
 
 watch(onlyPublic, () => {
   currentPage.value = 0
-  loadServices()
 })
-
-function exportCsv() {
-  if (!services.value.length) return
-  const header = [
-    t('services.columns.name'),
-    t('services.columns.linked_template'),
-    t('services.columns.active_plans'),
-    t('services.columns.version_count'),
-    t('services.columns.status'),
-  ]
-  const rows = services.value.map((s) => [
-    `${s.name} (${formatServiceCode(s)})`,
-    getTemplateName(s) ?? '',
-    String(planCount(s)),
-    latestVersion(s),
-    s.isPubliclyAvailable ? t('services.status.active') : t('services.status.draft'),
-  ])
-  const csv = [header, ...rows]
-    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-    .join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `services-${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-}
 
 onMounted(() => {
   loadServices()
 })
 </script>
-
-<style scoped>
-.services-registry-table :deep(.p-datatable-thead > tr > th) {
-  background: var(--surface-container-low);
-  color: var(--on-surface-variant);
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding-block: 1.25rem;
-  border-bottom: 1px solid var(--outline-variant);
-}
-
-.services-registry-table :deep(.p-datatable-tbody > tr > td) {
-  padding-block: 1.25rem;
-  border-bottom: 1px solid var(--outline-variant);
-  border-bottom-width: 1px;
-}
-
-.services-registry-table :deep(.p-datatable-tbody > tr:hover) {
-  background: var(--surface-container-high);
-}
-</style>
