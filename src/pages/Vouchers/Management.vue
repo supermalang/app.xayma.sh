@@ -104,15 +104,18 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="loading" class="flex justify-center py-12">
-      <ProgressSpinner />
-    </div>
+    <AppLoadingState v-if="loading" variant="skeleton-rows" :rows="6" />
 
     <!-- Error state -->
-    <Message v-if="error" severity="error" :text="error" closable @close="error = null" />
+    <AppErrorState
+      v-else-if="error"
+      :title="$t('errors.fetch_failed')"
+      :description="error"
+      @retry="refreshVouchers"
+    />
 
     <!-- Vouchers table -->
-    <div v-if="!loading && vouchers.length > 0" class="overflow-hidden border border-outline/20 rounded">
+    <div v-else-if="vouchers.length > 0" class="overflow-hidden border border-outline/20 rounded">
       <DataTable
         :value="vouchers"
         :paginator="true"
@@ -181,12 +184,20 @@
     </div>
 
     <!-- Empty state -->
-    <div v-if="!loading && vouchers.length === 0" class="text-center py-12">
-      <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 block mb-4">
-        card_giftcard
-      </span>
-      <p class="text-on-surface-variant">{{ $t('vouchers.no_vouchers') }}</p>
-    </div>
+    <AppEmptyState
+      v-else
+      :title="$t('vouchers.empty.title')"
+      :description="$t('vouchers.empty.description')"
+      icon="pi-ticket"
+    >
+      <template #action>
+        <Button
+          :label="$t('vouchers.generate_vouchers')"
+          icon="pi pi-plus"
+          @click="showGenerateDialog = true"
+        />
+      </template>
+    </AppEmptyState>
 
     <!-- Generate vouchers dialog -->
     <GenerateVouchersDialog v-model:visible="showGenerateDialog" @created="onVouchersCreated" />
@@ -204,11 +215,12 @@ import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import ProgressBar from 'primevue/progressbar'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
-import ProgressSpinner from 'primevue/progressspinner'
 import vTooltip from 'primevue/tooltip'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
+import AppErrorState from '@/components/common/AppErrorState.vue'
+import AppLoadingState from '@/components/common/AppLoadingState.vue'
 import GenerateVouchersDialog from '@/components/vouchers/GenerateVouchersDialog.vue'
 import { listVouchers, getVoucherStats, deactivateVoucher as callDeactivate } from '@/services/vouchers.service'
 

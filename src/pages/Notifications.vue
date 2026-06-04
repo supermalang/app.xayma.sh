@@ -44,10 +44,11 @@
     <Card>
       <!-- Empty State -->
       <template v-if="filteredNotifications.length === 0">
-        <div class="text-center py-12">
-          <i class="pi pi-inbox text-4xl mb-4 block text-on-surface-variant opacity-50" />
-          <p class="text-on-surface-variant">{{ $t('notifications.empty') }}</p>
-        </div>
+        <AppEmptyState
+          :title="$t('notifications.empty.title')"
+          :description="$t('notifications.empty.description')"
+          icon="pi-bell"
+        />
       </template>
 
       <!-- Grouped by Date -->
@@ -93,6 +94,7 @@ import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import NotificationItem from '@/components/notifications/NotificationItem.vue'
 import { useNotifications } from '@/composables/useNotifications'
 import { deleteReadNotifications } from '@/services/notifications.service'

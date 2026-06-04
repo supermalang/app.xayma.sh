@@ -69,7 +69,6 @@
       </template>
 
       <DataTable
-        v-if="filteredPortfolio.length > 0"
         :value="paginatedPortfolio"
         striped-rows
         responsive-layout="stack"
@@ -117,12 +116,15 @@
             </router-link>
           </template>
         </Column>
-      </DataTable>
 
-      <div v-else class="text-center py-8 text-on-surface-variant">
-        <i class="pi pi-inbox text-3xl mb-2 block opacity-75" />
-        <p class="text-sm">{{ $t('portfolio.no_customers') }}</p>
-      </div>
+        <template #empty>
+          <AppEmptyState
+            :title="$t('portfolio.empty.title')"
+            :description="$t('portfolio.empty.description')"
+            icon="pi-briefcase"
+          />
+        </template>
+      </DataTable>
     </Card>
   </AppPage>
 </template>
@@ -138,6 +140,7 @@ import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 
 /**
  * Portfolio customer record

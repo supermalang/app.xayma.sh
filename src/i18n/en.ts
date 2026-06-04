@@ -153,6 +153,10 @@ export default {
 
   // Vouchers
   vouchers: {
+    empty: {
+      title: 'No vouchers yet',
+      description: 'Generate codes to distribute to customers or partners.',
+    },
     management_title: 'Voucher management',
     management_description: 'Create, manage, and track credit vouchers for distribution to customers.',
     generate_vouchers: 'Generate Vouchers',
@@ -346,7 +350,11 @@ export default {
     critical_credit_title: 'Critical Credit Balance',
     critical_credit_message: 'Your remaining credits are critically low ({remaining} FCFA). Top up immediately to avoid service suspension.',
     title: 'Notifications',
-    empty: 'No notifications yet',
+    empty: {
+      short: 'No notifications yet',
+      title: 'No notifications yet',
+      description: 'You\'re all caught up. New activity will show up here.',
+    },
     mark_all_read: 'Mark all as read',
     view_all: 'View all',
   },
@@ -354,6 +362,10 @@ export default {
   // Credits
   credits: {
     title: 'Credits',
+    empty: {
+      title: 'No transactions yet',
+      description: 'Top-ups, debits, and refunds will appear here.',
+    },
     balance: 'Credit Balance',
     topup: 'Top Up Credits',
     buy_credits: 'Buy Credits',
@@ -580,6 +592,10 @@ export default {
   // Audit Log
   audit: {
     title: 'Audit log',
+    empty: {
+      title: 'No audit entries',
+      description: 'Mutations to the platform will be recorded here as they happen.',
+    },
     table_name: 'Table Name',
     action: 'Action',
     user: 'User',
@@ -656,7 +672,10 @@ export default {
   services: {
     title: 'Service registry',
     create: 'Create new service',
-    empty: 'No services registered yet.',
+    empty: {
+      title: 'No services registered',
+      description: 'Define a service blueprint so customers can deploy it.',
+    },
     breadcrumb_root: 'Platform',
     subtitle:
       'Orchestrate and monitor your deployment ecosystem. Configure service blueprints, manage active instance plans, and track version lifecycles across the cluster.',
@@ -823,6 +842,10 @@ export default {
   deployments: {
     title: 'Deployments',
     subtitle: 'Manage your instances across distributed regions. Monitor status, domains, and billing cycles.',
+    empty: {
+      title: 'No deployments yet',
+      description: 'Deploy a service to get your first instance running.',
+    },
     create: 'New deployment',
     export_csv: 'Export CSV',
     filter: {
@@ -1051,6 +1074,10 @@ export default {
   portfolio: {
     title: 'Portfolio',
     description: 'Manage your customer portfolio and track credit status',
+    empty: {
+      title: 'No customers in your portfolio yet',
+      description: 'Customers you acquire will appear here with their plan and renewal status.',
+    },
     customers: 'Customers',
     customer_name: 'Customer Name',
     plan: 'Plan',

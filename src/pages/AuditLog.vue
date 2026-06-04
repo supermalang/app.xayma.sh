@@ -52,9 +52,11 @@
 
       <!-- Empty state -->
       <template #empty>
-        <div class="text-center text-on-surface-variant py-8">
-          {{ $t('common.no_data') }}
-        </div>
+        <AppEmptyState
+          :title="$t('audit.empty.title')"
+          :description="$t('audit.empty.description')"
+          icon="pi-history"
+        />
       </template>
     </DataTable>
   </AppPage>
@@ -71,6 +73,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
 

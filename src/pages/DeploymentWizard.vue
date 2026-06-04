@@ -74,7 +74,7 @@
         severity="info"
         :closable="false"
       >
-        {{ $t('services.empty') }}
+        {{ $t('services.empty.title') }}
       </Message>
 
       <div

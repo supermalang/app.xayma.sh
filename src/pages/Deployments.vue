@@ -162,9 +162,19 @@
           </Column>
 
           <template #empty>
-            <div class="text-center text-on-surface-variant py-8">
-              {{ $t('common.no_data') }}
-            </div>
+            <AppEmptyState
+              :title="$t('deployments.empty.title')"
+              :description="$t('deployments.empty.description')"
+              icon="pi-cloud"
+            >
+              <template #action>
+                <Button
+                  :label="$t('deployments.create')"
+                  icon="pi pi-plus"
+                  @click="navigateToWizard"
+                />
+              </template>
+            </AppEmptyState>
           </template>
         </DataTable>
       </Transition>
@@ -204,6 +214,7 @@ import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import StatCard from '@/components/common/StatCard.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'

@@ -154,6 +154,10 @@ export default {
 
   // Vouchers
   vouchers: {
+    empty: {
+      title: 'Aucun bon pour le moment',
+      description: 'Générez des codes à distribuer aux clients ou partenaires.',
+    },
     management_title: 'Gestion des bons',
     management_description: 'Créer, gérer et suivre les bons de crédit pour distribution aux clients.',
     generate_vouchers: 'Générer des bons',
@@ -347,7 +351,11 @@ export default {
     critical_credit_title: 'Solde de crédit critique',
     critical_credit_message: 'Vos crédits restants sont critiquement bas ({remaining} FCFA). Rechargez immédiatement pour éviter la suspension du service.',
     title: 'Notifications',
-    empty: 'Pas encore de notifications',
+    empty: {
+      short: 'Pas encore de notifications',
+      title: 'Pas encore de notifications',
+      description: 'Tout est à jour. Les nouvelles activités apparaîtront ici.',
+    },
     mark_all_read: 'Tout marquer comme lu',
     view_all: 'Voir tout',
   },
@@ -355,6 +363,10 @@ export default {
   // Credits
   credits: {
     title: 'Crédits',
+    empty: {
+      title: 'Aucune transaction',
+      description: 'Les recharges, débits et remboursements apparaîtront ici.',
+    },
     balance: 'Solde des crédits',
     topup: 'Recharger les crédits',
     buy_credits: 'Acheter des crédits',
@@ -581,6 +593,10 @@ export default {
   // Audit Log
   audit: {
     title: 'Journal d\'audit',
+    empty: {
+      title: 'Aucune entrée',
+      description: 'Les modifications de la plateforme seront enregistrées ici en temps réel.',
+    },
     table_name: 'Nom de la table',
     action: 'Action',
     user: 'Utilisateur',
@@ -657,7 +673,10 @@ export default {
   services: {
     title: 'Registre des services',
     create: 'Créer un nouveau service',
-    empty: 'Aucun service enregistré pour le moment.',
+    empty: {
+      title: 'Aucun service enregistré',
+      description: 'Définissez un modèle de service pour que les clients puissent le déployer.',
+    },
     breadcrumb_root: 'Plateforme',
     subtitle:
       'Orchestrez et supervisez votre écosystème de déploiement. Configurez les blueprints de services, gérez les formules d’instance actives et suivez le cycle de vie des versions sur l’ensemble du cluster.',
@@ -824,6 +843,10 @@ export default {
   deployments: {
     title: 'Déploiements',
     subtitle: 'Gérez vos instances dans des régions distribuées. Surveillez le statut, les domaines et les cycles de facturation.',
+    empty: {
+      title: 'Aucun déploiement',
+      description: 'Déployez un service pour obtenir votre première instance.',
+    },
     create: 'Nouveau déploiement',
     export_csv: 'Exporter CSV',
     filter: {
@@ -1052,6 +1075,10 @@ export default {
   portfolio: {
     title: 'Portefeuille',
     description: 'Gérez votre portefeuille de clients et suivez l\'état des crédits',
+    empty: {
+      title: 'Aucun client',
+      description: 'Les clients que vous acquérez apparaîtront ici avec leur forfait et leur date de renouvellement.',
+    },
     customers: 'Clients',
     customer_name: 'Nom du client',
     plan: 'Plan',

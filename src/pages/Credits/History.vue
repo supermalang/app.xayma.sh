@@ -181,26 +181,21 @@
         </div>
       </Popover>
 
-      <Message
+      <AppErrorState
         v-if="error"
-        severity="error"
-        :closable="true"
-        class="mx-6 mb-4"
-        @close="error = null"
-      >
-        {{ error }}
-      </Message>
+        :title="t('errors.fetch_failed')"
+        :description="error"
+        @retry="refreshTransactions"
+      />
 
-      <div v-if="loading" class="flex justify-center py-16">
-        <ProgressSpinner />
-      </div>
+      <AppLoadingState v-else-if="loading" variant="skeleton-rows" :rows="6" />
 
-      <div v-else-if="transactions.length === 0" class="text-center py-16">
-        <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 block mb-3">
-          receipt_long
-        </span>
-        <p class="text-on-surface-variant">{{ t('credits.no_transactions') }}</p>
-      </div>
+      <AppEmptyState
+        v-else-if="transactions.length === 0"
+        :title="t('credits.empty.title')"
+        :description="t('credits.empty.description')"
+        icon="pi-receipt"
+      />
 
       <DataTable
         v-else
@@ -272,11 +267,12 @@ import Column from 'primevue/column'
 import Calendar from 'primevue/calendar'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
 import Popover from 'primevue/popover'
-import ProgressSpinner from 'primevue/progressspinner'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
+import AppErrorState from '@/components/common/AppErrorState.vue'
+import AppLoadingState from '@/components/common/AppLoadingState.vue'
 import { listTransactions } from '@/services/credits.service'
 import { formatNumber, formatDateTime } from '@/lib/formatters'
 import { downloadCsv } from '@/lib/csv'

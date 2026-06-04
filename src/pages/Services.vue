@@ -58,7 +58,19 @@
         class="services-registry-table"
       >
         <template #empty>
-          <span class="text-on-surface-variant text-sm">{{ $t('services.empty') }}</span>
+          <AppEmptyState
+            :title="$t('services.empty.title')"
+            :description="$t('services.empty.description')"
+            icon="pi-box"
+          >
+            <template #action>
+              <Button
+                :label="$t('services.create')"
+                icon="pi pi-plus"
+                @click="router.push('/services/new')"
+              />
+            </template>
+          </AppEmptyState>
         </template>
 
         <Column field="name" :header="$t('services.columns.name')" header-class="!ps-8">
@@ -204,6 +216,7 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import { listServices, readServicePlans } from '@/services/services.service'
 
 const PAGE_SIZE = 10

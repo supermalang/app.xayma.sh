@@ -19,7 +19,7 @@
       <!-- Empty State -->
       <div v-if="notifications.length === 0" class="p-4 text-center text-on-surface-variant">
         <i class="pi pi-inbox text-3xl mb-2 block opacity-50" />
-        <p class="text-sm">{{ $t('notifications.empty') }}</p>
+        <p class="text-sm">{{ $t('notifications.empty.short') }}</p>
       </div>
 
       <!-- Notifications List -->
