@@ -550,6 +550,10 @@ export default {
   // Users
   users: {
     title: 'Users',
+    empty: {
+      title: 'No users yet',
+      description: 'Create the first user to grant access to the platform.',
+    },
     form: {
       firstname: 'First Name',
       lastname: 'Last Name',
@@ -607,6 +611,10 @@ export default {
   // Partners
   partners: {
     title: 'Partners',
+    empty: {
+      title: 'No partners yet',
+      description: 'Add a customer or reseller to start tracking deployments and credits.',
+    },
     type: {
       customer: 'Customer',
       reseller: 'Reseller',
@@ -656,6 +664,10 @@ export default {
   // Control Nodes
   control_nodes: {
     title: 'Control nodes',
+    empty: {
+      title: 'No control nodes registered',
+      description: 'Register a node so deployments have somewhere to land.',
+    },
     form: {
       name: 'Node Name',
       hostname: 'Hostname',

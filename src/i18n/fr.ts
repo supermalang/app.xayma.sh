@@ -551,6 +551,10 @@ export default {
   // Users
   users: {
     title: 'Utilisateurs',
+    empty: {
+      title: 'Aucun utilisateur',
+      description: 'Créez le premier utilisateur pour donner accès à la plateforme.',
+    },
     form: {
       firstname: 'Prénom',
       lastname: 'Nom',
@@ -608,6 +612,10 @@ export default {
   // Partners
   partners: {
     title: 'Partenaires',
+    empty: {
+      title: 'Aucun partenaire',
+      description: 'Ajoutez un client ou un revendeur pour commencer à suivre les déploiements et les crédits.',
+    },
     type: {
       customer: 'Client',
       reseller: 'Revendeur',
@@ -657,6 +665,10 @@ export default {
   // Control Nodes
   control_nodes: {
     title: 'Nœuds de contrôle',
+    empty: {
+      title: 'Aucun nœud de contrôle',
+      description: 'Enregistrez un nœud pour héberger les déploiements.',
+    },
     form: {
       name: 'Nom du nœud',
       hostname: 'Nom d\'hôte',

@@ -50,6 +50,22 @@
           />
         </div>
       </template>
+
+      <template #empty>
+        <AppEmptyState
+          :title="$t('control_nodes.empty.title')"
+          :description="$t('control_nodes.empty.description')"
+          icon="pi-server"
+        >
+          <template #action>
+            <Button
+              :label="$t('common.create')"
+              icon="pi pi-plus"
+              @click="showCreateDialog"
+            />
+          </template>
+        </AppEmptyState>
+      </template>
     </AppDataTable>
 
     <!-- Create/Edit Dialog -->
@@ -128,6 +144,7 @@ import Tag from 'primevue/tag'
 import AppDataTable from '@/components/common/AppDataTable.vue'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 
 const { t } = useI18n()
 

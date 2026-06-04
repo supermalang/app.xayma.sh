@@ -73,6 +73,22 @@
           />
         </div>
       </template>
+
+      <template #empty>
+        <AppEmptyState
+          :title="$t('users.empty.title')"
+          :description="$t('users.empty.description')"
+          icon="pi-user"
+        >
+          <template #action>
+            <Button
+              :label="$t('common.create')"
+              icon="pi pi-plus"
+              @click="showCreateDialog"
+            />
+          </template>
+        </AppEmptyState>
+      </template>
     </AppDataTable>
 
     <!-- Create/Edit Dialog -->
@@ -104,6 +120,7 @@ import Tag from 'primevue/tag'
 import AppDataTable from '@/components/common/AppDataTable.vue'
 import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import UserForm from '@/components/users/UserForm.vue'
 import * as userService from '@/services/users.service'
 import * as partnerService from '@/services/partners.service'

@@ -76,11 +76,13 @@
         </template>
       </Column>
 
-      <!-- Empty state -->
+      <!-- Empty state — callers override with their own AppEmptyState if desired -->
       <template #empty>
-        <div class="text-center text-on-surface-variant py-8">
-          {{ $t('common.no_data') }}
-        </div>
+        <slot name="empty">
+          <div class="text-center text-on-surface-variant py-8">
+            {{ $t('common.no_data') }}
+          </div>
+        </slot>
       </template>
     </DataTable>
   </div>
