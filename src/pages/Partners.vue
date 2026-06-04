@@ -13,135 +13,132 @@
       </AppPageHeader>
     </div>
 
-    <!-- DataTable with lazy-load animation -->
-    <transition name="table-fade">
-      <div key="table" class="table-container">
-        <AppDataTable
-          :rows="partners"
-          :columns="tableColumns"
-          :loading="isLoading"
-          :total-records="totalRecords"
-          :page-size="pageSize"
-          paginator
-          lazy
-          export-filename="partners"
-          :empty-title="$t('partners.empty.title')"
-          :empty-description="$t('partners.empty.description')"
-          empty-icon="pi-users"
-          @page-change="handlePageChange"
-        >
-          <!-- Filter popover -->
-          <template #filter>
-            <div class="space-y-2">
-              <label for="partners-filter-search" class="block text-sm font-medium">
-                {{ $t('common.search') }}
-              </label>
-              <InputText
-                id="partners-filter-search"
-                v-model="filters.search"
-                class="w-full"
-                @keydown.enter="applyFilters"
-              />
-            </div>
-            <div class="space-y-2">
-              <label for="partners-filter-status" class="block text-sm font-medium">
-                {{ $t('partners.form.status') }}
-              </label>
-              <Dropdown
-                id="partners-filter-status"
-                v-model="filters.status"
-                :options="statusOptions"
-                option-label="label"
-                option-value="value"
-                :placeholder="$t('partners.form.status')"
-                class="w-full"
-                show-clear
-              />
-            </div>
-            <div class="space-y-2">
-              <label for="partners-filter-type" class="block text-sm font-medium">
-                {{ $t('partners.form.type') }}
-              </label>
-              <Dropdown
-                id="partners-filter-type"
-                v-model="filters.partner_type"
-                :options="partnerTypeOptions"
-                option-label="label"
-                option-value="value"
-                :placeholder="$t('partners.form.type')"
-                class="w-full"
-                show-clear
-              />
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-              <Button
-                :label="$t('common.reset')"
-                severity="secondary"
-                outlined
-                size="small"
-                @click="resetFilters"
-              />
-              <Button
-                :label="$t('common.apply')"
-                size="small"
-                @click="applyFilters"
-              />
-            </div>
-          </template>
-
-          <!-- Status column -->
-          <template #body-status="{ data }">
-            <PartnerStatusBadge
-              :status="(data as any).status"
-              :class="{ 'status-badge-pulse': (data as any).status === 'suspended' }"
+    <div class="table-container">
+      <AppDataTable
+        :rows="partners"
+        :columns="tableColumns"
+        :loading="isLoading"
+        :total-records="totalRecords"
+        :page-size="pageSize"
+        paginator
+        lazy
+        export-filename="partners"
+        :empty-title="$t('partners.empty.title')"
+        :empty-description="$t('partners.empty.description')"
+        empty-icon="pi-users"
+        @page-change="handlePageChange"
+      >
+        <!-- Filter popover -->
+        <template #filter>
+          <div class="space-y-2">
+            <label for="partners-filter-search" class="block text-sm font-medium">
+              {{ $t('common.search') }}
+            </label>
+            <InputText
+              id="partners-filter-search"
+              v-model="filters.search"
+              class="w-full"
+              @keydown.enter="applyFilters"
             />
-          </template>
-
-          <!-- Type column -->
-          <template #body-partner_type="{ data }">
-            <PartnerTypeBadge
-              :type="(data as any).partner_type"
-              :class="{ 'type-reseller-highlight': (data as any).partner_type === 'reseller' }"
+          </div>
+          <div class="space-y-2">
+            <label for="partners-filter-status" class="block text-sm font-medium">
+              {{ $t('partners.form.status') }}
+            </label>
+            <Dropdown
+              id="partners-filter-status"
+              v-model="filters.status"
+              :options="statusOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('partners.form.status')"
+              class="w-full"
+              show-clear
             />
-          </template>
-
-          <!-- Row actions -->
-          <template #rowActions="{ data }">
-            <div class="flex gap-2 action-buttons">
-              <Button
-                icon="pi pi-eye"
-                class="p-button-rounded p-button-text p-button-sm"
-                :title="$t('common.view')"
-                :aria-label="$t('common.view')"
-                @click="goToPartnerDetail((data as any).id)"
-              />
-              <Button
-                icon="pi pi-pencil"
-                class="p-button-rounded p-button-text p-button-sm"
-                :title="$t('common.edit')"
-                :aria-label="$t('common.edit')"
-                @click="editPartner(data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                :title="$t('common.delete')"
-                :aria-label="$t('common.delete')"
-                @click="deletePartner((data as any).id)"
-              />
-            </div>
-          </template>
-
-          <template #emptyAction>
+          </div>
+          <div class="space-y-2">
+            <label for="partners-filter-type" class="block text-sm font-medium">
+              {{ $t('partners.form.type') }}
+            </label>
+            <Dropdown
+              id="partners-filter-type"
+              v-model="filters.partner_type"
+              :options="partnerTypeOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('partners.form.type')"
+              class="w-full"
+              show-clear
+            />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
             <Button
-              :label="$t('common.create')"
-              icon="pi pi-plus"
-              @click="showCreateDialog"
+              :label="$t('common.reset')"
+              severity="secondary"
+              outlined
+              size="small"
+              @click="resetFilters"
             />
-          </template>
-        </AppDataTable>
-      </div>
-    </transition>
+            <Button
+              :label="$t('common.apply')"
+              size="small"
+              @click="applyFilters"
+            />
+          </div>
+        </template>
+
+        <!-- Status column -->
+        <template #body-status="{ data }">
+          <PartnerStatusBadge
+            :status="(data as any).status"
+            :class="{ 'status-badge-pulse': (data as any).status === 'suspended' }"
+          />
+        </template>
+
+        <!-- Type column -->
+        <template #body-partner_type="{ data }">
+          <PartnerTypeBadge
+            :type="(data as any).partner_type"
+            :class="{ 'type-reseller-highlight': (data as any).partner_type === 'reseller' }"
+          />
+        </template>
+
+        <!-- Row actions -->
+        <template #rowActions="{ data }">
+          <div class="flex gap-2 action-buttons">
+            <Button
+              icon="pi pi-eye"
+              class="p-button-rounded p-button-text p-button-sm"
+              :title="$t('common.view')"
+              :aria-label="$t('common.view')"
+              @click="goToPartnerDetail((data as any).id)"
+            />
+            <Button
+              icon="pi pi-pencil"
+              class="p-button-rounded p-button-text p-button-sm"
+              :title="$t('common.edit')"
+              :aria-label="$t('common.edit')"
+              @click="editPartner(data)"
+            />
+            <Button
+              icon="pi pi-trash"
+              class="p-button-rounded p-button-text p-button-sm p-button-danger"
+              :title="$t('common.delete')"
+              :aria-label="$t('common.delete')"
+              @click="deletePartner((data as any).id)"
+            />
+          </div>
+        </template>
+
+        <template #emptyAction>
+          <Button
+            :label="$t('common.create')"
+            icon="pi pi-plus"
+            @click="showCreateDialog"
+          />
+        </template>
+      </AppDataTable>
+    </div>
 
     <!-- Create/Edit Dialog -->
     <transition name="dialog-slide-up">
