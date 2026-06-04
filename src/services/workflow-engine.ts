@@ -17,6 +17,8 @@
  */
 
 import { getSetting } from './settings'
+import { isMockEnabled, lookupMockHandler } from './mock-engine'
+import { xaymaSupabase } from './supabase'
 
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 1000
@@ -68,6 +70,16 @@ function buildOperationUrl(base: string, operation: string): string {
  * Internal engine call with optional JSON response parsing.
  * Retries on 5xx, throws on 4xx.
  */
+async function buildMockContext() {
+  const { useAuthStore } = await import('@/stores/auth.store')
+  const authStore = useAuthStore()
+  return {
+    supabase: xaymaSupabase,
+    authUserId: authStore.user?.id ?? null,
+    partnerId: (authStore.profile?.company_id as number | null | undefined) ?? null,
+  }
+}
+
 async function callEngineInternal<T = void>(
   engine: Engine,
   operation: string,
@@ -75,6 +87,15 @@ async function callEngineInternal<T = void>(
   parseResponse = false,
   retryCount = 0
 ): Promise<T> {
+  if (isMockEnabled()) {
+    const handler = lookupMockHandler(engine, operation)
+    if (handler) {
+      const ctx = await buildMockContext()
+      const result = await handler(payload, ctx)
+      return (parseResponse ? result : undefined) as T
+    }
+  }
+
   try {
     const { url, token } = await getEngineConfig(engine)
     const target = buildOperationUrl(url, operation)

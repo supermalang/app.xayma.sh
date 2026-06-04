@@ -1,14 +1,19 @@
 <template>
-  <div class="w-full">
+  <AppPage>
     <!-- Page header -->
-    <header class="mb-12">
-      <h1 class="text-page-title mb-2">
-        {{ t('credits.top_up.title') }}
-      </h1>
-      <p class="text-on-surface-variant max-w-2xl">
-        {{ t('credits.top_up.description') }}
-      </p>
-    </header>
+    <AppPageHeader
+      :title="t('credits.top_up.title')"
+      :description="t('credits.top_up.description')"
+    >
+      <template #actions>
+        <Button
+          :label="t('vouchers.redeem.have_code_link')"
+          text
+          icon="pi pi-ticket"
+          @click="showRedeemDialog = true"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- Reseller discount banner -->
     <div
@@ -266,7 +271,14 @@
         </div>
       </aside>
     </div>
-  </div>
+
+    <RedeemVoucherDialog
+      v-if="authStore.profile?.company_id"
+      v-model:visible="showRedeemDialog"
+      :partner-id="Number(authStore.profile.company_id)"
+      @redeemed="onVoucherRedeemed"
+    />
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -275,6 +287,8 @@ import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
@@ -287,6 +301,7 @@ import {
   getPaymentGateways,
 } from '@/services/settings'
 import { initiateCheckout } from '@/services/workflow-engine'
+import RedeemVoucherDialog from '@/components/credits/RedeemVoucherDialog.vue'
 import type {
   BundleLineItem,
   CreditBundle,
@@ -312,6 +327,13 @@ const checkoutLoading = ref(false)
 
 const selectedBundleId = ref<string | null>(null)
 const selectedGatewayId = ref<string | null>(null)
+
+const showRedeemDialog = ref(false)
+function onVoucherRedeemed() {
+  // partner.store realtime sub picks up the balance update automatically;
+  // also refresh the local credits computation for an immediate UI tick.
+  void refreshCredits()
+}
 
 const applicableDiscount = ref<{ discountPercent: number } | null>(null)
 const isReseller = computed(() => userRole.value === 'RESELLER')

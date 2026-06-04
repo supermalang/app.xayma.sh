@@ -24,6 +24,17 @@ export default {
   },
 
   // Common
+  a11y: {
+    skip_to_main: 'Skip to main content',
+    open_menu: 'Open menu',
+    close_menu: 'Close menu',
+    user_menu: 'User menu',
+    notifications: 'Notifications',
+    view_item: 'View',
+    edit_item: 'Edit',
+    delete_item: 'Delete',
+  },
+
   common: {
     save: 'Save',
     cancel: 'Cancel',
@@ -31,7 +42,8 @@ export default {
     edit: 'Edit',
     update: 'Update',
     create: 'Create',
-    loading: 'Loading...',
+    loading: 'Loading…',
+    retry: 'Retry',
     error: 'Error',
     success: 'Success',
     noData: 'No data available',
@@ -40,6 +52,9 @@ export default {
     search: 'Search',
     columns: 'Columns',
     export: 'Export',
+    filter: 'Filter',
+    reset: 'Reset',
+    apply: 'Apply',
     actions: 'Actions',
     details: 'Details',
     select: 'Select',
@@ -141,6 +156,10 @@ export default {
 
   // Vouchers
   vouchers: {
+    empty: {
+      title: 'No vouchers yet',
+      description: 'Generate codes to distribute to customers or partners.',
+    },
     management_title: 'Voucher management',
     management_description: 'Create, manage, and track credit vouchers for distribution to customers.',
     generate_vouchers: 'Generate Vouchers',
@@ -185,6 +204,35 @@ export default {
       error_quantity: 'Quantity must be between 1 and 100',
       error_expiry: 'Please select an expiry date',
     },
+    redeem: {
+      title: 'Redeem voucher',
+      description: 'Enter your voucher code to add credits to your account.',
+      code_label: 'Voucher code',
+      submit: 'Redeem',
+      success: 'Voucher redeemed',
+      have_code_link: 'Have a voucher code?',
+    },
+    errors: {
+      not_found: 'Voucher code not found.',
+      inactive: 'This voucher is no longer active.',
+      expired: 'This voucher has expired.',
+      fully_redeemed: 'This voucher has reached its usage limit.',
+      wrong_type: 'This voucher cannot be used by your account type.',
+      already_redeemed: 'You have already redeemed this voucher.',
+      partner_not_found: 'Partner not found.',
+      generic: 'Could not redeem voucher.',
+    },
+  },
+
+  mock_gateway: {
+    dev_banner: 'Mock gateway — development only',
+    title: 'Payment confirmation',
+    bundle: 'Bundle',
+    amount: 'Amount',
+    transaction_id: 'Transaction ID',
+    approve: 'Approve',
+    reject: 'Reject',
+    auto_approve: 'Auto-approving in {seconds}s…',
   },
 
   // Dashboard
@@ -305,7 +353,11 @@ export default {
     critical_credit_title: 'Critical Credit Balance',
     critical_credit_message: 'Your remaining credits are critically low ({remaining} FCFA). Top up immediately to avoid service suspension.',
     title: 'Notifications',
-    empty: 'No notifications yet',
+    empty: {
+      short: 'No notifications yet',
+      title: 'No notifications yet',
+      description: 'You\'re all caught up. New activity will show up here.',
+    },
     mark_all_read: 'Mark all as read',
     view_all: 'View all',
   },
@@ -313,6 +365,10 @@ export default {
   // Credits
   credits: {
     title: 'Credits',
+    empty: {
+      title: 'No transactions yet',
+      description: 'Top-ups, debits, and refunds will appear here.',
+    },
     balance: 'Credit Balance',
     topup: 'Top Up Credits',
     buy_credits: 'Buy Credits',
@@ -497,6 +553,10 @@ export default {
   // Users
   users: {
     title: 'Users',
+    empty: {
+      title: 'No users yet',
+      description: 'Create the first user to grant access to the platform.',
+    },
     form: {
       firstname: 'First Name',
       lastname: 'Last Name',
@@ -539,6 +599,10 @@ export default {
   // Audit Log
   audit: {
     title: 'Audit log',
+    empty: {
+      title: 'No audit entries',
+      description: 'Mutations to the platform will be recorded here as they happen.',
+    },
     table_name: 'Table Name',
     action: 'Action',
     user: 'User',
@@ -550,6 +614,10 @@ export default {
   // Partners
   partners: {
     title: 'Partners',
+    empty: {
+      title: 'No partners yet',
+      description: 'Add a customer or reseller to start tracking deployments and credits.',
+    },
     type: {
       customer: 'Customer',
       reseller: 'Reseller',
@@ -599,6 +667,10 @@ export default {
   // Control Nodes
   control_nodes: {
     title: 'Control nodes',
+    empty: {
+      title: 'No control nodes registered',
+      description: 'Register a node so deployments have somewhere to land.',
+    },
     form: {
       name: 'Node Name',
       hostname: 'Hostname',
@@ -615,7 +687,10 @@ export default {
   services: {
     title: 'Service registry',
     create: 'Create new service',
-    empty: 'No services registered yet.',
+    empty: {
+      title: 'No services registered',
+      description: 'Define a service blueprint so customers can deploy it.',
+    },
     breadcrumb_root: 'Platform',
     subtitle:
       'Orchestrate and monitor your deployment ecosystem. Configure service blueprints, manage active instance plans, and track version lifecycles across the cluster.',
@@ -639,10 +714,12 @@ export default {
       actions: 'Actions',
     },
     create_page: {
+      eyebrow: 'New service',
       title: 'Create new service',
       subtitle: 'Define a new core service or third-party integration for the deployment registry. All technical parameters must strictly follow the system schema.',
     },
     edit_page: {
+      eyebrow: 'Edit service',
       title: 'Edit service',
       subtitle: 'Update configuration, plans, versions and lifecycle commands. The slug is permanent and cannot be changed.',
     },
@@ -780,6 +857,10 @@ export default {
   deployments: {
     title: 'Deployments',
     subtitle: 'Manage your instances across distributed regions. Monitor status, domains, and billing cycles.',
+    empty: {
+      title: 'No deployments yet',
+      description: 'Deploy a service to get your first instance running.',
+    },
     create: 'New deployment',
     export_csv: 'Export CSV',
     filter: {
@@ -977,6 +1058,7 @@ export default {
     page_description: 'Stay updated with all your alerts and messages',
     empty: 'No notifications yet',
     mark_as_read: 'Mark as read',
+    unread: 'Unread',
     mark_all_read: 'Mark all as read',
     view_all: 'View all notifications',
     delete: 'Delete',
@@ -1007,6 +1089,10 @@ export default {
   portfolio: {
     title: 'Portfolio',
     description: 'Manage your customer portfolio and track credit status',
+    empty: {
+      title: 'No customers in your portfolio yet',
+      description: 'Customers you acquire will appear here with their plan and renewal status.',
+    },
     customers: 'Customers',
     customer_name: 'Customer Name',
     plan: 'Plan',
@@ -1113,6 +1199,18 @@ export default {
     error_loading: 'Failed to load settings',
     error_saving: 'Failed to save settings',
     error_loading_transactions: 'Failed to load recent transactions',
+
+    // Dev tools
+    dev_tools: {
+      title: 'Dev tools',
+      description: 'Visible only in development or when mock mode is on. Do not enable in production.',
+      mock_workflow_engine: 'Mock workflow engine',
+      mock_source: 'Source: {source}',
+      run_deduction: 'Run credit deduction now',
+      run_deduction_hint: 'Simulates the 15-minute n8n cron once.',
+      deduction_done: 'Credit deduction complete',
+      deduction_summary: '{n} deployment(s), {total} credits debited, {suspended} suspended',
+    },
 
     // Payment gateways
     payment_gateways: 'Payment gateways',

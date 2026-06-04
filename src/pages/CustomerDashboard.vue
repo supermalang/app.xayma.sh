@@ -1,5 +1,5 @@
 <template>
-  <div class="relative space-y-6 page-enter">
+  <AppPage class="relative">
     <RefreshingBadge :visible="isRefreshing" />
     <!-- Page Header -->
     <AppPageHeader
@@ -227,7 +227,7 @@
         />
       </template>
     </Card>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -239,6 +239,7 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import ProgressBar from 'primevue/progressbar'
 import Skeleton from 'primevue/skeleton'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import LineChart from '@/components/charts/LineChart.vue'
 import RefreshingBadge from '@/components/RefreshingBadge.vue'

@@ -1,63 +1,78 @@
 <template>
-  <div class="space-y-6 page-enter">
-    <h1 class="text-page-title">{{ $t('nav.audit') }}</h1>
+  <AppPage>
+    <AppPageHeader :title="$t('nav.audit')" />
 
-    <!-- Filters -->
-    <div class="flex gap-4 flex-wrap">
-      <InputText
-        v-model="filters.table_name"
-        :placeholder="$t('audit.table_name')"
-        class="w-40"
-        @input="applyFilters"
-      />
-      <Dropdown
-        v-model="filters.action"
-        :options="actionOptions"
-        option-label="label"
-        option-value="value"
-        :placeholder="$t('audit.action')"
-        class="w-40"
-        show-clear
-        @change="applyFilters"
-      />
-      <Calendar
-        v-model="filters.dateRange"
-        selection-mode="range"
-        :placeholder="$t('audit.date_range')"
-        @date-select="applyFilters"
-      />
-    </div>
-
-    <!-- DataTable -->
-    <DataTable
-      :value="auditEntries"
+    <AppDataTable
+      :rows="auditEntries"
+      :columns="columns"
       :loading="isLoading"
-      striped-rows
-      responsive-layout="scroll"
-      class="p-datatable-striped"
+      :total-records="auditEntries.length"
+      export-filename="audit-log"
+      :empty-title="$t('audit.empty.title')"
+      :empty-description="$t('audit.empty.description')"
+      empty-icon="pi-history"
     >
-      <Column field="created_at" :header="$t('audit.created')">
-        <template #body="{ data }">
-          {{ formatDate(data.created_at) }}
-        </template>
-      </Column>
-      <Column field="table_name" :header="$t('audit.table_name')" />
-      <Column field="operation" :header="$t('audit.action')">
-        <template #body="{ data }">
-          <Tag :value="data.operation" :severity="getActionSeverity(data.operation)" />
-        </template>
-      </Column>
-      <Column field="email" :header="$t('audit.user')" />
-      <Column field="description" :header="$t('audit.description')" />
-
-      <!-- Empty state -->
-      <template #empty>
-        <div class="text-center text-on-surface-variant py-8">
-          {{ $t('common.no_data') }}
+      <template #filter>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('audit.table_name') }}
+          </label>
+          <InputText
+            v-model="filterInputs.table_name"
+            :placeholder="$t('audit.table_name')"
+            class="w-full"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('audit.action') }}
+          </label>
+          <Dropdown
+            v-model="filterInputs.action"
+            :options="actionOptions"
+            option-label="label"
+            option-value="value"
+            :placeholder="$t('audit.action')"
+            class="w-full"
+            show-clear
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('audit.date_range') }}
+          </label>
+          <Calendar
+            v-model="filterInputs.dateRange"
+            selection-mode="range"
+            :placeholder="$t('audit.date_range')"
+            class="w-full"
+          />
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
+          <Button
+            :label="$t('common.reset')"
+            severity="secondary"
+            text
+            size="small"
+            @click="resetFilters"
+          />
+          <Button
+            :label="$t('common.apply')"
+            size="small"
+            @click="applyFilters"
+          />
         </div>
       </template>
-    </DataTable>
-  </div>
+
+      <template #body-created_at="{ data }">
+        {{ formatDate((data as AuditEntry).created_at) }}
+      </template>
+
+      <template #body-operation="{ data }">
+        <Tag :value="(data as AuditEntry).operation" :severity="getActionSeverity((data as AuditEntry).operation)" />
+      </template>
+    </AppDataTable>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -66,24 +81,49 @@ import { useI18n } from 'vue-i18n'
 import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
+import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppDataTable, { type AppTableColumn } from '@/components/common/AppDataTable.vue'
 import { supabaseFrom } from '@/services/supabase'
 import { useNotificationStore } from '@/stores/notifications.store'
+
+interface AuditEntry {
+  created_at: string
+  table_name: string
+  operation: string
+  email: string
+  description: string
+}
 
 const { t } = useI18n()
 const notificationStore = useNotificationStore()
 
 // State
 const isLoading = ref(false)
-const auditEntries = ref<any[]>([])
+const auditEntries = ref<AuditEntry[]>([])
 
 const filters = ref<{ table_name: string; action: string; dateRange: Date[] | null }>({
   table_name: '',
   action: '',
   dateRange: null,
 })
+
+// Draft filter state (only applied on Apply click)
+const filterInputs = ref<{ table_name: string; action: string; dateRange: Date[] | null }>({
+  table_name: '',
+  action: '',
+  dateRange: null,
+})
+
+const columns: AppTableColumn[] = [
+  { field: 'created_at', header: 'audit.created' },
+  { field: 'table_name', header: 'audit.table_name' },
+  { field: 'operation', header: 'audit.action' },
+  { field: 'email', header: 'audit.user' },
+  { field: 'description', header: 'audit.description' },
+]
 
 // Options
 const actionOptions = [
@@ -141,7 +181,7 @@ const loadAuditEntries = async () => {
       return
     }
 
-    auditEntries.value = data || []
+    auditEntries.value = (data as unknown as AuditEntry[]) || []
   } catch (error) {
     console.error('Failed to load audit entries:', error)
     notificationStore.addError(t('errors.fetch_failed'))
@@ -152,6 +192,13 @@ const loadAuditEntries = async () => {
 
 // Apply filters
 const applyFilters = () => {
+  filters.value = { ...filterInputs.value }
+  loadAuditEntries()
+}
+
+const resetFilters = () => {
+  filterInputs.value = { table_name: '', action: '', dateRange: null }
+  filters.value = { table_name: '', action: '', dateRange: null }
   loadAuditEntries()
 }
 
@@ -160,9 +207,3 @@ onMounted(() => {
   loadAuditEntries()
 })
 </script>
-
-<style scoped>
-:deep(.p-datatable) {
-  --p-datatable-border-color: var(--outline-variant);
-}
-</style>

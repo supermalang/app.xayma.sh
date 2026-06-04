@@ -1,7 +1,7 @@
 <template>
-  <div class="w-full max-w-7xl mx-auto">
+  <AppPage>
     <!-- Breadcrumbs -->
-    <nav class="mb-8 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+    <nav class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
       <button
         type="button"
         class="hover:text-primary transition-colors"
@@ -241,7 +241,7 @@
         </p>
       </footer>
     </template>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -252,6 +252,7 @@ import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import AppPage from '@/components/common/AppPage.vue'
 import { getTransaction, type CreditTransactionRow } from '@/services/credits.service'
 import { getPartner, type Partner } from '@/services/partners.service'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'

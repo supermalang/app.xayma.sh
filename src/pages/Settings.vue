@@ -1,12 +1,10 @@
 <template>
-  <div class="space-y-12 page-enter">
+  <AppPage>
     <!-- Page header -->
-    <div>
-      <h1 class="text-page-title mb-2">
-        {{ t('settings.title') }}
-      </h1>
-      <p class="text-on-surface-variant text-sm max-w-2xl">{{ t('settings.description') }}</p>
-    </div>
+    <AppPageHeader
+      :title="t('settings.title')"
+      :description="t('settings.description')"
+    />
 
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center py-24">
@@ -327,6 +325,45 @@
         </section>
       </div>
 
+      <!-- Dev tools — visible only in dev mode or when mock mode is on -->
+      <section
+        v-if="showDevTools"
+        class="space-y-4 border border-amber-500/40 rounded p-6 bg-amber-500/5"
+      >
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-amber-600">science</span>
+          <h2 class="text-eyebrow">{{ t('settings.dev_tools.title') }}</h2>
+        </div>
+        <p class="text-xs text-on-surface-variant">
+          {{ t('settings.dev_tools.description') }}
+        </p>
+
+        <div class="flex items-center gap-4">
+          <ToggleSwitch v-model="mockEnabledLocal" @update:model-value="onMockToggle" />
+          <div>
+            <div class="text-sm font-medium">
+              {{ t('settings.dev_tools.mock_workflow_engine') }}
+            </div>
+            <div class="text-xs text-on-surface-variant">
+              {{ t('settings.dev_tools.mock_source', { source: mockSource }) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <Button
+            :label="t('settings.dev_tools.run_deduction')"
+            icon="pi pi-bolt"
+            :loading="runningDeduction"
+            :disabled="!mockEnabledLocal"
+            @click="onRunDeduction"
+          />
+          <span class="text-xs text-on-surface-variant">
+            {{ t('settings.dev_tools.run_deduction_hint') }}
+          </span>
+        </div>
+      </section>
+
       <!-- Global actions -->
       <div class="flex items-center justify-end gap-4 border-t border-outline-variant/20 pt-8">
         <Button
@@ -346,7 +383,7 @@
         />
       </div>
     </template>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -358,6 +395,8 @@ import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import InputNumber from 'primevue/inputnumber'
 import ProgressSpinner from 'primevue/progressspinner'
+import ToggleSwitch from 'primevue/toggleswitch'
+import { useToast } from 'primevue/usetoast'
 import { useAuth } from '@/composables/useAuth'
 import { useSettings } from '@/composables/useSettings'
 import { listTransactions, type CreditTransactionRow } from '@/services/credits.service'
@@ -372,8 +411,14 @@ import {
 } from '@/services/settings'
 import { supabaseFrom } from '@/services/supabase'
 import { testEngineConnection } from '@/services/workflow-engine'
+import { isMockEnabled, setMockEnabledOverride } from '@/services/mock-engine'
+import { runCreditDeductionMock } from '@/services/mock-engine/operations/runCreditDeduction.mock'
+import { xaymaSupabase } from '@/services/supabase'
+import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { formatNumber } from '@/lib/formatters'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import LifecycleDayInput from '@/components/settings/LifecycleDayInput.vue'
 import EngineConnectionCard from '@/components/settings/EngineConnectionCard.vue'
 import PaymentGatewayList from '@/components/settings/PaymentGatewayList.vue'
@@ -433,6 +478,55 @@ const NUMERIC_KEYS = new Set<SettingKey>([
 const router = useRouter()
 const { t } = useI18n()
 const { isAdmin } = useAuth()
+const toast = useToast()
+const authStore = useAuthStore()
+
+const showDevTools = computed(() => import.meta.env.DEV || isMockEnabled())
+const mockEnabledLocal = ref(isMockEnabled())
+const runningDeduction = ref(false)
+const mockSource = computed(() => {
+  if (typeof window === 'undefined') return 'default (off)'
+  const ls = window.localStorage.getItem('xayma:mock-workflow-engine')
+  if (ls === 'true' || ls === 'false') return 'localStorage'
+  if (import.meta.env.VITE_MOCK_WORKFLOW_ENGINE === 'true') return 'env'
+  return 'default (off)'
+})
+
+function onMockToggle(v: boolean | string) {
+  const next = v === true || v === 'true'
+  setMockEnabledOverride(next)
+  mockEnabledLocal.value = next
+}
+
+async function onRunDeduction() {
+  runningDeduction.value = true
+  try {
+    const summary = await runCreditDeductionMock({
+      supabase: xaymaSupabase,
+      authUserId: authStore.user?.id ?? null,
+      partnerId: null,
+    })
+    toast.add({
+      severity: 'success',
+      summary: t('settings.dev_tools.deduction_done'),
+      detail: t('settings.dev_tools.deduction_summary', {
+        n: summary.deploymentsProcessed,
+        total: summary.totalDebited,
+        suspended: summary.suspended.length,
+      }),
+      life: 5000,
+    })
+  } catch (err) {
+    console.error('[settings.dev_tools] runCreditDeduction failed:', err)
+    toast.add({
+      severity: 'error',
+      summary: t('errors.generic'),
+      life: 5000,
+    })
+  } finally {
+    runningDeduction.value = false
+  }
+}
 const { settings, loading, loadSettings } = useSettings()
 const notificationStore = useNotificationStore()
 

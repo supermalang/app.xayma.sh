@@ -1,19 +1,18 @@
 <template>
-  <div class="space-y-6 page-enter">
-    <!-- Header with back button and actions -->
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <Button
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-rounded"
-          @click="goBack"
-        />
-        <div>
-          <h1 class="text-page-title">{{ partner?.name }}</h1>
-          <p class="text-sm text-on-surface-variant">{{ partner?.email }}</p>
-        </div>
-      </div>
-      <div class="flex gap-2">
+  <AppPage>
+    <!-- Back button (above header for detail page) -->
+    <Button
+      icon="pi pi-arrow-left"
+      class="p-button-text p-button-rounded self-start"
+      @click="goBack"
+    />
+
+    <!-- Header with actions -->
+    <AppPageHeader
+      :title="partner?.name ?? ''"
+      :description="partner?.email ?? ''"
+    >
+      <template #actions>
         <Button
           :label="$t('common.edit')"
           icon="pi pi-pencil"
@@ -28,8 +27,8 @@
           ]"
           class="p-button-sm"
         />
-      </div>
-    </div>
+      </template>
+    </AppPageHeader>
 
     <!-- Status and Type badges -->
     <div class="flex gap-4">
@@ -134,7 +133,7 @@
         @cancel="closeDialog"
       />
     </Dialog>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -146,6 +145,8 @@ import SplitButton from 'primevue/splitbutton'
 import Dialog from 'primevue/dialog'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import PartnerForm from '@/components/partners/PartnerForm.vue'
 import PartnerStatusBadge from '@/components/partners/PartnerStatusBadge.vue'
 import PartnerTypeBadge from '@/components/partners/PartnerTypeBadge.vue'

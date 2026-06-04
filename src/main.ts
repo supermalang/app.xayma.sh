@@ -18,6 +18,9 @@ import router from './router'
 import enMessages from './i18n/en'
 import frMessages from './i18n/fr'
 
+// Register dev-runtime mock handlers (no-op when VITE_MOCK_WORKFLOW_ENGINE is off)
+import './services/mock-engine/registry'
+
 // Styles
 import './assets/styles/main.css'
 import './assets/styles/animations.css'

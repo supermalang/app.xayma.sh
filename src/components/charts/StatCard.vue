@@ -43,6 +43,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Card from 'primevue/card'
+import { STAT_ICON_COLORS } from './palette'
 
 interface Props {
   label: string
@@ -62,15 +63,9 @@ const props = withDefaults(defineProps<Props>(), {
 /**
  * Computed: background color for icon
  */
-const backgroundColor = computed(() => {
-  const colors: Record<string, string> = {
-    primary: '#00288e',
-    secondary: '#9d4300',
-    tertiary: '#003d28',
-    error: '#ba1a1a',
-  }
-  return colors[props.color] || colors.primary
-})
+const backgroundColor = computed(
+  () => STAT_ICON_COLORS[props.color] ?? STAT_ICON_COLORS.primary,
+)
 
 /**
  * Computed: formatted value based on format type

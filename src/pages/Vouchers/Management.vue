@@ -1,22 +1,19 @@
 <template>
-  <div class="space-y-6">
+  <AppPage>
     <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-      <div>
-        <h1 class="text-page-title mb-2">
-          {{ $t('vouchers.management_title') }}
-        </h1>
-        <p class="text-on-surface-variant">
-          {{ $t('vouchers.management_description') }}
-        </p>
-      </div>
-      <Button
-        :label="$t('vouchers.generate_vouchers')"
-        icon="pi pi-plus"
-        class="p-button-primary self-start sm:self-auto"
-        @click="showGenerateDialog = true"
-      />
-    </div>
+    <AppPageHeader
+      :title="$t('vouchers.management_title')"
+      :description="$t('vouchers.management_description')"
+    >
+      <template #actions>
+        <Button
+          :label="$t('vouchers.generate_vouchers')"
+          icon="pi pi-plus"
+          class="p-button-primary"
+          @click="showGenerateDialog = true"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- Stats cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -58,158 +55,144 @@
       </Card>
     </div>
 
-    <!-- Filters -->
-    <div class="flex gap-4 items-end flex-wrap">
-      <div>
-        <label class="block text-sm font-medium text-on-surface mb-2">
-          {{ $t('vouchers.filter_status') }}
-        </label>
-        <Dropdown
-          v-model="filters.status"
-          :options="statusOptions"
-          option-label="label"
-          option-value="value"
-          :placeholder="$t('common.select')"
-          class="w-full md:w-48"
-          @change="refreshVouchers"
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-on-surface mb-2">
-          {{ $t('vouchers.filter_type') }}
-        </label>
-        <Dropdown
-          v-model="filters.partnerType"
-          :options="partnerTypeOptions"
-          option-label="label"
-          option-value="value"
-          :placeholder="$t('common.select')"
-          class="w-full md:w-48"
-          @change="refreshVouchers"
-        />
-      </div>
-      <div class="flex-1">
-        <label class="block text-sm font-medium text-on-surface mb-2">
-          {{ $t('common.search') }}
-        </label>
-        <InputText
-          v-model="filters.search"
-          :placeholder="$t('vouchers.search_code')"
-          class="w-full"
-          @keyup="debouncedSearch"
-        />
-      </div>
-      <Button
-        icon="pi pi-refresh"
-        class="p-button-secondary"
-        @click="refreshVouchers"
-      />
-    </div>
-
-    <!-- Loading state -->
-    <div v-if="loading" class="flex justify-center py-12">
-      <ProgressSpinner />
-    </div>
-
-    <!-- Error state -->
-    <Message v-if="error" severity="error" :text="error" closable @close="error = null" />
-
     <!-- Vouchers table -->
-    <div v-if="!loading && vouchers.length > 0" class="overflow-hidden border border-outline/20 rounded">
-      <DataTable
-        :value="vouchers"
-        :paginator="true"
-        :rows="pageSize"
-        :total-records="totalRecords"
-        :loading="loading"
-        lazy
-        @page="onPageChange"
-        :first="currentPage * pageSize"
-      >
-        <Column field="code" :header="$t('vouchers.code')" style="width: 15%">
-          <template #body="{ data }">
-            <span class="font-mono text-sm font-semibold">{{ data.code }}</span>
-          </template>
-        </Column>
+    <AppDataTable
+      :rows="vouchers"
+      :columns="columns"
+      :loading="loading"
+      :error="error"
+      :total-records="totalRecords"
+      :page-size="pageSize"
+      :first="currentPage * pageSize"
+      lazy
+      export-filename="vouchers"
+      :empty-title="$t('vouchers.empty.title')"
+      :empty-description="$t('vouchers.empty.description')"
+      empty-icon="pi-ticket"
+      @page-change="onPageChange"
+      @retry="refreshVouchers"
+    >
+      <template #filter>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('vouchers.filter_status') }}
+          </label>
+          <Dropdown
+            v-model="filterInputs.status"
+            :options="statusOptions"
+            option-label="label"
+            option-value="value"
+            :placeholder="$t('common.select')"
+            class="w-full"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('vouchers.filter_type') }}
+          </label>
+          <Dropdown
+            v-model="filterInputs.partnerType"
+            :options="partnerTypeOptions"
+            option-label="label"
+            option-value="value"
+            :placeholder="$t('common.select')"
+            class="w-full"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ $t('common.search') }}
+          </label>
+          <InputText
+            v-model="filterInputs.search"
+            :placeholder="$t('vouchers.search_code')"
+            class="w-full"
+          />
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
+          <Button
+            :label="$t('common.reset')"
+            severity="secondary"
+            text
+            size="small"
+            @click="resetFilters"
+          />
+          <Button
+            :label="$t('common.apply')"
+            size="small"
+            @click="applyFilters"
+          />
+        </div>
+      </template>
 
-        <Column field="credits_value" :header="$t('vouchers.credits')" style="width: 12%" align="right">
-          <template #body="{ data }">
-            <span class="font-mono">{{ formatNumber(data.credits_value) }}</span>
-          </template>
-        </Column>
+      <template #emptyAction>
+        <Button
+          :label="$t('vouchers.generate_vouchers')"
+          icon="pi pi-plus"
+          @click="showGenerateDialog = true"
+        />
+      </template>
 
-        <Column field="expiry_date" :header="$t('vouchers.expiry')" style="width: 15%">
-          <template #body="{ data }">
-            <span class="text-sm">{{ formatDate(data.expiry_date) }}</span>
-          </template>
-        </Column>
+      <template #body-code="{ data }">
+        <span class="font-mono text-sm font-semibold">{{ (data as VoucherRow).code }}</span>
+      </template>
 
-        <Column field="uses_count" :header="$t('vouchers.usage')" style="width: 12%">
-          <template #body="{ data }">
-            <ProgressBar :value="(data.uses_count / data.max_uses) * 100" :show-value="false" />
-            <span class="text-xs text-on-surface-variant">{{ data.uses_count }}/{{ data.max_uses }}</span>
-          </template>
-        </Column>
+      <template #body-credits_value="{ data }">
+        <span class="font-mono">{{ formatNumber((data as VoucherRow).credits_value) }}</span>
+      </template>
 
-        <Column field="partner_type" :header="$t('vouchers.partner_type')" style="width: 12%">
-          <template #body="{ data }">
-            <Tag
-              v-if="data.partner_type"
-              :value="data.partner_type"
-              :severity="data.partner_type === 'RESELLER' ? 'success' : 'info'"
-            />
-            <span v-else class="text-xs text-on-surface-variant">{{ $t('vouchers.all') }}</span>
-          </template>
-        </Column>
+      <template #body-expiry_date="{ data }">
+        <span class="text-sm">{{ formatDate((data as VoucherRow).expiry_date) }}</span>
+      </template>
 
-        <Column field="status" :header="$t('vouchers.status')" style="width: 15%">
-          <template #body="{ data }">
-            <Tag :value="data.status" :severity="getStatusSeverity(data.status)" />
-          </template>
-        </Column>
+      <template #body-uses_count="{ data }">
+        <ProgressBar :value="((data as VoucherRow).uses_count / (data as VoucherRow).max_uses) * 100" :show-value="false" />
+        <span class="text-xs text-on-surface-variant">{{ (data as VoucherRow).uses_count }}/{{ (data as VoucherRow).max_uses }}</span>
+      </template>
 
-        <Column :header="$t('common.actions')" style="width: 10%">
-          <template #body="{ data }">
-            <Button
-              v-if="data.status === 'ACTIVE'"
-              icon="pi pi-ban"
-              class="p-button-rounded p-button-text p-button-danger"
-              @click="deactivateVoucher(data.id)"
-              v-tooltip="$t('vouchers.deactivate_tooltip')"
-            />
-            <span v-else class="text-xs text-on-surface-variant">—</span>
-          </template>
-        </Column>
-      </DataTable>
-    </div>
+      <template #body-partner_type="{ data }">
+        <Tag
+          v-if="(data as VoucherRow).partner_type"
+          :value="(data as VoucherRow).partner_type"
+          :severity="(data as VoucherRow).partner_type === 'RESELLER' ? 'success' : 'info'"
+        />
+        <span v-else class="text-xs text-on-surface-variant">{{ $t('vouchers.all') }}</span>
+      </template>
 
-    <!-- Empty state -->
-    <div v-if="!loading && vouchers.length === 0" class="text-center py-12">
-      <span class="material-symbols-outlined text-6xl text-on-surface-variant/30 block mb-4">
-        card_giftcard
-      </span>
-      <p class="text-on-surface-variant">{{ $t('vouchers.no_vouchers') }}</p>
-    </div>
+      <template #body-status="{ data }">
+        <Tag :value="(data as VoucherRow).status" :severity="getStatusSeverity((data as VoucherRow).status)" />
+      </template>
+
+      <template #rowActions="{ data }">
+        <Button
+          v-if="(data as VoucherRow).status === 'ACTIVE'"
+          v-tooltip="$t('vouchers.deactivate_tooltip')"
+          icon="pi pi-ban"
+          class="p-button-rounded p-button-text p-button-danger"
+          @click="deactivateVoucher((data as VoucherRow).id)"
+        />
+        <span v-else class="text-xs text-on-surface-variant">—</span>
+      </template>
+    </AppDataTable>
 
     <!-- Generate vouchers dialog -->
     <GenerateVouchersDialog v-model:visible="showGenerateDialog" @created="onVouchersCreated" />
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import ProgressBar from 'primevue/progressbar'
 import Tag from 'primevue/tag'
-import Message from 'primevue/message'
-import ProgressSpinner from 'primevue/progressspinner'
 import vTooltip from 'primevue/tooltip'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppDataTable, { type AppTableColumn } from '@/components/common/AppDataTable.vue'
 import GenerateVouchersDialog from '@/components/vouchers/GenerateVouchersDialog.vue'
 import { listVouchers, getVoucherStats, deactivateVoucher as callDeactivate } from '@/services/vouchers.service'
 
@@ -253,9 +236,24 @@ const filters = ref({
   search: '',
 })
 
+const filterInputs = ref({
+  status: null as string | null,
+  partnerType: null as string | null,
+  search: '',
+})
+
 const currentPage = ref(0)
 const pageSize = 20
 const totalRecords = ref(0)
+
+const columns: AppTableColumn[] = [
+  { field: 'code', header: 'vouchers.code', width: '15%' },
+  { field: 'credits_value', header: 'vouchers.credits', width: '12%', align: 'right' },
+  { field: 'expiry_date', header: 'vouchers.expiry', width: '15%' },
+  { field: 'uses_count', header: 'vouchers.usage', width: '12%' },
+  { field: 'partner_type', header: 'vouchers.partner_type', width: '12%' },
+  { field: 'status', header: 'vouchers.status', width: '15%' },
+]
 
 const statusOptions = computed(() => [
   { label: t('vouchers.all_statuses'), value: null },
@@ -325,15 +323,18 @@ async function refreshVouchers() {
   loadVouchers()
 }
 
-function debouncedSearch() {
-  // Debounce search to avoid excessive queries
-  clearTimeout((window as any).__searchTimeout)
-  ;(window as any).__searchTimeout = setTimeout(() => {
-    refreshVouchers()
-  }, 500)
+function applyFilters() {
+  filters.value = { ...filterInputs.value }
+  refreshVouchers()
 }
 
-function onPageChange(event: any) {
+function resetFilters() {
+  filterInputs.value = { status: null, partnerType: null, search: '' }
+  filters.value = { status: null, partnerType: null, search: '' }
+  refreshVouchers()
+}
+
+function onPageChange(event: { page: number }) {
   currentPage.value = event.page
   loadVouchers()
 }
@@ -366,9 +367,5 @@ onMounted(() => {
 .stat-card {
   border: 1px solid var(--outline-variant);
   background: var(--surface-container-lowest);
-}
-
-:deep(.p-datatable) {
-  font-size: 0.875rem;
 }
 </style>

@@ -1,12 +1,17 @@
 <template>
   <div
-    class="flex items-start gap-3 p-3 rounded-md transition-colors"
+    class="relative flex items-start gap-3 p-3 rounded-md transition-colors"
     :class="[
       notification.read_at
         ? 'bg-surface-container-low hover:bg-surface-container-high'
-        : 'bg-surface-container-highest border-l-4 border-primary hover:bg-surface-container-high',
+        : 'bg-primary/5 hover:bg-primary/10',
     ]"
   >
+    <span
+      v-if="!notification.read_at"
+      class="absolute top-3 end-3 h-2 w-2 rounded-full bg-primary"
+      :aria-label="$t('notifications.unread')"
+    />
     <!-- Icon -->
     <div class="flex-shrink-0 mt-1">
       <i
@@ -35,29 +40,33 @@
 
     <!-- Actions -->
     <div class="flex-shrink-0 flex gap-2">
-      <!-- Mark as read/unread -->
-      <button
+      <Button
         v-if="!notification.read_at"
-        class="p-1 hover:bg-surface-container-high rounded transition-colors"
+        icon="pi pi-check"
+        severity="secondary"
+        variant="text"
+        size="small"
+        rounded
         :title="$t('notifications.mark_as_read')"
+        :aria-label="$t('notifications.mark_as_read')"
         @click="emit('mark-read')"
-      >
-        <i class="pi pi-check text-sm text-primary" />
-      </button>
-
-      <!-- Delete -->
-      <button
-        class="p-1 hover:bg-surface-container-high rounded transition-colors text-on-surface-variant hover:text-error"
+      />
+      <Button
+        icon="pi pi-trash"
+        severity="danger"
+        variant="text"
+        size="small"
+        rounded
         :title="$t('notifications.delete')"
+        :aria-label="$t('notifications.delete')"
         @click="emit('delete')"
-      >
-        <i class="pi pi-trash text-sm" />
-      </button>
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Button from 'primevue/button'
 import type { Notification } from '@/services/notifications.service'
 
 defineProps<{

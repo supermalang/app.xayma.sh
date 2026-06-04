@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 page-enter">
+  <AppPage>
     <!-- Header -->
     <AppPageHeader
       :title="$t('dashboard.reseller_title')"
@@ -238,7 +238,7 @@
         </p>
       </div>
     </Card>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -249,6 +249,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import CreditMeter from '@/components/credits/CreditMeter.vue'
 import StatCard from '@/components/charts/StatCard.vue'

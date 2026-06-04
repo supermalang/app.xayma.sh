@@ -1,5 +1,5 @@
 <template>
-  <main class="space-y-8">
+  <AppPage>
     <ConfirmDialog />
     <Button
       icon="pi pi-arrow-left"
@@ -51,25 +51,11 @@
     <!-- Loaded -->
     <template v-else-if="deployment">
       <!-- Hero header -->
-      <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-page-title">
-              {{ deployment.label }}
-            </h1>
-            <DeploymentStatusBadge :status="deployment.status ?? ''" />
-          </div>
-          <p class="flex flex-wrap items-center gap-2 text-on-surface-variant">
-            <span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">
-              {{ $t('deployments.detail.id_prefix') }}: {{ deployment.slug }}
-            </span>
-            <span class="text-outline-variant text-xs">•</span>
-            <span class="text-sm">
-              {{ $t('deployments.detail.last_deployed') }}: {{ formattedCreated }}
-            </span>
-          </p>
-        </div>
-        <div class="flex items-center gap-3">
+      <AppPageHeader :title="deployment.label">
+        <template #badge>
+          <DeploymentStatusBadge :status="deployment.status ?? ''" />
+        </template>
+        <template #actions>
           <Button
             v-if="isActive"
             :label="$t('deployments.detail.actions.stop_instance')"
@@ -102,8 +88,17 @@
             :model="manageMenuItems"
             :popup="true"
           />
-        </div>
-      </header>
+        </template>
+      </AppPageHeader>
+      <p class="flex flex-wrap items-center gap-2 text-on-surface-variant -mt-4">
+        <span class="font-mono text-xs bg-surface-container px-2 py-0.5 rounded">
+          {{ $t('deployments.detail.id_prefix') }}: {{ deployment.slug }}
+        </span>
+        <span class="text-outline-variant text-xs">•</span>
+        <span class="text-sm">
+          {{ $t('deployments.detail.last_deployed') }}: {{ formattedCreated }}
+        </span>
+      </p>
 
       <EditInstanceDialog
         v-model:visible="editDialogVisible"
@@ -310,7 +305,7 @@
         </section>
       </div>
     </template>
-  </main>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -323,6 +318,8 @@ import Menu from 'primevue/menu'
 import Message from 'primevue/message'
 import Skeleton from 'primevue/skeleton'
 import ConfirmDialog from 'primevue/confirmdialog'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import EditInstanceDialog from '@/components/deployments/EditInstanceDialog.vue'
 import { useDeployments } from '@/composables/useDeployments'

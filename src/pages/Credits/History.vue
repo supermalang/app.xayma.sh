@@ -1,21 +1,18 @@
 <template>
-  <div class="w-full space-y-6">
+  <AppPage>
     <!-- Page header -->
-    <header class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <div class="max-w-2xl">
-        <h1 class="text-page-title mb-2">
-          {{ t('credits.page_title') }}
-        </h1>
-        <p class="text-on-surface-variant">
-          {{ t('credits.page_description') }}
-        </p>
-      </div>
-      <Button
-        icon="pi pi-credit-card"
-        :label="t('credits.top_up_credits')"
-        @click="goToTopUp"
-      />
-    </header>
+    <AppPageHeader
+      :title="t('credits.page_title')"
+      :description="t('credits.page_description')"
+    >
+      <template #actions>
+        <Button
+          icon="pi pi-credit-card"
+          :label="t('credits.top_up_credits')"
+          @click="goToTopUp"
+        />
+      </template>
+    </AppPageHeader>
 
     <!-- Summary cards -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -101,183 +98,123 @@
     </div>
 
     <!-- Transaction History -->
-    <section
-      class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg overflow-hidden"
+    <AppDataTable
+      :title="t('credits.transaction_history')"
+      :rows="transactions"
+      :columns="columns"
+      :loading="loading"
+      :error="error"
+      :total-records="totalRecords"
+      :page-size="pageSize"
+      :first="currentPage * pageSize"
+      lazy
+      row-clickable
+      export-filename="transactions"
+      :empty-title="t('credits.empty.title')"
+      :empty-description="t('credits.empty.description')"
+      empty-icon="pi-receipt"
+      @page-change="onPageChange"
+      @row-click="onRowClick"
+      @retry="refreshTransactions"
     >
-      <header
-        class="flex flex-col gap-3 p-6 pb-4 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <h2 class="text-section">
-          {{ t('credits.transaction_history') }}
-        </h2>
-        <div class="flex items-center gap-2">
-          <Button
-            :label="t('credits.filter')"
-            icon="pi pi-filter"
-            severity="secondary"
-            outlined
-            size="small"
-            @click="toggleFilter"
-          />
-          <Button
-            :label="t('credits.export_csv')"
-            icon="pi pi-download"
-            severity="secondary"
-            outlined
-            size="small"
-            :disabled="transactions.length === 0"
-            @click="exportCsv"
-          />
-        </div>
-      </header>
-
-      <Popover ref="filterPopover" class="w-80">
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-              {{ t('credits.date_range') }}
-            </label>
-            <div class="flex gap-2">
-              <Calendar
-                v-model="startDate"
-                :placeholder="t('credits.start_date')"
-                class="flex-1"
-                date-format="dd/mm/yy"
-                show-icon
-              />
-              <Calendar
-                v-model="endDate"
-                :placeholder="t('credits.end_date')"
-                class="flex-1"
-                date-format="dd/mm/yy"
-                show-icon
-              />
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-              {{ t('credits.filter_type') }}
-            </label>
-            <Dropdown
-              v-model="selectedType"
-              :options="transactionTypes"
-              option-label="label"
-              option-value="value"
-              :placeholder="t('common.select')"
-              class="w-full"
+      <template #filter>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ t('credits.date_range') }}
+          </label>
+          <div class="flex gap-2">
+            <Calendar
+              v-model="startDate"
+              :placeholder="t('credits.start_date')"
+              class="flex-1"
+              date-format="dd/mm/yy"
+              show-icon
             />
-          </div>
-          <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
-            <Button
-              :label="t('credits.reset_filters')"
-              severity="secondary"
-              text
-              size="small"
-              @click="resetFilters"
-            />
-            <Button
-              :label="t('credits.apply_filters')"
-              size="small"
-              @click="applyFilters"
+            <Calendar
+              v-model="endDate"
+              :placeholder="t('credits.end_date')"
+              class="flex-1"
+              date-format="dd/mm/yy"
+              show-icon
             />
           </div>
         </div>
-      </Popover>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+            {{ t('credits.filter_type') }}
+          </label>
+          <Dropdown
+            v-model="selectedType"
+            :options="transactionTypes"
+            option-label="label"
+            option-value="value"
+            :placeholder="t('common.select')"
+            class="w-full"
+          />
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
+          <Button
+            :label="t('common.reset')"
+            severity="secondary"
+            text
+            size="small"
+            @click="resetFilters"
+          />
+          <Button
+            :label="t('common.apply')"
+            size="small"
+            @click="applyFilters"
+          />
+        </div>
+      </template>
 
-      <Message
-        v-if="error"
-        severity="error"
-        :closable="true"
-        class="mx-6 mb-4"
-        @close="error = null"
-      >
-        {{ error }}
-      </Message>
+      <template #body-created_at="{ data }">
+        <span class="font-mono text-sm text-on-surface">{{ formatDateTime((data as Transaction).created_at, localeKey) }}</span>
+      </template>
 
-      <div v-if="loading" class="flex justify-center py-16">
-        <ProgressSpinner />
-      </div>
+      <template #body-description="{ data }">
+        <div class="flex items-center gap-3">
+          <span
+            class="w-8 h-8 rounded flex items-center justify-center shrink-0"
+            :class="iconBgClass((data as Transaction).type)"
+          >
+            <span class="material-symbols-outlined text-base" :class="iconColorClass((data as Transaction).type)">
+              {{ getReasonIcon((data as Transaction).type) }}
+            </span>
+          </span>
+          <span class="text-on-surface text-sm">
+            {{ formatReason((data as Transaction).type, (data as Transaction).reason, (data as Transaction).reference) }}
+          </span>
+        </div>
+      </template>
 
-      <div v-else-if="transactions.length === 0" class="text-center py-16">
-        <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 block mb-3">
-          receipt_long
+      <template #body-amount="{ data }">
+        <span :class="getAmountClass((data as Transaction).type)" class="font-mono font-semibold tabular-nums">
+          {{ formatAmount((data as Transaction).type, (data as Transaction).amount) }}
         </span>
-        <p class="text-on-surface-variant">{{ t('credits.no_transactions') }}</p>
-      </div>
+      </template>
 
-      <DataTable
-        v-else
-        :value="transactions"
-        :paginator="true"
-        :rows="pageSize"
-        :total-records="totalRecords"
-        :loading="loading"
-        lazy
-        :first="currentPage * pageSize"
-        row-hover
-        class="cursor-pointer"
-        @page="onPageChange"
-        @row-click="onRowClick"
-      >
-        <Column field="created_at" :header="t('credits.date')" style="width: 18%">
-          <template #body="{ data }">
-            <span class="font-mono text-sm text-on-surface">{{ formatDateTime(data.created_at, localeKey) }}</span>
-          </template>
-        </Column>
-
-        <Column :header="t('credits.type_and_description')" style="width: 47%">
-          <template #body="{ data }">
-            <div class="flex items-center gap-3">
-              <span
-                class="w-8 h-8 rounded flex items-center justify-center shrink-0"
-                :class="iconBgClass(data.type)"
-              >
-                <span class="material-symbols-outlined text-base" :class="iconColorClass(data.type)">
-                  {{ getReasonIcon(data.type) }}
-                </span>
-              </span>
-              <span class="text-on-surface text-sm">
-                {{ formatReason(data.type, data.reason, data.reference) }}
-              </span>
-            </div>
-          </template>
-        </Column>
-
-        <Column field="amount" :header="t('credits.amount')" style="width: 17%" align="right">
-          <template #body="{ data }">
-            <span :class="getAmountClass(data.type)" class="font-mono font-semibold tabular-nums">
-              {{ formatAmount(data.type, data.amount) }}
-            </span>
-          </template>
-        </Column>
-
-        <Column :header="t('credits.column_balance')" style="width: 18%" align="right">
-          <template #body="{ data }">
-            <span class="font-mono font-semibold tabular-nums text-on-surface">
-              {{ data.balanceAfter !== null ? formatCredits(data.balanceAfter) : '—' }}
-            </span>
-          </template>
-        </Column>
-      </DataTable>
-    </section>
-  </div>
+      <template #body-balance="{ data }">
+        <span class="font-mono font-semibold tabular-nums text-on-surface">
+          {{ (data as Transaction).balanceAfter !== null ? formatCredits((data as Transaction).balanceAfter!) : '—' }}
+        </span>
+      </template>
+    </AppDataTable>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import type { DataTableRowClickEvent } from 'primevue/datatable'
 import { useAuthStore } from '@/stores/auth.store'
 import { usePartnerCredits } from '@/composables/usePartnerCredits'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
 import Calendar from 'primevue/calendar'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
-import Popover from 'primevue/popover'
-import ProgressSpinner from 'primevue/progressspinner'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppDataTable, { type AppTableColumn } from '@/components/common/AppDataTable.vue'
 import { listTransactions } from '@/services/credits.service'
 import { formatNumber, formatDateTime } from '@/lib/formatters'
 import { downloadCsv } from '@/lib/csv'
@@ -312,7 +249,12 @@ const currentPage = ref(0)
 const pageSize = 20
 const totalRecords = ref(0)
 
-const filterPopover = ref<InstanceType<typeof Popover>>()
+const columns: AppTableColumn[] = [
+  { field: 'created_at', header: 'credits.date', width: '18%' },
+  { field: 'description', header: 'credits.type_and_description', width: '47%' },
+  { field: 'amount', header: 'credits.amount', width: '17%', align: 'right' },
+  { field: 'balance', header: 'credits.column_balance', width: '18%', align: 'right' },
+]
 
 const transactionTypes = computed(() => [
   { label: t('credits.all_types'), value: null },
@@ -417,12 +359,7 @@ function getAmountClass(type: Transaction['type']): string {
   return isInflow(type) ? 'text-tertiary' : 'text-error'
 }
 
-function toggleFilter(event: Event) {
-  filterPopover.value?.toggle(event)
-}
-
 function applyFilters() {
-  filterPopover.value?.hide()
   refreshTransactions()
 }
 
@@ -430,7 +367,6 @@ function resetFilters() {
   startDate.value = null
   endDate.value = null
   selectedType.value = null
-  filterPopover.value?.hide()
   refreshTransactions()
 }
 
@@ -446,19 +382,6 @@ function downloadLastInvoice() {
     `${lastInvoiceRef.value},${tx.created_at},${tx.amount},${tx.status},${tx.reference ?? ''}`,
   ].join('\n')
   downloadCsv(csv, `${lastInvoiceRef.value}.csv`)
-}
-
-function exportCsv() {
-  const header = ['date', 'type', 'description', 'amount', 'status']
-  const rows = transactions.value.map((tx) => [
-    tx.created_at,
-    tx.type,
-    formatReason(tx.type, tx.reason, tx.reference).replace(/,/g, ' '),
-    String(tx.amount),
-    tx.status,
-  ])
-  const csv = [header, ...rows].map((r) => r.join(',')).join('\n')
-  downloadCsv(csv, `transactions-${new Date().toISOString().slice(0, 10)}.csv`)
 }
 
 async function loadTransactions() {
@@ -506,9 +429,9 @@ function onPageChange(event: { page: number }) {
   loadTransactions()
 }
 
-function onRowClick(event: DataTableRowClickEvent) {
-  const row = event.data as Transaction
-  router.push({ name: 'credits-transaction-detail', params: { id: row.id } })
+function onRowClick(row: unknown) {
+  const tx = row as Transaction
+  router.push({ name: 'credits-transaction-detail', params: { id: tx.id } })
 }
 
 onMounted(() => {
@@ -520,30 +443,3 @@ onMounted(() => {
   loadTransactions()
 })
 </script>
-
-<style scoped>
-:deep(.p-datatable) {
-  font-size: 0.875rem;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background: var(--surface-container-low);
-  color: var(--on-surface-variant);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr) {
-  border-bottom: 1px solid var(--outline-variant);
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:last-child) {
-  border-bottom: none;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: var(--surface-container-low);
-}
-</style>

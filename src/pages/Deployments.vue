@@ -1,25 +1,26 @@
 <template>
-  <div class="space-y-6">
+  <AppPage>
     <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between header-section">
+    <div class="header-section">
       <AppPageHeader
         :title="$t('deployments.title')"
         :description="$t('deployments.subtitle')"
-      />
-      <div class="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0 sm:pt-1">
-        <Button
-          :label="$t('deployments.export_csv')"
-          icon="pi pi-download"
-          text
-          severity="secondary"
-          @click="exportDeployments"
-        />
-        <Button
-          :label="$t('deployments.create')"
-          icon="pi pi-plus"
-          @click="navigateToWizard"
-        />
-      </div>
+      >
+        <template #actions>
+          <Button
+            :label="$t('deployments.export_csv')"
+            icon="pi pi-download"
+            text
+            severity="secondary"
+            @click="exportDeployments"
+          />
+          <Button
+            :label="$t('deployments.create')"
+            icon="pi pi-plus"
+            @click="navigateToWizard"
+          />
+        </template>
+      </AppPageHeader>
     </div>
 
     <!-- Stats row — 3 cards, always visible -->
@@ -53,120 +54,102 @@
       </div>
     </div>
 
-    <!-- Tab-style filter -->
-    <div class="flex items-center justify-between border-b border-outline-variant filter-section">
-      <div ref="tabsContainerRef" class="flex relative">
-        <button
-          v-for="tab in filterTabs"
-          :key="String(tab.value)"
-          :ref="(el) => registerTabRef(el, tab.value)"
-          class="tab-button px-4 py-2 text-sm font-medium -mb-px"
-          :class="activeTabFilter === tab.value
-            ? 'text-primary'
-            : 'text-on-surface-variant hover:text-on-surface'"
-          @click="setTabFilter(tab.value)"
-        >
-          {{ tab.label }}
-          <span v-if="tab.count !== null" class="ms-1 text-xs opacity-70">{{ tab.count }}</span>
-        </button>
-        <span
-          class="tab-indicator"
-          :style="{
-            transform: `translateX(${tabIndicator.left}px)`,
-            width: `${tabIndicator.width}px`,
-          }"
-          aria-hidden="true"
-        />
-      </div>
-      <div v-if="isAdmin" class="flex gap-2 pb-2">
-        <Select
-          v-model="partnerFilter"
-          :options="partnerFilterOptions"
-          option-label="label"
-          option-value="value"
-          :placeholder="$t('deployments.filter.all_partners')"
-          show-clear
-          size="small"
-          class="partner-filter"
-          :aria-label="$t('deployments.filter.partner')"
-        />
-      </div>
-    </div>
-
-    <!-- DataTable -->
+    <!-- DataTable wrapper -->
     <div class="table-section">
-      <Transition name="filter-swap" mode="out-in">
-        <DataTable
-          :key="String(activeTabFilter)"
-          :value="filteredDeployments"
-          :loading="isLoading"
-          paginator
-          :rows="pageSize"
-          striped-rows
-          row-hover
-          :rows-per-page-options="[10, 20, 50]"
-        >
-          <!-- NAME column -->
-          <Column :header="$t('deployments.table.name')">
-            <template #body="{ data }">
-              <div class="flex items-center gap-3 name-cell">
-                <div
-                  class="avatar-chip w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold shrink-0"
-                  :style="{ backgroundColor: labelColor(data.label) }"
-                >
-                  {{ data.label?.[0]?.toUpperCase() ?? '?' }}
-                </div>
-                <router-link
-                  v-if="data.label"
-                  :to="`/deployments/${data.id}`"
-                  class="font-medium text-on-surface hover:underline"
-                >
-                  {{ data.label }}
-                </router-link>
-                <span v-else class="font-medium text-on-surface">—</span>
-              </div>
-            </template>
-          </Column>
+      <AppDataTable
+        :rows="filteredDeployments"
+        :columns="columns"
+        :loading="isLoading"
+        :total-records="filteredDeployments.length"
+        :page-size="pageSize"
+        :show-export="false"
+        row-clickable
+        :empty-title="$t('deployments.empty.title')"
+        :empty-description="$t('deployments.empty.description')"
+        empty-icon="pi-cloud"
+        @row-click="onRowClick"
+      >
+        <template #filter>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+              {{ $t('common.status') }}
+            </label>
+            <SelectButton
+              v-model="activeTabFilter"
+              :options="filterTabs"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+            />
+          </div>
+          <div v-if="isAdmin">
+            <label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+              {{ $t('deployments.filter.partner') }}
+            </label>
+            <Select
+              v-model="partnerFilter"
+              :options="partnerFilterOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('deployments.filter.all_partners')"
+              show-clear
+              size="small"
+              class="w-full"
+            />
+          </div>
+          <div class="flex justify-end gap-2 pt-2 border-t border-outline-variant/40">
+            <Button
+              :label="$t('common.reset')"
+              severity="secondary"
+              text
+              size="small"
+              @click="resetFilters"
+            />
+          </div>
+        </template>
 
-          <!-- DOMAIN column -->
-          <Column :header="$t('deployments.table.domain')">
-            <template #body="{ data }">
-              <a
-                v-if="firstDomain(data) && data.status === 'active'"
-                :href="`https://${firstDomain(data)}`"
-                target="_blank"
-                rel="noopener"
-                class="font-mono text-sm text-primary hover:underline"
-              >{{ firstDomain(data) }}</a>
-              <span
-                v-else-if="firstDomain(data)"
-                class="font-mono text-sm text-on-surface-variant"
-              >{{ firstDomain(data) }}</span>
-              <span v-else class="text-on-surface-variant text-sm">—</span>
-            </template>
-          </Column>
-
-          <!-- STATUS column -->
-          <Column :header="$t('common.status')">
-            <template #body="{ data }">
-              <DeploymentStatusBadge :status="data.status" />
-            </template>
-          </Column>
-
-          <!-- CREATED column -->
-          <Column :header="$t('deployments.table.created')">
-            <template #body="{ data }">
-              <span class="text-sm text-on-surface-variant font-mono">{{ formatDateTime(data.created) }}</span>
-            </template>
-          </Column>
-
-          <template #empty>
-            <div class="text-center text-on-surface-variant py-8">
-              {{ $t('common.no_data') }}
+        <template #body-label="{ data }">
+          <div class="flex items-center gap-3 name-cell">
+            <div
+              class="avatar-chip w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold shrink-0"
+              :style="{ backgroundColor: labelColor((data as DeploymentRow).label) }"
+            >
+              {{ (data as DeploymentRow).label?.[0]?.toUpperCase() ?? '?' }}
             </div>
-          </template>
-        </DataTable>
-      </Transition>
+            <router-link
+              v-if="(data as DeploymentRow).label"
+              :to="`/deployments/${(data as DeploymentRow).id}`"
+              class="font-medium text-on-surface hover:underline"
+            >
+              {{ (data as DeploymentRow).label }}
+            </router-link>
+            <span v-else class="font-medium text-on-surface">—</span>
+          </div>
+        </template>
+
+        <template #body-domain="{ data }">
+          <a
+            v-if="firstDomain(data as DeploymentRow) && (data as DeploymentRow).status === 'active'"
+            :href="`https://${firstDomain(data as DeploymentRow)}`"
+            target="_blank"
+            rel="noopener"
+            class="font-mono text-sm text-primary hover:underline"
+          >{{ firstDomain(data as DeploymentRow) }}</a>
+          <span
+            v-else-if="firstDomain(data as DeploymentRow)"
+            class="font-mono text-sm text-on-surface-variant"
+          >{{ firstDomain(data as DeploymentRow) }}</span>
+          <span v-else class="text-on-surface-variant text-sm">—</span>
+        </template>
+
+        <template #body-status="{ data }">
+          <DeploymentStatusBadge :status="(data as DeploymentRow).status" />
+        </template>
+
+        <template #body-created="{ data }">
+          <span class="text-sm text-on-surface-variant font-mono">{{ formatDateTime((data as DeploymentRow).created) }}</span>
+        </template>
+      </AppDataTable>
     </div>
 
     <!-- Help section -->
@@ -188,18 +171,19 @@
         <i class="pi pi-file text-5xl text-outline" />
       </div>
     </div>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, reactive } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
 import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
+import AppPage from '@/components/common/AppPage.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
+import AppDataTable, { type AppTableColumn } from '@/components/common/AppDataTable.vue'
 import DeploymentStatusBadge from '@/components/deployments/DeploymentStatusBadge.vue'
 import StatCard from '@/components/common/StatCard.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -207,6 +191,17 @@ import { useDeployments } from '@/composables/useDeployments'
 import { usePartnerStore } from '@/stores/partner.store'
 import { useNotificationStore } from '@/stores/notifications.store'
 import { formatCurrency } from '@/lib/formatters'
+
+interface DeploymentRow {
+  id: number
+  label: string
+  status: string
+  partner_id?: number
+  created: string
+  domainNames?: string[]
+  domain_names?: string[]
+  serviceplan?: { monthlyCreditConsumption?: number }
+}
 
 const router = useRouter()
 const { t } = useI18n()
@@ -219,32 +214,12 @@ const pageSize = ref(20)
 const activeTabFilter = ref<string | null>(null)
 const partnerFilter = ref<number | null>(null)
 
-// Tab underline indicator: slides between active tabs instead of redrawing
-const tabsContainerRef = ref<HTMLElement | null>(null)
-const tabRefs = new Map<string, HTMLElement>()
-const tabIndicator = reactive({ left: 0, width: 0 })
-
-function registerTabRef(el: unknown, value: string | null) {
-  const key = String(value)
-  if (el instanceof HTMLElement) {
-    tabRefs.set(key, el)
-  } else {
-    tabRefs.delete(key)
-  }
-}
-
-function updateTabIndicator() {
-  const key = String(activeTabFilter.value)
-  const el = tabRefs.get(key)
-  const container = tabsContainerRef.value
-  if (!el || !container) return
-  const containerLeft = container.getBoundingClientRect().left
-  const rect = el.getBoundingClientRect()
-  tabIndicator.left = rect.left - containerLeft
-  tabIndicator.width = rect.width
-}
-
-watch(activeTabFilter, () => nextTick(updateTabIndicator))
+const columns: AppTableColumn[] = [
+  { field: 'label', header: 'deployments.table.name' },
+  { field: 'domain', header: 'deployments.table.domain' },
+  { field: 'status', header: 'common.status' },
+  { field: 'created', header: 'deployments.table.created' },
+]
 
 const activeCount = computed(() =>
   deployments.value.filter((d: any) => d.status === 'active').length
@@ -264,9 +239,9 @@ const partnerCredits = computed(() =>
 )
 
 const filterTabs = computed(() => [
-  { label: t('deployments.filter.all'), value: null, count: null },
-  { label: t('deployments.status.active'), value: 'active', count: activeCount.value },
-  { label: t('deployments.status.suspended'), value: 'suspended', count: suspendedCount.value },
+  { label: t('deployments.filter.all'), value: null },
+  { label: `${t('deployments.status.active')} (${activeCount.value})`, value: 'active' },
+  { label: `${t('deployments.status.suspended')} (${suspendedCount.value})`, value: 'suspended' },
 ])
 
 const partnerFilterOptions = computed(() =>
@@ -274,12 +249,12 @@ const partnerFilterOptions = computed(() =>
 )
 
 const filteredDeployments = computed(() => {
-  let list = deployments.value
+  let list = deployments.value as unknown as DeploymentRow[]
   if (activeTabFilter.value) {
-    list = list.filter((d: any) => d.status === activeTabFilter.value)
+    list = list.filter((d) => d.status === activeTabFilter.value)
   }
   if (isAdmin.value && partnerFilter.value != null) {
-    list = list.filter((d: any) => d.partner_id === partnerFilter.value)
+    list = list.filter((d) => d.partner_id === partnerFilter.value)
   }
   return list
 })
@@ -298,7 +273,7 @@ function labelColor(label: string): string {
   return AVATAR_COLORS[label.charCodeAt(0) % AVATAR_COLORS.length]
 }
 
-function firstDomain(data: any): string | null {
+function firstDomain(data: DeploymentRow): string | null {
   const domains = data.domainNames ?? data.domain_names
   return Array.isArray(domains) && domains.length > 0 ? domains[0] : null
 }
@@ -314,8 +289,14 @@ function formatDateTime(iso: string): string {
   return `${yy}-${mm}-${dd} ${hh}:${min}`
 }
 
-function setTabFilter(value: string | null) {
-  activeTabFilter.value = value
+function resetFilters() {
+  activeTabFilter.value = null
+  partnerFilter.value = null
+}
+
+function onRowClick(row: unknown) {
+  const d = row as DeploymentRow
+  if (d?.id) router.push(`/deployments/${d.id}`)
 }
 
 function navigateToWizard() {
@@ -331,7 +312,7 @@ function exportDeployments() {
     t('common.status'),
     t('deployments.table.created'),
   ]
-  const csvRows = rows.map((d: any) => [
+  const csvRows = rows.map((d) => [
     `"${(d.label ?? '').replace(/"/g, '""')}"`,
     `"${(firstDomain(d) ?? '').replace(/"/g, '""')}"`,
     `"${(d.status ?? '').replace(/"/g, '""')}"`,
@@ -364,10 +345,6 @@ async function loadDeploymentsList() {
 }
 
 onMounted(async () => {
-  await nextTick()
-  updateTabIndicator()
-  window.addEventListener('resize', updateTabIndicator)
-
   if (isAdmin.value) {
     if (partnerStore.partners.length === 0) {
       try {
@@ -382,18 +359,12 @@ onMounted(async () => {
     await loadDeploymentsList()
     subscribeToDeploymentUpdates(partnerStore.selectedPartner.id)
   }
-  await nextTick()
-  updateTabIndicator()
 })
 </script>
 
 <style scoped>
 .header-section {
   animation: header-enter var(--duration-standard) var(--easing-standard);
-}
-
-.filter-section {
-  animation: fade-in var(--duration-standard) var(--easing-standard) 240ms backwards;
 }
 
 .table-section {
@@ -427,56 +398,10 @@ onMounted(async () => {
   transform: rotate(-8deg) scale(1.08);
 }
 
-/* Tab underline that slides between active tabs */
-.tab-button {
-  position: relative;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  transition: color var(--duration-micro) var(--easing-standard);
-}
-.tab-button:active {
-  transform: scale(0.97);
-}
-.tab-indicator {
-  position: absolute;
-  left: 0;
-  bottom: -1px;
-  height: 2px;
-  background-color: var(--primary);
-  transform: translateX(0);
-  transition:
-    transform var(--duration-standard) var(--easing-standard),
-    width var(--duration-standard) var(--easing-standard);
-  pointer-events: none;
-  border-radius: 2px;
-}
-
-.partner-filter {
-  min-width: 12rem;
-}
-
-/* Filter swap: short crossfade when switching tabs */
-.filter-swap-enter-active,
-.filter-swap-leave-active {
-  transition: opacity var(--duration-micro) var(--easing-standard);
-}
-.filter-swap-enter-from,
-.filter-swap-leave-to {
-  opacity: 0;
-}
-
 /* Row + avatar feedback */
 .name-cell .avatar-chip {
   transition: transform var(--duration-micro) var(--easing-standard),
               box-shadow var(--duration-micro) var(--easing-standard);
-}
-:deep(.p-datatable-tbody > tr) {
-  transition: background-color var(--duration-micro) var(--easing-standard);
-}
-:deep(.p-datatable-tbody > tr:hover) .avatar-chip {
-  transform: scale(1.06);
-  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.18);
 }
 
 /* Help CTA arrow nudge */
@@ -488,19 +413,9 @@ onMounted(async () => {
   transform: translateX(4px);
 }
 
-:deep(.p-datatable-thead > tr > th) {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--on-surface-variant);
-  background-color: var(--surface-container);
-}
-
 /* Accessibility: respect motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .header-section,
-  .filter-section,
   .table-section,
   .help-section,
   .stat-stagger {
@@ -508,16 +423,12 @@ onMounted(async () => {
   }
   .monthly-cost-card,
   .monthly-cost-card .wallet-icon,
-  .tab-button,
-  .tab-indicator,
   .name-cell .avatar-chip,
-  .help-cta .help-cta-arrow,
-  :deep(.p-datatable-tbody > tr) {
+  .help-cta .help-cta-arrow {
     transition: none;
   }
   .monthly-cost-card:hover,
   .monthly-cost-card:hover .wallet-icon,
-  :deep(.p-datatable-tbody > tr:hover) .avatar-chip,
   .help-cta:hover .help-cta-arrow {
     transform: none;
   }

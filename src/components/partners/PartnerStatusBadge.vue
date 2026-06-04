@@ -2,8 +2,8 @@
   <Tag
     :value="label"
     :severity="severity"
-    class="status-badge"
-    :class="{ 'status-suspended': props.status === 'suspended' }"
+    rounded
+    :class="['partner-status-badge', { 'partner-status-badge--pulse': pulse }]"
   />
 </template>
 
@@ -12,62 +12,47 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Tag from 'primevue/tag'
 
-interface Props {
-  status: 'active' | 'suspended' | 'inactive'
-}
+type PartnerStatus = 'active' | 'suspended' | 'inactive'
+type TagSeverity = 'success' | 'warn' | 'info' | 'secondary'
 
-const props = defineProps<Props>()
+const props = defineProps<{ status: PartnerStatus }>()
 const { t } = useI18n()
 
-const label = computed(() => {
-  const statusMap: Record<string, string> = {
-    active: t('partners.status.active'),
-    suspended: t('partners.status.suspended'),
-    inactive: t('partners.status.inactive'),
-  }
-  return statusMap[props.status] || props.status
-})
+const LABEL_KEY: Record<PartnerStatus, string> = {
+  active: 'partners.status.active',
+  suspended: 'partners.status.suspended',
+  inactive: 'partners.status.inactive',
+}
 
-const severity = computed(() => {
-  const severityMap: Record<string, string> = {
-    active: 'success',
-    suspended: 'warning',
-    inactive: 'info',
-  }
-  return severityMap[props.status] || 'secondary'
+const SEVERITY: Record<PartnerStatus, TagSeverity> = {
+  active: 'success',
+  suspended: 'warn',
+  inactive: 'info',
+}
+
+const label = computed(() => {
+  const key = LABEL_KEY[props.status]
+  return key ? t(key) : props.status
 })
+const severity = computed<TagSeverity>(() => SEVERITY[props.status] ?? 'secondary')
+const pulse = computed(() => props.status === 'suspended')
 </script>
 
 <style scoped>
-.status-badge {
-  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+.partner-status-badge {
   font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Color-coded status badges
- * Active: green (operational)
- * Suspended: orange (warning, requires attention)
- * Inactive: neutral gray-blue
- */
-:deep(.status-badge.p-tag-success) {
-  background: #00b341 !important;
-  border-color: #00b341 !important;
-  color: #ffffff !important;
+.partner-status-badge--pulse {
+  animation: status-badge-pulse 1.5s var(--easing-pulse, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
 }
 
-:deep(.status-badge.p-tag-warning) {
-  background: #fd761a !important;
-  border-color: #fd761a !important;
-  color: #ffffff !important;
-}
-
-:deep(.status-badge.p-tag-info) {
-  background: #1e40af !important;
-  border-color: #1e40af !important;
-  color: #ffffff !important;
-}
-
-.status-suspended {
-  animation: status-badge-pulse 1.5s var(--easing-pulse) infinite;
+@keyframes status-badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
 }
 </style>

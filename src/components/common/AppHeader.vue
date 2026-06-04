@@ -8,7 +8,7 @@
         :aria-label="$t('nav.toggle')"
         @click="$emit('toggle-nav')"
       >
-        <span class="material-symbols-outlined">menu</span>
+        <span class="material-symbols-outlined" aria-hidden="true">menu</span>
       </button>
       <div class="text-lg sm:text-xl font-bold tracking-tighter text-primary truncate">Xayma.sh</div>
     </div>
@@ -17,7 +17,7 @@
     <div class="flex items-center gap-2 sm:gap-3 lg:gap-4">
       <!-- Credit Balance Pill (hidden on smallest screens) -->
       <div class="hidden sm:flex items-center bg-surface-container-low px-3 py-1.5 rounded text-sm font-medium text-primary">
-        <span class="material-symbols-outlined mr-2 text-lg">account_balance_wallet</span>
+        <span class="material-symbols-outlined me-2 text-lg" aria-hidden="true">account_balance_wallet</span>
         <span class="font-mono text-sm whitespace-nowrap">{{ creditDisplay }}</span>
       </div>
 

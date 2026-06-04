@@ -1,26 +1,25 @@
 <template>
-  <div class="space-y-6 page-enter">
+  <AppPage>
+    <!-- Back button (above header for detail page) -->
+    <Button
+      icon="pi pi-arrow-left"
+      class="p-button-text p-button-rounded self-start"
+      @click="goBack"
+    />
+
     <!-- Header -->
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <Button
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-rounded"
-          @click="goBack"
-        />
-        <div>
-          <h1 class="text-page-title">{{ user?.firstname }} {{ user?.lastname }}</h1>
-          <p class="text-sm text-on-surface-variant">{{ user?.email }}</p>
-        </div>
-      </div>
-      <div class="flex gap-2">
+    <AppPageHeader
+      :title="`${user?.firstname ?? ''} ${user?.lastname ?? ''}`.trim()"
+      :description="user?.email ?? ''"
+    >
+      <template #actions>
         <Button
           :label="$t('common.edit')"
           icon="pi pi-pencil"
           @click="showEditDialog"
         />
-      </div>
-    </div>
+      </template>
+    </AppPageHeader>
 
     <!-- Role and Partner badges -->
     <div class="flex gap-4">
@@ -74,7 +73,7 @@
         @cancel="closeDialog"
       />
     </Dialog>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -84,6 +83,8 @@ import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Tag from 'primevue/tag'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import UserForm from '@/components/users/UserForm.vue'
 import * as userService from '@/services/users.service'
 import * as partnerService from '@/services/partners.service'

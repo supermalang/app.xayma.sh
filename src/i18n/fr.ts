@@ -24,6 +24,17 @@ export default {
   },
 
   // Common
+  a11y: {
+    skip_to_main: 'Aller au contenu principal',
+    open_menu: 'Ouvrir le menu',
+    close_menu: 'Fermer le menu',
+    user_menu: 'Menu utilisateur',
+    notifications: 'Notifications',
+    view_item: 'Voir',
+    edit_item: 'Modifier',
+    delete_item: 'Supprimer',
+  },
+
   common: {
     save: 'Enregistrer',
     cancel: 'Annuler',
@@ -31,7 +42,8 @@ export default {
     edit: 'Modifier',
     update: 'Mettre à jour',
     create: 'Créer',
-    loading: 'Chargement...',
+    loading: 'Chargement…',
+    retry: 'Réessayer',
     error: 'Erreur',
     success: 'Succès',
     noData: 'Aucune donnée disponible',
@@ -40,6 +52,9 @@ export default {
     search: 'Rechercher',
     columns: 'Colonnes',
     export: 'Exporter',
+    filter: 'Filtrer',
+    reset: 'Réinitialiser',
+    apply: 'Appliquer',
     actions: 'Actions',
     details: 'Détails',
     select: 'Sélectionner',
@@ -142,6 +157,10 @@ export default {
 
   // Vouchers
   vouchers: {
+    empty: {
+      title: 'Aucun bon pour le moment',
+      description: 'Générez des codes à distribuer aux clients ou partenaires.',
+    },
     management_title: 'Gestion des bons',
     management_description: 'Créer, gérer et suivre les bons de crédit pour distribution aux clients.',
     generate_vouchers: 'Générer des bons',
@@ -186,6 +205,35 @@ export default {
       error_quantity: 'La quantité doit être entre 1 et 100',
       error_expiry: 'Veuillez sélectionner une date d\'expiration',
     },
+    redeem: {
+      title: 'Utiliser un bon',
+      description: 'Saisissez votre code de bon pour ajouter des crédits à votre compte.',
+      code_label: 'Code du bon',
+      submit: 'Utiliser',
+      success: 'Bon utilisé',
+      have_code_link: 'Vous avez un code ?',
+    },
+    errors: {
+      not_found: 'Code de bon introuvable.',
+      inactive: 'Ce bon n\'est plus actif.',
+      expired: 'Ce bon a expiré.',
+      fully_redeemed: 'Ce bon a atteint sa limite d\'utilisation.',
+      wrong_type: 'Ce bon ne peut pas être utilisé par ce type de compte.',
+      already_redeemed: 'Vous avez déjà utilisé ce bon.',
+      partner_not_found: 'Partenaire introuvable.',
+      generic: 'Impossible d\'utiliser le bon.',
+    },
+  },
+
+  mock_gateway: {
+    dev_banner: 'Passerelle simulée — développement uniquement',
+    title: 'Confirmation de paiement',
+    bundle: 'Pack',
+    amount: 'Montant',
+    transaction_id: 'ID de transaction',
+    approve: 'Approuver',
+    reject: 'Refuser',
+    auto_approve: 'Approbation automatique dans {seconds}s…',
   },
 
   // Dashboard
@@ -306,7 +354,11 @@ export default {
     critical_credit_title: 'Solde de crédit critique',
     critical_credit_message: 'Vos crédits restants sont critiquement bas ({remaining} FCFA). Rechargez immédiatement pour éviter la suspension du service.',
     title: 'Notifications',
-    empty: 'Pas encore de notifications',
+    empty: {
+      short: 'Pas encore de notifications',
+      title: 'Pas encore de notifications',
+      description: 'Tout est à jour. Les nouvelles activités apparaîtront ici.',
+    },
     mark_all_read: 'Tout marquer comme lu',
     view_all: 'Voir tout',
   },
@@ -314,6 +366,10 @@ export default {
   // Credits
   credits: {
     title: 'Crédits',
+    empty: {
+      title: 'Aucune transaction',
+      description: 'Les recharges, débits et remboursements apparaîtront ici.',
+    },
     balance: 'Solde des crédits',
     topup: 'Recharger les crédits',
     buy_credits: 'Acheter des crédits',
@@ -498,6 +554,10 @@ export default {
   // Users
   users: {
     title: 'Utilisateurs',
+    empty: {
+      title: 'Aucun utilisateur',
+      description: 'Créez le premier utilisateur pour donner accès à la plateforme.',
+    },
     form: {
       firstname: 'Prénom',
       lastname: 'Nom',
@@ -540,6 +600,10 @@ export default {
   // Audit Log
   audit: {
     title: 'Journal d\'audit',
+    empty: {
+      title: 'Aucune entrée',
+      description: 'Les modifications de la plateforme seront enregistrées ici en temps réel.',
+    },
     table_name: 'Nom de la table',
     action: 'Action',
     user: 'Utilisateur',
@@ -551,6 +615,10 @@ export default {
   // Partners
   partners: {
     title: 'Partenaires',
+    empty: {
+      title: 'Aucun partenaire',
+      description: 'Ajoutez un client ou un revendeur pour commencer à suivre les déploiements et les crédits.',
+    },
     type: {
       customer: 'Client',
       reseller: 'Revendeur',
@@ -600,6 +668,10 @@ export default {
   // Control Nodes
   control_nodes: {
     title: 'Nœuds de contrôle',
+    empty: {
+      title: 'Aucun nœud de contrôle',
+      description: 'Enregistrez un nœud pour héberger les déploiements.',
+    },
     form: {
       name: 'Nom du nœud',
       hostname: 'Nom d\'hôte',
@@ -616,7 +688,10 @@ export default {
   services: {
     title: 'Registre des services',
     create: 'Créer un nouveau service',
-    empty: 'Aucun service enregistré pour le moment.',
+    empty: {
+      title: 'Aucun service enregistré',
+      description: 'Définissez un modèle de service pour que les clients puissent le déployer.',
+    },
     breadcrumb_root: 'Plateforme',
     subtitle:
       'Orchestrez et supervisez votre écosystème de déploiement. Configurez les blueprints de services, gérez les formules d’instance actives et suivez le cycle de vie des versions sur l’ensemble du cluster.',
@@ -640,10 +715,12 @@ export default {
       actions: 'Actions',
     },
     create_page: {
+      eyebrow: 'Nouveau service',
       title: 'Créer un nouveau service',
       subtitle: 'Définissez un nouveau service ou une intégration tierce pour le registre de déploiement. Tous les paramètres techniques doivent suivre strictement le schéma du système.',
     },
     edit_page: {
+      eyebrow: 'Modifier le service',
       title: 'Modifier le service',
       subtitle: 'Mettez à jour la configuration, les forfaits, les versions et les commandes de cycle de vie. Le slug est permanent et ne peut pas être modifié.',
     },
@@ -781,6 +858,10 @@ export default {
   deployments: {
     title: 'Déploiements',
     subtitle: 'Gérez vos instances dans des régions distribuées. Surveillez le statut, les domaines et les cycles de facturation.',
+    empty: {
+      title: 'Aucun déploiement',
+      description: 'Déployez un service pour obtenir votre première instance.',
+    },
     create: 'Nouveau déploiement',
     export_csv: 'Exporter CSV',
     filter: {
@@ -978,6 +1059,7 @@ export default {
     page_description: 'Restez informé de toutes vos alertes et messages',
     empty: 'Aucune notification pour le moment',
     mark_as_read: 'Marquer comme lu',
+    unread: 'Non lu',
     mark_all_read: 'Marquer tout comme lu',
     view_all: 'Voir toutes les notifications',
     delete: 'Supprimer',
@@ -1008,6 +1090,10 @@ export default {
   portfolio: {
     title: 'Portefeuille',
     description: 'Gérez votre portefeuille de clients et suivez l\'état des crédits',
+    empty: {
+      title: 'Aucun client',
+      description: 'Les clients que vous acquérez apparaîtront ici avec leur forfait et leur date de renouvellement.',
+    },
     customers: 'Clients',
     customer_name: 'Nom du client',
     plan: 'Plan',
@@ -1114,6 +1200,18 @@ export default {
     error_loading: 'Échec du chargement des paramètres',
     error_saving: 'Échec de l\'enregistrement des paramètres',
     error_loading_transactions: 'Échec du chargement des transactions récentes',
+
+    // Dev tools
+    dev_tools: {
+      title: 'Outils de développement',
+      description: 'Visible uniquement en développement ou lorsque le mode simulé est actif. Ne pas activer en production.',
+      mock_workflow_engine: 'Moteur de workflow simulé',
+      mock_source: 'Source : {source}',
+      run_deduction: 'Exécuter le débit de crédits maintenant',
+      run_deduction_hint: 'Simule le cron n8n des 15 minutes une fois.',
+      deduction_done: 'Débit de crédits terminé',
+      deduction_summary: '{n} déploiement(s), {total} crédits débités, {suspended} suspendu(s)',
+    },
 
     // Payment gateways
     payment_gateways: 'Passerelles de paiement',

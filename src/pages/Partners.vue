@@ -1,99 +1,144 @@
 <template>
-  <div class="space-y-6">
+  <AppPage>
     <!-- Page header with create button -->
-    <div class="header-section flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="text-page-title">{{ $t('partners.title') }}</h1>
-      <Button
-        :label="$t('common.create')"
-        icon="pi pi-plus"
-        class="self-start sm:self-auto"
-        @click="showCreateDialog"
-      />
+    <div class="header-section">
+      <AppPageHeader :title="$t('partners.title')">
+        <template #actions>
+          <Button
+            :label="$t('common.create')"
+            icon="pi pi-plus"
+            @click="showCreateDialog"
+          />
+        </template>
+      </AppPageHeader>
     </div>
 
-    <!-- Filters -->
-    <transition name="filters-fade">
-      <div key="filters" class="flex gap-4 flex-wrap filter-section">
-        <Dropdown
-          v-model="filters.status"
-          :options="statusOptions"
-          option-label="label"
-          option-value="value"
-          :placeholder="$t('partners.form.status')"
-          class="w-40"
-          show-clear
-          @change="applyFilters"
-        />
-        <Dropdown
-          v-model="filters.partner_type"
-          :options="partnerTypeOptions"
-          option-label="label"
-          option-value="value"
-          :placeholder="$t('partners.form.type')"
-          class="w-40"
-          show-clear
-          @change="applyFilters"
-        />
-      </div>
-    </transition>
-
-    <!-- DataTable with lazy-load animation -->
-    <transition name="table-fade">
-      <div key="table" class="table-container">
-        <AppDataTable
-          :rows="partners"
-          :columns="tableColumns"
-          :loading="isLoading"
-          :total-records="totalRecords"
-          :page-size="pageSize"
-          paginator
-          lazy
-          :row-class="getRowClass"
-          @page-change="handlePageChange"
-          @search="handleSearch"
-        >
-          <!-- Status column -->
-          <template #body-status="{ data }">
-            <PartnerStatusBadge
-              :status="data.status"
-              :class="{ 'status-badge-pulse': data.status === 'suspended' }"
+    <div class="table-container">
+      <AppDataTable
+        :rows="partners"
+        :columns="tableColumns"
+        :loading="isLoading"
+        :total-records="totalRecords"
+        :page-size="pageSize"
+        paginator
+        lazy
+        export-filename="partners"
+        :empty-title="$t('partners.empty.title')"
+        :empty-description="$t('partners.empty.description')"
+        empty-icon="pi-users"
+        @page-change="handlePageChange"
+      >
+        <!-- Filter popover -->
+        <template #filter>
+          <div class="space-y-2">
+            <label for="partners-filter-search" class="block text-sm font-medium">
+              {{ $t('common.search') }}
+            </label>
+            <InputText
+              id="partners-filter-search"
+              v-model="filters.search"
+              class="w-full"
+              @keydown.enter="applyFilters"
             />
-          </template>
-
-          <!-- Type column -->
-          <template #body-partner_type="{ data }">
-            <PartnerTypeBadge
-              :type="data.partner_type"
-              :class="{ 'type-reseller-highlight': data.partner_type === 'reseller' }"
+          </div>
+          <div class="space-y-2">
+            <label for="partners-filter-status" class="block text-sm font-medium">
+              {{ $t('partners.form.status') }}
+            </label>
+            <Dropdown
+              id="partners-filter-status"
+              v-model="filters.status"
+              :options="statusOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('partners.form.status')"
+              class="w-full"
+              show-clear
             />
-          </template>
+          </div>
+          <div class="space-y-2">
+            <label for="partners-filter-type" class="block text-sm font-medium">
+              {{ $t('partners.form.type') }}
+            </label>
+            <Dropdown
+              id="partners-filter-type"
+              v-model="filters.partner_type"
+              :options="partnerTypeOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('partners.form.type')"
+              class="w-full"
+              show-clear
+            />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <Button
+              :label="$t('common.reset')"
+              severity="secondary"
+              outlined
+              size="small"
+              @click="resetFilters"
+            />
+            <Button
+              :label="$t('common.apply')"
+              size="small"
+              @click="applyFilters"
+            />
+          </div>
+        </template>
 
-          <!-- Actions column -->
-          <template #actions="{ data }">
-            <div class="flex gap-2 action-buttons">
-              <Button
-                icon="pi pi-eye"
-                class="p-button-rounded p-button-text p-button-sm"
-                :title="$t('common.view')"
-                @click="goToPartnerDetail(data.id)"
-              />
-              <Button
-                icon="pi pi-pencil"
-                class="p-button-rounded p-button-text p-button-sm"
-                :title="$t('common.edit')"
-                @click="editPartner(data)"
-              />
-              <Button
-                icon="pi pi-trash"
-                class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                :title="$t('common.delete')"
-                @click="deletePartner(data.id)"
-              />
-            </div>
-          </template>
-        </AppDataTable>
-      </div>
-    </transition>
+        <!-- Status column -->
+        <template #body-status="{ data }">
+          <PartnerStatusBadge
+            :status="(data as any).status"
+            :class="{ 'status-badge-pulse': (data as any).status === 'suspended' }"
+          />
+        </template>
+
+        <!-- Type column -->
+        <template #body-partner_type="{ data }">
+          <PartnerTypeBadge
+            :type="(data as any).partner_type"
+            :class="{ 'type-reseller-highlight': (data as any).partner_type === 'reseller' }"
+          />
+        </template>
+
+        <!-- Row actions -->
+        <template #rowActions="{ data }">
+          <div class="flex gap-2 action-buttons">
+            <Button
+              icon="pi pi-eye"
+              class="p-button-rounded p-button-text p-button-sm"
+              :title="$t('common.view')"
+              :aria-label="$t('common.view')"
+              @click="goToPartnerDetail((data as any).id)"
+            />
+            <Button
+              icon="pi pi-pencil"
+              class="p-button-rounded p-button-text p-button-sm"
+              :title="$t('common.edit')"
+              :aria-label="$t('common.edit')"
+              @click="editPartner(data)"
+            />
+            <Button
+              icon="pi pi-trash"
+              class="p-button-rounded p-button-text p-button-sm p-button-danger"
+              :title="$t('common.delete')"
+              :aria-label="$t('common.delete')"
+              @click="deletePartner((data as any).id)"
+            />
+          </div>
+        </template>
+
+        <template #emptyAction>
+          <Button
+            :label="$t('common.create')"
+            icon="pi pi-plus"
+            @click="showCreateDialog"
+          />
+        </template>
+      </AppDataTable>
+    </div>
 
     <!-- Create/Edit Dialog -->
     <transition name="dialog-slide-up">
@@ -113,7 +158,7 @@
         </Dialog>
       </div>
     </transition>
-  </div>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
@@ -124,7 +169,10 @@ import { usePartnerStore } from '@/stores/partner.store'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
 import AppDataTable from '@/components/common/AppDataTable.vue'
+import AppPage from '@/components/common/AppPage.vue'
+import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import PartnerForm from '@/components/partners/PartnerForm.vue'
 import PartnerStatusBadge from '@/components/partners/PartnerStatusBadge.vue'
 import PartnerTypeBadge from '@/components/partners/PartnerTypeBadge.vue'
@@ -171,12 +219,6 @@ const tableColumns = [
 const partners = computed(() => partnerStore.partners)
 const isEditingPartner = computed(() => !!editingPartner.value?.id)
 
-// Get row animation class for lazy-load stagger
-const getRowClass = (_row: unknown, _index: number) => {
-  if (isLoading.value) return ''
-  return `lazy-row` // Add data-index via CSS nth-child selector
-}
-
 // Load partners
 const loadPartners = async (page = 1) => {
   try {
@@ -200,14 +242,14 @@ const handlePageChange = (event: any) => {
   loadPartners(page)
 }
 
-// Handle search
-const handleSearch = (search: string) => {
-  filters.value.search = search
+// Apply filters
+const applyFilters = () => {
   loadPartners(1)
 }
 
-// Apply filters
-const applyFilters = () => {
+// Reset filters
+const resetFilters = () => {
+  filters.value = { status: '', partner_type: '', search: '' }
   loadPartners(1)
 }
 
@@ -327,38 +369,18 @@ onMounted(() => {
 }
 
 :deep(.type-reseller-highlight .p-tag) {
-  background-color: #e8f0ff !important;
-  color: #00288e !important;
-  border: 1px solid #1e40af;
-}
-
-:deep(.p-dropdown:focus) {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 0.2rem rgba(0, 40, 142, 0.1) !important;
+  background-color: var(--surface-container-low);
+  color: var(--primary);
+  border: 1px solid var(--primary-container);
 }
 
 :deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: #eff4ff !important;
+  background-color: var(--surface-container-low);
   transition: background-color var(--duration-standard) var(--easing-standard);
 }
 
 :deep(.p-datatable .p-datatable-thead > tr) {
-  background-color: #eaeef7 !important;
-}
-
-:deep(.p-tag-success) {
-  background: #00b341 !important;
-  color: #ffffff !important;
-}
-
-:deep(.p-tag-warning) {
-  background: #fd761a !important;
-  color: #ffffff !important;
-}
-
-:deep(.p-tag-info) {
-  background: #1e40af !important;
-  color: #ffffff !important;
+  background-color: var(--surface-container);
 }
 
 /* Lazy-load row animations for DataTable
