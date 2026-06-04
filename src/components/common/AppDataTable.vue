@@ -1,280 +1,292 @@
 <template>
-  <div class="space-y-4">
-    <!-- Toolbar -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <!-- Search -->
-      <span class="p-input-icon-left flex-1 w-full sm:w-auto sm:min-w-64">
-        <i class="pi pi-search" />
-        <InputText
-          v-model="localSearch"
-          :placeholder="$t('common.search')"
-          class="w-full"
-          @input="handleSearch"
-        />
-      </span>
+  <section class="app-table-section">
+    <!--
+      Header bar — shown when there's a section title, custom actions, a filter
+      popover, or an export button. Pages where the page title already serves
+      as the section title can omit `title` to render only the toolbar.
+    -->
+    <header
+      v-if="hasHeader"
+      class="flex flex-col gap-3 p-6 pb-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <h2 v-if="title" class="text-section truncate">{{ title }}</h2>
+      <span v-else />
 
-      <!-- Toolbar actions -->
-      <div class="flex gap-2 w-full sm:w-auto">
-        <!-- Column toggle -->
-        <MultiSelect
-          v-model="visibleColumns"
-          :options="columns"
-          option-label="header"
-          option-value="field"
-          :placeholder="$t('common.columns')"
-          class="flex-1 sm:w-64"
-          @change="handleColumnChange"
-        />
-
-        <!-- CSV Export -->
+      <div class="flex items-center gap-2 flex-wrap">
         <Button
-          icon="pi pi-download"
-          class="p-button-outlined"
+          v-if="hasFilter"
+          :label="t('common.filter')"
+          icon="pi pi-filter"
           severity="secondary"
-          @click="exportCSV"
-          :title="$t('common.export')"
-          :aria-label="$t('aria.export_csv')"
+          outlined
+          size="small"
+          :aria-label="t('common.filter')"
+          @click="toggleFilter"
         />
+        <Button
+          v-if="showExport"
+          :label="t('common.export')"
+          icon="pi pi-download"
+          severity="secondary"
+          outlined
+          size="small"
+          :disabled="!rows || rows.length === 0"
+          :aria-label="t('common.export')"
+          @click="exportCsv"
+        />
+        <slot name="actions" />
       </div>
-    </div>
+    </header>
 
-    <!-- DataTable -->
+    <Popover v-if="hasFilter" ref="filterPopover" class="w-80">
+      <div class="space-y-4">
+        <slot name="filter" />
+      </div>
+    </Popover>
+
+    <!-- States -->
+    <AppErrorState
+      v-if="error"
+      :title="errorTitle ?? t('errors.fetch_failed')"
+      :description="error"
+      @retry="$emit('retry')"
+    />
+
+    <AppLoadingState
+      v-else-if="loading"
+      variant="skeleton-rows"
+      :rows="skeletonRows"
+    />
+
+    <AppEmptyState
+      v-else-if="!rows || rows.length === 0"
+      :title="emptyTitle ?? t('common.no_data')"
+      :description="emptyDescription"
+      :icon="emptyIcon"
+    >
+      <template v-if="$slots.emptyAction" #action>
+        <slot name="emptyAction" />
+      </template>
+    </AppEmptyState>
+
     <DataTable
-      ref="dt"
+      v-else
       :value="rows"
-      :loading="loading"
       :paginator="paginator"
       :rows="pageSize"
       :total-records="totalRecords"
       :lazy="lazy"
       :first="first"
-      striped-rows
+      :row-hover="rowClickable"
+      :class="rowClickable ? 'app-table--clickable' : ''"
       responsive-layout="stack"
       breakpoint="768px"
-      class="p-datatable-striped"
       @page="handlePageChange"
+      @row-click="handleRowClick"
     >
-      <!-- Dynamic columns -->
       <Column
-        v-for="col in visibleColumns"
-        :key="col"
-        :field="col"
-        :header="getColumnHeader(col)"
+        v-for="col in columns"
+        :key="col.field"
+        :field="col.field"
+        :header="resolveHeader(col)"
+        :align="col.align"
+        :style="col.width ? `width: ${col.width}` : undefined"
       >
         <template #body="{ data }">
-          <slot :name="`body-${col}`" :data="data">
-            {{ getNestedValue(data, col) }}
+          <slot :name="`body-${col.field}`" :data="data">
+            {{ getNestedValue(data, col.field) }}
           </slot>
         </template>
       </Column>
 
-      <!-- Custom slot for row actions -->
-      <Column v-if="$slots.actions" class="w-20">
-        <template #header>{{ $t('common.actions') }}</template>
+      <Column
+        v-if="$slots.rowActions"
+        :header="t('common.actions')"
+        class="app-table__row-actions"
+        style="width: 7rem"
+      >
         <template #body="{ data }">
-          <slot name="actions" :data="data" />
+          <slot name="rowActions" :data="data" />
         </template>
       </Column>
-
-      <!-- Empty state — callers override with their own AppEmptyState if desired -->
-      <template #empty>
-        <slot name="empty">
-          <div class="text-center text-on-surface-variant py-8">
-            {{ $t('common.no_data') }}
-          </div>
-        </slot>
-      </template>
     </DataTable>
-  </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import InputText from 'primevue/inputtext'
-import MultiSelect from 'primevue/multiselect'
 import Button from 'primevue/button'
+import Popover from 'primevue/popover'
+import type { DataTableRowClickEvent } from 'primevue/datatable'
+import AppEmptyState from './AppEmptyState.vue'
+import AppErrorState from './AppErrorState.vue'
+import AppLoadingState from './AppLoadingState.vue'
 
-interface ColumnDef {
+export interface AppTableColumn {
+  /** Property name on the row. */
   field: string
+  /**
+   * Either an i18n key (resolved via t()) or a literal label.
+   * Strings containing a dot are treated as i18n keys.
+   */
   header: string
+  width?: string
+  align?: 'left' | 'right' | 'center'
 }
 
-interface Props {
-  rows: any[]
-  columns: ColumnDef[]
-  loading?: boolean
-  paginator?: boolean
-  pageSize?: number
-  totalRecords?: number
-  lazy?: boolean
-  modelValue?: {
-    search?: string
-    visibleColumns?: string[]
-    page?: number
-  }
-}
+const props = withDefaults(
+  defineProps<{
+    rows: unknown[]
+    columns: AppTableColumn[]
+    loading?: boolean
+    error?: string | null
+    paginator?: boolean
+    pageSize?: number
+    totalRecords?: number
+    lazy?: boolean
+    first?: number
+    /** Optional section title (h2). Omit when the page title is enough. */
+    title?: string
+    showExport?: boolean
+    exportFilename?: string
+    rowClickable?: boolean
+    skeletonRows?: number
+    /** Empty state. Falls back to common.no_data. */
+    emptyTitle?: string
+    emptyDescription?: string
+    emptyIcon?: string
+    errorTitle?: string
+  }>(),
+  {
+    loading: false,
+    paginator: true,
+    pageSize: 20,
+    totalRecords: 0,
+    lazy: false,
+    first: 0,
+    showExport: true,
+    rowClickable: false,
+    skeletonRows: 6,
+    emptyIcon: 'pi-inbox',
+  },
+)
 
-interface Emits {
-  (e: 'update:modelValue', value: any): void
-  (e: 'search', value: string): void
-  (e: 'page-change', value: { first: number; rows: number }): void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  loading: false,
-  paginator: true,
-  pageSize: 20,
-  totalRecords: 0,
-  lazy: false,
-})
-
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+  (e: 'page-change', value: { first: number; rows: number; page: number }): void
+  (e: 'row-click', value: unknown): void
+  (e: 'retry'): void
+}>()
 
 const { t } = useI18n()
-const dt = ref()
+const slots = useSlots()
 
-const localSearch = ref(props.modelValue?.search || '')
-const visibleColumns = ref<string[]>(
-  props.modelValue?.visibleColumns || props.columns.map((c) => c.field)
+const filterPopover = ref<InstanceType<typeof Popover>>()
+
+const hasFilter = computed(() => Boolean(slots.filter))
+const hasHeader = computed(
+  () => Boolean(props.title) || Boolean(slots.actions) || hasFilter.value || props.showExport,
 )
-const first = ref(props.modelValue?.page || 0)
 
-const getColumnHeader = (field: string) => {
-  const col = props.columns.find((c) => c.field === field)
-  return col ? t(`${col.header}`) : field
+function resolveHeader(col: AppTableColumn): string {
+  // Treat any string with a dot as an i18n key, otherwise as a literal label.
+  return col.header.includes('.') ? t(col.header) : col.header
 }
 
-const getNestedValue = (obj: any, path: string) => {
-  return path.split('.').reduce((acc, part) => acc?.[part], obj)
-}
-
-const handleSearch = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value
-  localSearch.value = value
-  emit('search', value)
-  emit('update:modelValue', {
-    search: value,
-    visibleColumns: visibleColumns.value,
-    page: first.value,
-  })
-}
-
-const handleColumnChange = () => {
-  emit('update:modelValue', {
-    search: localSearch.value,
-    visibleColumns: visibleColumns.value,
-    page: first.value,
-  })
-}
-
-const handlePageChange = (event: any) => {
-  first.value = event.first
-  emit('page-change', { first: event.first, rows: event.rows })
-  emit('update:modelValue', {
-    search: localSearch.value,
-    visibleColumns: visibleColumns.value,
-    page: event.first,
-  })
-}
-
-function exportCSV(): void {
-  if (!props.rows || props.rows.length === 0) {
-    // Export headers only if no data
-    const csvHeaders = visibleColumns.value
-      .map((col) => {
-        const column = props.columns.find((c) => c.field === col)
-        return column ? `"${t(`${column.header}`)}"` : `"${col}"`
-      })
-      .join(',')
-    const csv = csvHeaders
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    downloadCSV(blob)
-    return
-  }
-
-  // Get visible column headers with i18n translations
-  const csvHeaders = visibleColumns.value
-    .map((col) => {
-      const column = props.columns.find((c) => c.field === col)
-      return column ? `"${t(`${column.header}`)}"` : `"${col}"`
-    })
-    .join(',')
-
-  // Build CSV rows with proper RFC 4180 escaping
-  const csvRows = props.rows.map((row: any) =>
-    visibleColumns.value
-      .map((col) => {
-        const value = getNestedValue(row, col)
-        if (value === null || value === undefined) return '""'
-
-        const stringValue = String(value)
-        // Escape quotes by doubling them, replace newlines with space
-        const escaped = stringValue
-          .replace(/"/g, '""')
-          .replace(/\n/g, ' ')
-        return `"${escaped}"`
-      })
-      .join(',')
+function getNestedValue(obj: unknown, path: string): unknown {
+  return path.split('.').reduce<unknown>(
+    (acc, part) => (acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[part] : undefined),
+    obj,
   )
-
-  // Combine headers and rows
-  const csv = [csvHeaders, ...csvRows].join('\n')
-
-  // Create and download blob
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  downloadCSV(blob)
 }
 
-function downloadCSV(blob: Blob): void {
+function toggleFilter(event: Event) {
+  filterPopover.value?.toggle(event)
+}
+
+function handlePageChange(event: { first: number; rows: number; page: number }) {
+  emit('page-change', event)
+}
+
+function handleRowClick(event: DataTableRowClickEvent) {
+  if (!props.rowClickable) return
+  emit('row-click', event.data)
+}
+
+function exportCsv() {
+  if (!props.rows || props.rows.length === 0) return
+
+  const headers = props.columns.map((c) => `"${resolveHeader(c).replace(/"/g, '""')}"`).join(',')
+  const body = props.rows
+    .map((row) =>
+      props.columns
+        .map((c) => {
+          const value = getNestedValue(row, c.field)
+          if (value === null || value === undefined) return '""'
+          const text = String(value).replace(/"/g, '""').replace(/\n/g, ' ')
+          return `"${text}"`
+        })
+        .join(','),
+    )
+    .join('\n')
+  const csv = `${headers}\n${body}`
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  const date = new Date().toISOString().split('T')[0]
-
-  link.setAttribute('href', url)
-  link.setAttribute('download', `export-${date}.csv`)
+  link.href = URL.createObjectURL(blob)
+  const date = new Date().toISOString().slice(0, 10)
+  link.download = `${props.exportFilename ?? 'export'}-${date}.csv`
   link.style.visibility = 'hidden'
-
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-
-  // Clean up
-  URL.revokeObjectURL(url)
+  URL.revokeObjectURL(link.href)
 }
 
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    if (newValue?.search) localSearch.value = newValue.search
-    if (newValue?.visibleColumns) visibleColumns.value = newValue.visibleColumns
-    if (newValue?.page !== undefined) first.value = newValue.page
-  },
-  { deep: true }
-)
+defineExpose({ exportCsv, toggleFilter })
 </script>
 
 <style scoped>
+.app-table-section {
+  background: var(--surface-container-lowest);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 40%, transparent);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.app-table--clickable :deep(.p-datatable-tbody > tr) {
+  cursor: pointer;
+}
+
 :deep(.p-datatable) {
-  --p-datatable-border-color: var(--outline-variant);
-  --p-datatable-row-bg: var(--surface);
-  --p-datatable-row-border-color: var(--outline-variant);
-  --p-datatable-row-hover-bg: var(--surface-container-low);
+  font-size: 0.875rem;
 }
 
-:deep(.p-input-icon-left) {
-  display: flex;
-  align-items: center;
-}
-
-:deep(.p-input-icon-left > i) {
-  left: 1rem;
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+  background: var(--surface-container-low);
   color: var(--on-surface-variant);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
 }
 
-:deep(.p-input-icon-left > input) {
-  padding-left: 2.5rem;
+:deep(.p-datatable .p-datatable-tbody > tr) {
+  border-bottom: 1px solid var(--outline-variant);
+  background: transparent;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr:last-child) {
+  border-bottom: none;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr:hover) {
+  background-color: var(--surface-container-low);
+}
+
+:deep(.p-paginator) {
+  background: transparent;
+  border-top: 1px solid var(--outline-variant);
 }
 </style>
