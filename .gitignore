@@ -42,3 +42,9 @@ out/
 
 
 .claude/settings.local.json
+
+# AI pipeline state (local only — never commit)
+.current-task
+
+# Throwaway live-verification artefacts (/webapp-testing, /perf-measure)
+.scratch/
