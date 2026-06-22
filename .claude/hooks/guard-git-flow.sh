@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# guard-git-flow.sh — enforce the branch → PR → develop → release workflow.
+# guard-git-flow.sh — enforce the feature-branch → PR → main (trunk-based) workflow.
 #
 # Wired as a PreToolUse(Bash) hook in .claude/settings.json. Reads the hook
 # JSON on stdin and, for git commands only, emits a "deny" permission decision
@@ -8,8 +8,7 @@
 #   - pushing `main` (explicit ref, or a bare `git push` while sitting on main)
 #
 # Workflow (see CLAUDE.md — Branches):
-#   feature branch → PR/MR → develop  (daily integration)
-#   develop → release PR → main        (production deployments only)
+#   feature branch → PR/MR → main  (trunk-based; main is the integration + production branch)
 #
 # Exit 0 with no output = allow (the harness falls back to normal permissions).
 
