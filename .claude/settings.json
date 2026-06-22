@@ -1,106 +1,69 @@
 {
-  "agents": {
-    "enabled": true,
-    "team": [
-      "css-design",
-      "vue-specialist",
-      "workflow-engine-specialist",
-      "test-writer",
-      "pr-reviewer",
-      "lead"
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Bash(git push origin main)",
+      "Bash(git push origin HEAD:main)",
+      "Bash(git push --force origin main)",
+      "Bash(git push -f origin main)"
     ]
   },
-  "commands": {
-    "available": [
-      "new-feature",
-      "new-page",
-      "verify-task",
-      "test-sprint",
-      "status",
-      "visual-check",
-      "workflow-engine",
-      "db-migration"
-    ]
-  },
-  "testing": {
-    "unit": "vitest",
-    "e2e": "playwright",
-    "coverage": "v8"
-  },
-  "build": {
-    "tool": "vite",
-    "framework": "vue3",
-    "language": "typescript"
-  },
+  "agents": { "enabled": true },
   "enabledMcpjsonServers": ["stitch"],
+  "testing": { "unit": "vitest", "e2e": "playwright", "coverage": "v8" },
+  "build": { "tool": "vite", "framework": "vue3", "language": "typescript" },
   "hooks": {
     "PreToolUse": [
       {
-        "description": "Block direct edits to auto-generated database types",
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/guard-generated-files.sh",
-            "timeout": 5
-          }
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-git-flow.sh\"", "timeout": 10 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-destructive-db.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-commit-message.sh\"", "timeout": 5 }
         ]
       },
       {
-        "description": "Block direct n8n fetch() calls in frontend source",
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/guard-n8n-direct-calls.sh",
-            "timeout": 5
-          }
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-branch.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-roadmap-gate.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-generated-files.sh\"", "timeout": 5 },
+          { "type": "command", "command": ".claude/hooks/guard-n8n-direct-calls.sh", "timeout": 5 }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "description": "ESLint + tsc after any .ts/.vue file edit",
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/lint-and-typecheck.sh",
-            "timeout": 60
-          }
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-test-files.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-soft-delete.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-audit-log.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-expose-hash.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-secret-scan.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-credit-write.sh\"", "timeout": 5 },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/remind-docs-generate.sh\"", "timeout": 5 },
+          { "type": "command", "command": ".claude/hooks/lint-and-typecheck.sh", "timeout": 60 }
         ]
       },
       {
-        "description": "i18n key parity check after translation file edits",
         "matcher": "Write|Edit",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/check-i18n-parity.sh",
-            "timeout": 15
-          }
+          { "type": "command", "command": ".claude/hooks/check-i18n-parity.sh", "timeout": 15 }
         ]
       }
     ],
     "Stop": [
       {
-        "description": "Remind Claude to run /verify-task before marking done",
         "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/verify-task-reminder.sh",
-            "timeout": 5
-          }
+          { "type": "command", "command": ".claude/hooks/verify-task-reminder.sh", "timeout": 5 }
         ]
       }
     ],
     "PreCompact": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"additionalContext\": \"Preserve: architecture decisions, failing tests, blocked tasks, schema changes made this session\"}'"
-          }
+          { "type": "command", "command": "echo '{\"additionalContext\": \"Preserve: architecture decisions, failing tests, blocked tasks, schema changes made this session\"}'" }
         ]
       }
     ]
