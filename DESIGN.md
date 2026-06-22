@@ -55,7 +55,9 @@
   attention-seeking.
 
 > Exact values (hex, Tailwind classes, icon library, component library) are defined **once** in
-> `.claude/context.md` under *UI conventions* — do not duplicate them here; they would drift.
+> `src/design-system/tokens.json` (machine source of truth), mirrored for humans in
+> [`docs/design-tokens-reference.md`](docs/design-tokens-reference.md); the operational summary used
+> every run is in `.claude/context.md` under *UI conventions*. Do not duplicate them here — they drift.
 
 ## Accessibility stance
 
