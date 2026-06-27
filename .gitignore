@@ -40,6 +40,9 @@ out/
 # Git worktrees
 .worktrees/
 
+# Active task lock (written by /start-task, read by guard-roadmap-gate.sh)
+.current-task
+
 
 .claude/settings.local.json
 
