@@ -100,7 +100,7 @@ File: `tests/e2e/[feature].spec.ts`
 
 | Task | Status | Delivered |
 |------|--------|-----------|
-| XAYMA-100 Add correlationId to deployment webhook payloads | ⬜ | — |
+| XAYMA-100 Add correlationId to deployment webhook payloads | ✓ | 2026-06-29 |
 | XAYMA-101 n8n: Central Notification Workflow (deployments) | ⬜ | — |
 | XAYMA-102 n8n: Create Deployment consumer + AWX callback | ⬜ | — |
 | XAYMA-103 n8n: initiateCheckout workflow (payment gateway) | ⬜ | — |
@@ -157,7 +157,10 @@ File: `tests/e2e/deployment-correlationid.spec.ts`
 
 **UAT:** Submit the deployment wizard; open DevTools → Network and confirm the POST to `DEPLOYMENT_ENGINE_URL` includes `"correlationId": "<slug>"` in the request body.
 **QA:** — (to be signed off)
-**Delivery:** —
+**Delivery:**
+- Commit : cb23272
+- PR     : #(pending)
+- Delivered on : 2026-06-29
 
 ---
 
