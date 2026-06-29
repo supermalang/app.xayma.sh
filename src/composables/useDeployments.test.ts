@@ -1,26 +1,25 @@
 /**
  * useDeployments tests
- * Tests for deployment actions: stop, start, restart
+ * Tests for deployment actions: stop, start, restart, terminate, create
+ * Covers XAYMA-100: correlationId present and correct in all webhook payloads
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useDeployments } from './useDeployments'
 import * as workflowEngineService from '@/services/workflow-engine'
+import * as deploymentService from '@/services/deployments.service'
 
-// Mock vue-i18n
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string) => key,
-  }),
+  useI18n: () => ({ t: (key: string) => key }),
 }))
 
-// Mock workflow engine
 vi.mock('@/services/workflow-engine', () => ({
   performDeploymentAction: vi.fn(),
+  createDeployment: vi.fn(),
+  terminateDeployment: vi.fn(),
 }))
 
-// Mock notifications store
 vi.mock('@/stores/notifications.store', () => ({
   useNotificationStore: () => ({
     addSuccess: vi.fn(),
@@ -28,135 +27,238 @@ vi.mock('@/stores/notifications.store', () => ({
   }),
 }))
 
-// Mock supabase
 vi.mock('@/services/supabase', () => ({
   supabase: {
     removeChannel: vi.fn(),
     channel: vi.fn(() => ({
-      on: vi.fn(() => ({
-        subscribe: vi.fn(),
-      })),
+      on: vi.fn(() => ({ subscribe: vi.fn() })),
     })),
   },
 }))
 
-// Mock deployment service
 vi.mock('@/services/deployments.service', () => ({
   listDeployments: vi.fn(),
   getDeployment: vi.fn(),
+  createDeployment: vi.fn(),
+  isDeploymentSlugUnique: vi.fn(() => Promise.resolve(true)),
   hasPartnerSufficientCredits: vi.fn(() => Promise.resolve(true)),
 }))
 
+const MOCK_DEPLOYMENT = {
+  id: 42,
+  slug: 'my-app-xayma',
+  label: 'My App',
+  status: 'active',
+  partner_id: 1,
+  service_id: 1,
+  plan_slug: 'starter',
+  domainNames: ['my-app-xayma.xayma.sh'],
+  created: new Date().toISOString(),
+  modified: null,
+}
+
+async function loadDeployment(composable: ReturnType<typeof useDeployments>) {
+  ;(deploymentService.listDeployments as any).mockResolvedValueOnce({
+    data: [MOCK_DEPLOYMENT],
+    count: 1,
+    page: 1,
+    pageSize: 100,
+    totalPages: 1,
+  })
+  await composable.loadDeployments(1)
+}
+
 describe('useDeployments', () => {
-  let deployments: ReturnType<typeof useDeployments>
+  let composable: ReturnType<typeof useDeployments>
 
   beforeEach(() => {
     setActivePinia(createPinia())
-    deployments = useDeployments()
+    composable = useDeployments()
     vi.clearAllMocks()
   })
 
-  describe('stopDeployment', () => {
-    it('should call workflow engine with stop action', async () => {
-      const deploymentId = 1
-      await deployments.stopDeployment(deploymentId)
+  // ─── performDeploymentAction ───────────────────────────────────────────────
+
+  describe('performDeploymentAction — correlationId from loaded deployment', () => {
+    it('includes slug as correlationId when deployment is loaded', async () => {
+      await loadDeployment(composable)
+      await composable.performDeploymentAction(MOCK_DEPLOYMENT.id, 'stop')
 
       expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
-        deploymentId,
+        deploymentId: MOCK_DEPLOYMENT.id,
+        correlationId: MOCK_DEPLOYMENT.slug,
         action: 'stop',
       })
     })
 
-    it('should handle workflow engine errors gracefully', async () => {
-      const deploymentId = 1
-      const mockError = new Error('workflow failed')
-      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(mockError)
+    it('includes slug as correlationId for start action', async () => {
+      await loadDeployment(composable)
+      await composable.performDeploymentAction(MOCK_DEPLOYMENT.id, 'start')
 
-      // Should not throw
-      await expect(deployments.stopDeployment(deploymentId)).resolves.toBeUndefined()
+      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
+        deploymentId: MOCK_DEPLOYMENT.id,
+        correlationId: MOCK_DEPLOYMENT.slug,
+        action: 'start',
+      })
+    })
+
+    it('includes slug as correlationId for restart action', async () => {
+      await loadDeployment(composable)
+      await composable.performDeploymentAction(MOCK_DEPLOYMENT.id, 'restart')
+
+      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
+        deploymentId: MOCK_DEPLOYMENT.id,
+        correlationId: MOCK_DEPLOYMENT.slug,
+        action: 'restart',
+      })
+    })
+  })
+
+  describe('performDeploymentAction — correlationId fallback when deployment not in list', () => {
+    it('falls back to String(deploymentId) when deployment not found', async () => {
+      const unknownId = 999
+      await composable.performDeploymentAction(unknownId, 'stop')
+
+      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
+        deploymentId: unknownId,
+        correlationId: String(unknownId),
+        action: 'stop',
+      })
+    })
+
+    it('handles errors without throwing', async () => {
+      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(
+        new Error('webhook failed'),
+      )
+      await expect(composable.performDeploymentAction(1, 'stop')).resolves.toBeUndefined()
+    })
+  })
+
+  // ─── stopDeployment / startDeployment / restartDeployment ─────────────────
+
+  describe('stopDeployment', () => {
+    it('calls performDeploymentAction with stop and fallback correlationId', async () => {
+      await composable.stopDeployment(1)
+      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
+        deploymentId: 1,
+        correlationId: '1',
+        action: 'stop',
+      })
+    })
+
+    it('handles errors without throwing', async () => {
+      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(
+        new Error('failed'),
+      )
+      await expect(composable.stopDeployment(1)).resolves.toBeUndefined()
     })
   })
 
   describe('startDeployment', () => {
-    it('should call workflow engine with start action', async () => {
-      const deploymentId = 2
-      await deployments.startDeployment(deploymentId)
-
+    it('calls performDeploymentAction with start and fallback correlationId', async () => {
+      await composable.startDeployment(2)
       expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
-        deploymentId,
+        deploymentId: 2,
+        correlationId: '2',
         action: 'start',
       })
     })
 
-    it('should handle workflow engine errors gracefully', async () => {
-      const deploymentId = 2
-      const mockError = new Error('workflow failed')
-      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(mockError)
-
-      // Should not throw
-      await expect(deployments.startDeployment(deploymentId)).resolves.toBeUndefined()
+    it('handles errors without throwing', async () => {
+      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(
+        new Error('failed'),
+      )
+      await expect(composable.startDeployment(2)).resolves.toBeUndefined()
     })
   })
 
   describe('restartDeployment', () => {
-    it('should call workflow engine with restart action', async () => {
-      const deploymentId = 3
-      await deployments.restartDeployment(deploymentId)
-
+    it('calls performDeploymentAction with restart and fallback correlationId', async () => {
+      await composable.restartDeployment(3)
       expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
-        deploymentId,
+        deploymentId: 3,
+        correlationId: '3',
         action: 'restart',
       })
     })
 
-    it('should handle workflow engine errors gracefully', async () => {
-      const deploymentId = 3
-      const mockError = new Error('workflow failed')
-      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(mockError)
-
-      // Should not throw
-      await expect(deployments.restartDeployment(deploymentId)).resolves.toBeUndefined()
+    it('handles errors without throwing', async () => {
+      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(
+        new Error('failed'),
+      )
+      await expect(composable.restartDeployment(3)).resolves.toBeUndefined()
     })
   })
 
-  describe('performDeploymentAction', () => {
-    it('should call workflow engine with correct payload for stop', async () => {
-      const deploymentId = 5
-      await deployments.performDeploymentAction(deploymentId, 'stop')
+  // ─── terminateDeployment ──────────────────────────────────────────────────
 
-      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
-        deploymentId,
-        action: 'stop',
+  describe('terminateDeployment', () => {
+    it('includes slug as correlationId when deployment is loaded', async () => {
+      await loadDeployment(composable)
+      await composable.terminateDeployment(MOCK_DEPLOYMENT.id)
+
+      expect(workflowEngineService.terminateDeployment).toHaveBeenCalledWith({
+        deploymentId: MOCK_DEPLOYMENT.id,
+        correlationId: MOCK_DEPLOYMENT.slug,
       })
     })
 
-    it('should call workflow engine with correct payload for start', async () => {
-      const deploymentId = 5
-      await deployments.performDeploymentAction(deploymentId, 'start')
+    it('falls back to String(deploymentId) when deployment not in list', async () => {
+      const unknownId = 77
+      await composable.terminateDeployment(unknownId)
 
-      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
-        deploymentId,
-        action: 'start',
+      expect(workflowEngineService.terminateDeployment).toHaveBeenCalledWith({
+        deploymentId: unknownId,
+        correlationId: String(unknownId),
       })
     })
 
-    it('should call workflow engine with correct payload for restart', async () => {
-      const deploymentId = 5
-      await deployments.performDeploymentAction(deploymentId, 'restart')
+    it('handles errors without throwing', async () => {
+      ;(workflowEngineService.terminateDeployment as any).mockRejectedValueOnce(
+        new Error('failed'),
+      )
+      await expect(composable.terminateDeployment(1)).resolves.toBeUndefined()
+    })
+  })
 
-      expect(workflowEngineService.performDeploymentAction).toHaveBeenCalledWith({
-        deploymentId,
-        action: 'restart',
+  // ─── createDeployment ─────────────────────────────────────────────────────
+
+  describe('createDeployment', () => {
+    const formData = {
+      serviceId: 1,
+      planSlug: 'starter',
+      label: 'My App',
+      domainNames: ['my-app-xayma.xayma.sh'],
+      slug: 'my-app-xayma',
+    }
+
+    beforeEach(() => {
+      ;(deploymentService.createDeployment as any).mockResolvedValue({
+        id: 99,
+        slug: 'my-app-xayma',
+        label: 'My App',
+        status: 'pending_deployment',
       })
     })
 
-    it('should handle errors without throwing', async () => {
-      const deploymentId = 5
-      const mockError = new Error('workflow failed')
-      ;(workflowEngineService.performDeploymentAction as any).mockRejectedValueOnce(mockError)
+    it('includes slug as correlationId in the webhook payload', async () => {
+      await composable.createDeployment(formData, 1, 10)
 
-      // Should not throw
-      await expect(deployments.performDeploymentAction(deploymentId, 'stop')).resolves.toBeUndefined()
+      expect(workflowEngineService.createDeployment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          correlationId: 'my-app-xayma',
+          deploymentId: 99,
+        }),
+      )
+    })
+
+    it('returns null and does not call webhook when credits are insufficient', async () => {
+      ;(deploymentService.hasPartnerSufficientCredits as any).mockResolvedValueOnce(false)
+
+      const result = await composable.createDeployment(formData, 1, 10)
+
+      expect(result).toBeNull()
+      expect(workflowEngineService.createDeployment).not.toHaveBeenCalled()
     })
   })
 })

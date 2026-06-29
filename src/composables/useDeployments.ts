@@ -145,6 +145,7 @@ export function useDeployments() {
       try {
         await workflowEngineService.createDeployment({
           deploymentId: newDeployment.id,
+          correlationId: slug,
           partnerId,
           serviceId: formData.serviceId!,
           planSlug: formData.planSlug!,
@@ -189,8 +190,14 @@ export function useDeployments() {
         deployment.status = action === 'stop' ? 'stopped' : 'deploying'
       }
 
+      const correlationId = deployment?.slug ?? (() => {
+        console.warn(`[useDeployments] slug not found for deployment ${deploymentId}, falling back to id`)
+        return String(deploymentId)
+      })()
+
       await workflowEngineService.performDeploymentAction({
         deploymentId,
+        correlationId,
         action,
       })
 
@@ -234,11 +241,15 @@ export function useDeployments() {
   async function terminateDeployment(deploymentId: number) {
     isLoading.value = true
     try {
-      // Call workflow engine webhook
-      await workflowEngineService.terminateDeployment({ deploymentId })
+      const deployment = (deployments.value as DeploymentWithRelations[]).find((d) => d.id === deploymentId)
+      const correlationId = deployment?.slug ?? (() => {
+        console.warn(`[useDeployments] slug not found for deployment ${deploymentId}, falling back to id`)
+        return String(deploymentId)
+      })()
+
+      await workflowEngineService.terminateDeployment({ deploymentId, correlationId })
 
       // Update local state optimistically
-      const deployment = (deployments.value as DeploymentWithRelations[]).find((d) => d.id === deploymentId)
       if (deployment) {
         deployment.status = 'pending_deletion'
       }
