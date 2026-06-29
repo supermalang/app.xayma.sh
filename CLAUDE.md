@@ -129,7 +129,7 @@ Apply to every code-writing agent (`/coder`, `/refactor`, `/debugger`):
 
 ## Contribution workflow
 
-**Branches (trunk-based):** branch from `main`; `main` is the integration + production branch. Allowed prefixes: `feature/`, `fix/`, `chore/`, `hotfix/`, `refactor/`, `test/`, `docs/`, `ci/`. Never commit or push directly to `main` (the `guard-git-flow.sh` / `guard-branch.sh` hooks block it).
+**Branches:** always branch from `develop`; `develop` is the integration branch; `main` is production-only (merged from `develop` via release PR). Allowed prefixes: `feature/`, `fix/`, `chore/`, `hotfix/`, `refactor/`, `test/`, `docs/`, `ci/`, `release/`. Never commit or push directly to `main` or `develop` (the `guard-git-flow.sh` / `guard-branch.sh` hooks block it).
 
 **Commits — Conventional Commits:** `type(scope): description`. Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `perf`, `style`, `build`, `revert`.
 
@@ -178,7 +178,7 @@ When invoked manually (e.g. typing `/ux-review`) a role runs in the main loop wi
 
 Configured in `.claude/settings.json`. All stack-specific patterns live in **`.claude/hooks/stack-profile.sh`** — retarget by editing that one file.
 
-**PreToolUse (hard block):** `guard-git-flow` (commit/push to `main`), `guard-branch` (edit `src/` on `main`), `guard-roadmap-gate` (edit gated paths without `.current-task`), `guard-destructive-db` (Supabase reset), `guard-commit-message` (Conventional Commits), `guard-generated-files` (`src/types/database.ts`), `guard-n8n-direct-calls` (direct n8n `fetch()`).
+**PreToolUse (hard block):** `guard-git-flow` (commit/push to `main` or `develop`), `guard-branch` (edit `src/` on `main` or `develop`), `guard-roadmap-gate` (edit gated paths without `.current-task`), `guard-destructive-db` (Supabase reset), `guard-commit-message` (Conventional Commits), `guard-generated-files` (`src/types/database.ts`), `guard-n8n-direct-calls` (direct n8n `fetch()`).
 
 **PostToolUse (warn):** `guard-test-files`, `guard-soft-delete`, `guard-audit-log` (`general_audit`), `guard-expose-hash`, `guard-secret-scan`, `guard-credit-write` (rule 6 — direct `remainingCredits` write), `remind-docs-generate`, `lint-and-typecheck`, `check-i18n-parity` (EN/FR parity). **Stop:** `verify-task-reminder`.
 
