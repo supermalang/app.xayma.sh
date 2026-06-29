@@ -159,7 +159,7 @@ File: `tests/e2e/deployment-correlationid.spec.ts`
 **QA:** — (to be signed off)
 **Delivery:**
 - Commit : cb23272
-- PR     : #(pending)
+- PR     : #59
 - Delivered on : 2026-06-29
 
 ---
