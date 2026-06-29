@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
-# guard-git-flow.sh — enforce the feature-branch → PR → main (trunk-based) workflow.
+# guard-git-flow.sh — enforce the feature-branch → PR → develop → main workflow.
 #
 # Wired as a PreToolUse(Bash) hook in .claude/settings.json. Reads the hook
 # JSON on stdin and, for git commands only, emits a "deny" permission decision
-# when the action would land directly on the protected branch:
-#   - committing while HEAD is on `main`
-#   - pushing `main` (explicit ref, or a bare `git push` while sitting on main)
+# when the action would land directly on a protected branch:
+#   - committing while HEAD is on `main` or `develop`
+#   - pushing `main` or `develop` (explicit ref, or a bare `git push` while sitting on them)
 #
 # Workflow (see CLAUDE.md — Branches):
-#   feature branch → PR/MR → main  (trunk-based; main is the integration + production branch)
+#   feature branch → PR → develop  (integration branch)
+#   develop → PR → main            (production release)
 #
 # Exit 0 with no output = allow (the harness falls back to normal permissions).
 
 set -uo pipefail
 
-PROTECTED="main"
+# Space-separated list of protected branches.
+PROTECTED_LIST="main develop"
+
+is_protected() {
+  local b="$1"
+  for p in $PROTECTED_LIST; do
+    [ "$b" = "$p" ] && return 0
+  done
+  return 1
+}
 
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""')
@@ -38,10 +48,10 @@ deny () {
 
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 
-# --- Block commits made while on the protected branch -----------------------
+# --- Block commits made while on a protected branch -------------------------
 if printf '%s' "$cmd" | grep -Eq 'git( +-[^ ]+)* +commit\b'; then
-  if [ "$branch" = "$PROTECTED" ]; then
-    deny "Refus de committer sur '$PROTECTED' (branche de production). Workflow : crée une branche de feature depuis main — git switch main && git switch -c <type>/<description> — puis committe et ouvre une PR vers main. (Blocked: committing directly on '$PROTECTED'. Branch from main and open a PR targeting main instead.)"
+  if is_protected "$branch"; then
+    deny "Refus de committer sur '$branch' (branche protégée). Workflow : crée une branche de feature depuis develop — git switch develop && git switch -c <type>/<description> — puis committe et ouvre une PR vers develop. (Blocked: committing directly on '$branch'. Branch from develop and open a PR targeting develop instead.)"
   fi
 
   # --- Warn on non-conventional branch name ----------------------------------
@@ -56,15 +66,17 @@ if printf '%s' "$cmd" | grep -Eq 'git( +-[^ ]+)* +commit\b'; then
   esac
 fi
 
-# --- Block pushing the protected branch -------------------------------------
+# --- Block pushing a protected branch ---------------------------------------
 if printf '%s' "$cmd" | grep -Eq 'git( +-[^ ]+)* +push\b'; then
-  # Explicit ref to main: `git push origin main`, `HEAD:main`, `+main`, etc.
-  if printf '%s' "$cmd" | grep -Eq '(^|[[:space:]:+])main([[:space:]]|$)'; then
-    deny "Refus de pousser vers '$PROTECTED'. Pousse ta branche feature et ouvre une PR vers main : git push -u origin <branche> puis gh pr create --base main. (Blocked: pushing to '$PROTECTED'. Push your feature branch and open a PR targeting main.)"
-  fi
-  # Bare `git push` while sitting on main (tracking branch is main).
-  if [ "$branch" = "$PROTECTED" ]; then
-    deny "Tu es sur '$PROTECTED' — un 'git push' nu mettrait à jour la production. Branche, committe, et ouvre une PR vers main. (Blocked: bare push from '$PROTECTED' would update production. Branch and open a PR targeting main.)"
+  # Explicit ref to a protected branch: `git push origin main`, `HEAD:develop`, `+main`, etc.
+  for p in $PROTECTED_LIST; do
+    if printf '%s' "$cmd" | grep -Eq "(^|[[:space:]:+])${p}([[:space:]]|\$)"; then
+      deny "Refus de pousser vers '$p'. Pousse ta branche feature et ouvre une PR vers develop : git push -u origin <branche> puis gh pr create --base develop. (Blocked: pushing to '$p'. Push your feature branch and open a PR targeting develop.)"
+    fi
+  done
+  # Bare `git push` while sitting on a protected branch.
+  if is_protected "$branch"; then
+    deny "Tu es sur '$branch' (branche protégée) — un 'git push' nu est bloqué. Branche depuis develop, committe, et ouvre une PR. (Blocked: bare push from '$branch'. Branch from develop and open a PR instead.)"
   fi
 fi
 
