@@ -190,6 +190,7 @@ export async function callContainerEngineWebhook(
  */
 interface CreateDeploymentPayload extends WebhookPayload {
   deploymentId: number
+  correlationId: string
   partnerId: number
   serviceId: number
   planSlug: string
@@ -202,11 +203,13 @@ interface CreateDeploymentPayload extends WebhookPayload {
 
 interface DeploymentActionPayload extends WebhookPayload {
   deploymentId: number
+  correlationId: string
   action: 'stop' | 'start' | 'restart'
 }
 
 interface TerminateDeploymentPayload extends WebhookPayload {
   deploymentId: number
+  correlationId: string
 }
 
 /**
